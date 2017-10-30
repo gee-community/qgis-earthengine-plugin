@@ -15,12 +15,10 @@ Integrates Google Earth Engine with QGIS using Python API
 - [ ] Fetch (cache?) raster assets locally, for a given rectangle / CRS
 - [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
 
-
-
 ### Misc
 
-* Wiki: [https://github.com/gena/qgis-earthengine-plugin/wiki]
-* Development: [https://github.com/gena/qgis-earthengine-plugin/projects/1]
+* Wiki: https://github.com/gena/qgis-earthengine-plugin/wiki
+* Board: https://github.com/gena/qgis-earthengine-plugin/projects/1
 
 ### Credits
 

@@ -26,7 +26,7 @@ from PyQt4.QtGui import QAction, QIcon
 import resources
 
 # Import the code for the DockWidget
-from earh_engine_dockwidget import EarthEnginePluginDockWidget
+from earth_engine_dockwidget import EarthEnginePluginDockWidget
 import os.path
 
 

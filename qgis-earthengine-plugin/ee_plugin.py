@@ -1,36 +1,19 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 """
-/***************************************************************************
- EarthEnginePlugin
-                                 A QGIS plugin
- Integrates QGIS with Google Earth Engine
-                              -------------------
-        begin                : 2017-06-12
-        git sha              : $Format:%H$
-        copyright            : (C) 2017 by Gennadii Donchyts
-        email                : gennadiy.donchyts@gmail.com
- ***************************************************************************/
+Main plugin file.
+"""
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
 # Initialize Qt resources from file resources.py
 import resources
 
 # Import the code for the DockWidget
-from earth_engine_dockwidget import EarthEnginePluginDockWidget
+from ee_dock_widget import GoogleEarthEngineDockWidget
 import os.path
 
 
-class EarthEnginePlugin:
+class GoogleEarthEnginePlugin:
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
@@ -52,7 +35,7 @@ class EarthEnginePlugin:
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            'EarthEnginePlugin_{}.qm'.format(locale))
+            'GoogleEarthEnginePlugin_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -63,16 +46,15 @@ class EarthEnginePlugin:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&Google Earh Engine Plugin')
+        self.menu = self.tr(u'&Google Earh Engine')
         # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'EarthEnginePlugin')
-        self.toolbar.setObjectName(u'EarthEnginePlugin')
+        self.toolbar = self.iface.addToolBar(u'GoogleEarthEngine')
+        self.toolbar.setObjectName(u'GoogleEarthEngine')
 
-        #print "** INITIALIZING EarthEnginePlugin"
+        # print "** INITIALIZING EarthEnginePlugin"
 
         self.pluginIsActive = False
         self.dockwidget = None
-
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -87,20 +69,19 @@ class EarthEnginePlugin:
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('EarthEnginePlugin', message)
-
+        return QCoreApplication.translate('GoogleEarthEngine', message)
 
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -163,23 +144,22 @@ class EarthEnginePlugin:
 
         return action
 
-
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/EarthEnginePlugin/icon.png'
+        icon_path = ':/plugins/GoogleEarthEngine/icon.png'
         self.add_action(
             icon_path,
             text=self.tr(u'Google Earth Engine'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
-        #print "** CLOSING EarthEnginePlugin"
+        # print "** CLOSING EarthEnginePlugin"
 
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
@@ -192,21 +172,20 @@ class EarthEnginePlugin:
 
         self.pluginIsActive = False
 
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        #print "** UNLOAD EarthEnginePlugin"
+        # print "** UNLOAD EarthEnginePlugin"
 
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&Google Earh Engine Plugin'),
+                self.tr(u'&Google Earth Engine Plugin'),
                 action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def run(self):
         """Run method that loads and starts the plugin"""
@@ -214,14 +193,14 @@ class EarthEnginePlugin:
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-            #print "** STARTING EarthEnginePlugin"
+            # print "** STARTING EarthEnginePlugin"
 
             # dockwidget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
             if self.dockwidget == None:
                 # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = EarthEnginePluginDockWidget()
+                self.dockwidget = GoogleEarthEngineDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
@@ -230,4 +209,3 @@ class EarthEnginePlugin:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
-

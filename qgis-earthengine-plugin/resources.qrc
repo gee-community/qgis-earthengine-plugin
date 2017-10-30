@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/plugins/EarthEnginePlugin" >
+    <qresource prefix="/plugins/GoogleEarthEngine" >
         <file>icon.png</file>
     </qresource>
 </RCC>

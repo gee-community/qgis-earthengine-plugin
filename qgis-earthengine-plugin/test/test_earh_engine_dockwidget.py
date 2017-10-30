@@ -1,11 +1,5 @@
 # coding=utf-8
 """DockWidget test.
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
 """
 
 __author__ = 'gennadiy.donchyts@gmail.com'
@@ -16,19 +10,19 @@ import unittest
 
 from PyQt4.QtGui import QDockWidget
 
-from earh_engine_dockwidget import EarthEnginePluginDockWidget
+from ee_dock_widget import GoogleEarthEngineDockWidget
 
 from utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
 
 
-class EarthEnginePluginDockWidgetTest(unittest.TestCase):
+class GoogleEarthEngineDockWidgetTest(unittest.TestCase):
     """Test dockwidget works."""
 
     def setUp(self):
         """Runs before each test."""
-        self.dockwidget = EarthEnginePluginDockWidget(None)
+        self.dockwidget = GoogleEarthEngineDockWidget(None)
 
     def tearDown(self):
         """Runs after each test."""
@@ -39,7 +33,7 @@ class EarthEnginePluginDockWidgetTest(unittest.TestCase):
         pass
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(EarthEnginePluginDialogTest)
+    suite = unittest.makeSuite(GoogleEarthEngineDockWidgetTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 

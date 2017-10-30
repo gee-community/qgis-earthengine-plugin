@@ -1,28 +1,3 @@
-#/***************************************************************************
-# EarthEnginePlugin
-#
-# Integrates QGIS with Google Earth Engine
-#							 -------------------
-#		begin				: 2017-10-30
-#		git sha				: $Format:%H$
-#		copyright			: (C) 2017 by Gennadii Donchyts
-#		email				: gennadiy.donchyts@gmai.com
-# ***************************************************************************/
-#
-#/***************************************************************************
-# *																		 *
-# *   This program is free software; you can redistribute it and/or modify  *
-# *   it under the terms of the GNU General Public License as published by  *
-# *   the Free Software Foundation; either version 2 of the License, or	 *
-# *   (at your option) any later version.								   *
-# *																		 *
-# ***************************************************************************/
-
-#################################################
-# Edit the following to match your sources lists
-#################################################
-
-
 #Add iso code for any locales you want to support here (space separated)
 # default is no locales
 # LOCALES = af
@@ -38,15 +13,15 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	qgis_google_earth_engine.py qgis_google_earth_engine_dockwidget.py
+	ee_plugin.py ee_dock_widget.py
 
-PLUGINNAME = EarthEnginePlugin
+PLUGINNAME = GoogleEarthEngine
 
 PY_FILES = \
 	__init__.py \
-	qgis_google_earth_engine.py qgis_google_earth_engine_dockwidget.py
+	ee_plugin.py ee_dock_widget.py
 
-UI_FILES = qgis_google_earth_engine_dockwidget_base.ui
+UI_FILES = ee_dock_widget_base.ui
 
 EXTRAS = metadata.txt icon.png
 

@@ -7,7 +7,7 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=Google Earh Engine Plugin
+name=Google Earh Engine
 qgisMinimumVersion=2.0
 description=Integrates QGIS with Google Earth Engine
 version=0.1

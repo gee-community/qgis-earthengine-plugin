@@ -27,7 +27,7 @@ from PyQt4 import QtGui, uic
 from PyQt4.QtCore import pyqtSignal
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'earh_engine_dockwidget_base.ui'))
+    os.path.dirname(__file__), 'earth_engine_dockwidget_base.ui'))
 
 
 class EarthEnginePluginDockWidget(QtGui.QDockWidget, FORM_CLASS):

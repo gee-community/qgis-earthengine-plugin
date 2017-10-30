@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- EETools
+ EarthEnginePlugin
                                  A QGIS plugin
- Earth Engine Tools
-                             -------------------
-        begin                : 2017-08-11
-        copyright            : (C) 2017 by Rodrigo E. Principe
-        email                : fitoprincipe82@gmail.com
+ Integrates QGIS with Google Earth Engine
+                              -------------------
+        begin                : 2017-06-12
         git sha              : $Format:%H$
+        copyright            : (C) 2017 by Gennadii Donchyts
+        email                : gennadiy.donchyts@gmail.com
  ***************************************************************************/
 
 /***************************************************************************

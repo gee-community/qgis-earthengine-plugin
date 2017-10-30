@@ -1,6 +1,7 @@
 rem @echo off
-SET OSGEO4W_ROOT=C:\OSGeo4W64  
-SET PYCHARM="C:\Program Files (x86)\JetBrains\PyCharm 2016.2.2\bin\pycharm.bat"
+SET OSGEO4W_ROOT="C:\Program Files\QGIS Essen" 
+
+SET PYCHARM="C:\Program Files\JetBrains\PyCharm 2017.1.4\bin\pycharm.bat"
 
 call "%OSGEO4W_ROOT%"\bin\o4w_env.bat  
 call "%OSGEO4W_ROOT%"\apps\grass\grass-7.0.4\etc\env.bat  

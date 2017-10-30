@@ -1,18 +1,31 @@
-# qgis-earthengine-plugin
+# Google Earth Engine plugin for QGIS
+
 Integrates Google Earth Engine with QGIS using Python API
 
-* Compile the resources file using pyrcc4: pyrcc4 -o resources.py resources.qrc
+### Status
 
-* Run the tests (``make test``)
+* Pre-alpha
 
-* Test the plugin by enabling it in the QGIS plugin manager
+### Roadmap
 
-* Customize it by editing the implementation file: ``qgis-earthengine-plugin.py``
+- [x] Create a new QGIS plugin skeleton
+- [ ] Embed GEE Python library
+- [ ] Integrate a GEE assets catalog (panel?)
+- [ ] Enable raster layer visualization as a tile layer
+- [ ] Fetch (cache?) raster assets locally, for a given rectangle / CRS
+- [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
 
-* Modify your user interface by opening EarthEnginePlugin.ui in Qt Designer
 
-For more information, see the PyQGIS Developer Cookbook at: http://www.qgis.org/pyqgis-cookbook/index.html
 
-Credits:
+### Misc
 
-* QGIS Plugin Builder: http://g-sherman.github.io/Qgis-Plugin-Builder/
+* Wiki: [https://github.com/gena/qgis-earthengine-plugin/wiki]
+* Development: [https://github.com/gena/qgis-earthengine-plugin/projects/1]
+
+### Credits
+
+### Development links
+
+* [Ujaval Gandhi](https://twitter.com/spatialthoughts) - [QGIS Plugin Builder](http://g-sherman.github.io/Qgis-Plugin-Builder/)
+* JetBrains - [PyCharm](https://www.jetbrains.com/pycharm/)
+

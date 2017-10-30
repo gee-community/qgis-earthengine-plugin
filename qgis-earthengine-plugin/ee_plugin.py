@@ -3,14 +3,16 @@
 Main plugin file.
 """
 
+import os.path
+
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
-# Initialize Qt resources from file resources.py
-import resources
 
 # Import the code for the DockWidget
 from ee_dock_widget import GoogleEarthEngineDockWidget
-import os.path
+
+# Initialize Qt resources from file resources.py
+import resources
 
 
 class GoogleEarthEnginePlugin:
@@ -46,15 +48,13 @@ class GoogleEarthEnginePlugin:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&Google Earh Engine')
+        self.menu = self.tr(u'&Google Earth Engine')
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'GoogleEarthEngine')
         self.toolbar.setObjectName(u'GoogleEarthEngine')
 
-        # print "** INITIALIZING EarthEnginePlugin"
-
         self.pluginIsActive = False
-        self.dockwidget = None
+        self.dock_widget = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -154,15 +154,15 @@ class GoogleEarthEnginePlugin:
             callback=self.run,
             parent=self.iface.mainWindow())
 
+        self.run()
+
     # --------------------------------------------------------------------------
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
-        # print "** CLOSING EarthEnginePlugin"
-
         # disconnects
-        self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
+        self.dock_widget.closingPlugin.disconnect(self.onClosePlugin)
 
         # remove this statement if dockwidget is to remain
         # for reuse if plugin is reopened
@@ -174,8 +174,6 @@ class GoogleEarthEnginePlugin:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-
-        # print "** UNLOAD EarthEnginePlugin"
 
         for action in self.actions:
             self.iface.removePluginMenu(
@@ -193,19 +191,17 @@ class GoogleEarthEnginePlugin:
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-            # print "** STARTING EarthEnginePlugin"
-
-            # dockwidget may not exist if:
+            # dock widget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget == None:
-                # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = GoogleEarthEngineDockWidget()
+            if self.dock_widget == None:
+                # Create the dock widget (after translation) and keep reference
+                self.dock_widget = GoogleEarthEngineDockWidget()
 
-            # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+            # connect to provide cleanup on closing of dock widget
+            self.dock_widget.closingPlugin.connect(self.onClosePlugin)
 
-            # show the dockwidget
-            # TODO: fix to allow choice of dock location
-            self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dockwidget)
-            self.dockwidget.show()
+            # show the dock widget
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
+
+            self.dock_widget.show()

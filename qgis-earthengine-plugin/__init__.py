@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Instantiates Google Earth Engine Plugin.

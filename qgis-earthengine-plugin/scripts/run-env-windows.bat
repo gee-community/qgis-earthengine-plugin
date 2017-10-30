@@ -1,5 +1,5 @@
 rem @echo off
-SET OSGEO4W_ROOT="C:\Program Files\QGIS Essen" 
+SET OSGEO4W_ROOT="C:\OSGeo4W64\"
 
 SET PYCHARM="C:\Program Files\JetBrains\PyCharm 2017.1.4\bin\pycharm.bat"
 

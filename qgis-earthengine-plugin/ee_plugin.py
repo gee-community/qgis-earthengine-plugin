@@ -2,20 +2,23 @@
 """
 Main plugin file.
 """
+from __future__ import absolute_import
 
+from builtins import object
 import os.path
 
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from PyQt4.QtGui import QAction, QIcon
+from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtGui import QIcon
 
 # Import the code for the DockWidget
-from ee_dock_widget import GoogleEarthEngineDockWidget
+from .ee_dock_widget import GoogleEarthEngineDockWidget
 
 # Initialize Qt resources from file resources.py
-import resources
+from . import resources
 
 
-class GoogleEarthEnginePlugin:
+class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
@@ -50,7 +53,7 @@ class GoogleEarthEnginePlugin:
         self.actions = []
         self.menu = self.tr(u'&Google Earth Engine')
         # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'GoogleEarthEngine')
+        self.toolbar = self.iface.addToolBar(u'Google Earth Engine')
         self.toolbar.setObjectName(u'GoogleEarthEngine')
 
         self.pluginIsActive = False

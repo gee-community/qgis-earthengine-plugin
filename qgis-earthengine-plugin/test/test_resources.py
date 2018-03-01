@@ -8,7 +8,7 @@ __copyright__ = 'Copyright 2017, Gennadii Donchyts'
 
 import unittest
 
-from PyQt4.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon
 
 
 class GoogleEarthEngineResourcesTest(unittest.TestCase):

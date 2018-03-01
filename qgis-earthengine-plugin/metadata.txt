@@ -8,7 +8,7 @@
 
 [general]
 name=Google Earh Engine
-qgisMinimumVersion=2.0
+qgisMinimumVersion=3.0
 description=Integrates QGIS with Google Earth Engine
 version=0.1
 author=Gennadii Donchyts

@@ -1,6 +1,7 @@
 # coding=utf-8
 """DockWidget test.
 """
+from __future__ import absolute_import
 
 __author__ = 'gennadiy.donchyts@gmail.com'
 __date__ = '2017-06-12'
@@ -8,11 +9,11 @@ __copyright__ = 'Copyright 2017, Gennadii Donchyts'
 
 import unittest
 
-from PyQt4.QtGui import QDockWidget
+from qgis.PyQt.QtWidgets import QDockWidget
 
 from ee_dock_widget import GoogleEarthEngineDockWidget
 
-from utilities import get_qgis_app
+from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
 

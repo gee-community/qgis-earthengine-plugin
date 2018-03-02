@@ -14,9 +14,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'ee_dock_widget_base.ui'))
 
 
-
 class GoogleEarthEngineDockWidget(QgsDockWidget, FORM_CLASS):
-
     closingPlugin = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -32,4 +30,3 @@ class GoogleEarthEngineDockWidget(QgsDockWidget, FORM_CLASS):
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
-

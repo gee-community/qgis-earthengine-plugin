@@ -9,6 +9,7 @@ Integrates Google Earth Engine with QGIS using Python API
 ### Roadmap
 
 - [x] Create a new QGIS plugin skeleton
+- [x] Migrate to QGIS3
 - [ ] Embed GEE Python library
 - [ ] Integrate a GEE assets catalog (panel?)
 - [ ] Enable raster layer visualization as a tile layer

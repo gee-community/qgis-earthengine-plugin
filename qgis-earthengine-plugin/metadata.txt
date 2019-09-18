@@ -30,7 +30,7 @@ tags=cloud, analysis, dem, geojson, geometry, google, landsat, land cover, proce
 
 homepage=https://github.com/gena/qgis-earthengine-plugin
 category=Plugins
-icon=icon.png
+icon=icons/earth_engine.svg
 # experimental flag
 experimental=True
 

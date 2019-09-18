@@ -24,7 +24,7 @@ class GoogleEarthEngineResourcesTest(unittest.TestCase):
 
     def test_icon_png(self):
         """Test we can click OK."""
-        path = ':/plugins/GoogleEarthEngine/icon.png'
+        path = ':/plugins/GoogleEarthEngine/icons/earth_engine.svg'
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
 

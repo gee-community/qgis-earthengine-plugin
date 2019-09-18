@@ -18,9 +18,14 @@ def add_ee_image_layer(image, name):
     add_ee_xyz_tile_layer(url, name)
 
 def update_ee_image_layer(image, layer):
-    url = get_image_url(image)
-    layer.setDataUrl("type=xyz&url=" + url)
-    print('Updated url: ' + url)
+    url = "type=xyz&url=" + get_image_url(image)
+    
+    layer.dataProvider().setDataSourceUri(url)
+    layer.dataProvider().reloadData()
+    layer.triggerRepaint()
+    layer.reload()
+    
+    iface.mapCanvas().refresh()
     
 def get_layer_by_name(name):
     layers = QgsProject.instance().mapLayers().values()    
@@ -33,7 +38,7 @@ def get_layer_by_name(name):
 
 def add_or_update_ee_image_layer(image, name):
     layer = get_layer_by_name(name)
-    
+
     if layer: 
         if not layer.customProperty('ee-layer'):
             raise Exception('Layer is not an EE layer: ' + name)
@@ -43,6 +48,8 @@ def add_or_update_ee_image_layer(image, name):
         add_ee_image_layer(image, name)
 
 
-image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000)
-# add_or_update_ee_image_layer(image, 'ee-layer1')
-add_ee_image_layer(image, 'dem')
+image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000) \
+    .visualize(**{ 'palette': ['blue', 'red']})
+    
+add_or_update_ee_image_layer(image, 'dem')
+

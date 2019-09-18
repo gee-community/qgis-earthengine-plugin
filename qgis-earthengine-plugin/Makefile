@@ -23,7 +23,7 @@ PY_FILES = \
 
 UI_FILES = ee_dock_widget_base.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt icons/earth_engine.svg
 
 EXTRA_DIRS =
 

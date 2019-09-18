@@ -17,6 +17,8 @@ from .ee_dock_widget import GoogleEarthEngineDockWidget
 # Initialize Qt resources from file resources.py
 from . import resources
 
+import ee
+ee.Initialize()
 
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""

@@ -1,8 +1,21 @@
+# -*- coding: utf-8 -*-
+"""
+functions to use GEE within Qgis python script
+"""
+
 import ee_plugin.utils
 
-def addLayer(image, vis=None, name=None, visibility=None, opacity=None):
-    if vis:
-        image = image.visualize(**vis)
+def addLayer(image, vis_props=None, name=None, visible=None, opacity=None):
+    """
+        Mimique addLayer GEE function
+
+        Uses:
+            >>> from ee_plugin import Map
+            >>> Map.addLayer(.....)
+    """
+    if vis_props:
+        image = image.visualize(**vis_props)
+        
     if not name:
         name = 'untitled'
 

@@ -8,14 +8,17 @@ def get_image_url(image):
     url = map_id['tile_fetcher'].url_format
     return url
 
-def add_ee_xyz_tile_layer(url, name):
-    layer = QgsRasterLayer("type=xyz&url=" + url, name, "wms")
-    layer.setCustomProperty('ee-layer', True)
-    QgsProject.instance().addMapLayer(layer)
-
 def add_ee_image_layer(image, name):
     url = get_image_url(image)
-    add_ee_xyz_tile_layer(url, name)
+
+    layer = QgsRasterLayer("type=xyz&url=" + url, name, "wms")
+    layer.setCustomProperty('ee-layer', True)
+
+    # serialize EE code
+    ee_script = image.serialize()
+    layer.setCustomProperty('ee-script', ee_script)
+
+    QgsProject.instance().addMapLayer(layer)
 
 def update_ee_image_layer(image, layer):
     url = "type=xyz&url=" + get_image_url(image)
@@ -47,14 +50,6 @@ def add_or_update_ee_image_layer(image, name):
     else:
         add_ee_image_layer(image, name)
 
-def add_SRTM_layer():
-    palette = ['543005', '8c510a', 'bf812d', 'dfc27d', 'f6e8c3', 'f5f5f5', 'c7eae5', '80cdc1', '35978f', '01665e', '003c30']
-    palette.reverse()
-    
-    image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000) \
-        .visualize(**{ 'palette': palette})
-        
-    add_or_update_ee_image_layer(image, 'dem')
 
 def add_ee_catalog_image(name, asset_name, vis_props, collection_props):
     image = None
@@ -68,5 +63,11 @@ def add_ee_catalog_image(name, asset_name, vis_props, collection_props):
 
     # set custom property ee_catalog_image = Truw
 
+def add_SRTM_layer():
+    palette = ['543005', '8c510a', 'bf812d', 'dfc27d', 'f6e8c3', 'f5f5f5', 'c7eae5', '80cdc1', '35978f', '01665e', '003c30']
+    palette.reverse()
     
-
+    image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000) \
+        .visualize(**{ 'palette': palette})
+        
+    add_or_update_ee_image_layer(image, 'dem')

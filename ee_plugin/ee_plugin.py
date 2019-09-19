@@ -18,6 +18,7 @@ from .ee_dock_widget import GoogleEarthEngineDockWidget
 from . import resources
 
 import ee
+
 ee.Initialize()
 
 class GoogleEarthEnginePlugin(object):
@@ -210,3 +211,15 @@ class GoogleEarthEnginePlugin(object):
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
 
             self.dock_widget.show()
+
+            self.iface.projectRead.connect(self.updateLayers)
+
+    def updateLayers(self):
+        print('Updating EE layers ...')
+
+        # layers = QgsProject.instance().mapLayers().values()    
+        
+        # for l in layers:
+        #     if(l.name() == name):
+        #         return l
+

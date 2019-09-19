@@ -14,11 +14,13 @@ from qgis.PyQt.QtGui import QIcon
 # Import the code for the DockWidget
 from .ee_dock_widget import GoogleEarthEngineDockWidget
 
+# Google earth engine TODO: create a function for authenticate with GEE
+import ee
+ee.Initialize()
+
 # Initialize Qt resources from file resources.py
 from . import resources
 
-import ee
-ee.Initialize()
 
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""

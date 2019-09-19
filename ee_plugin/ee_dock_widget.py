@@ -10,6 +10,8 @@ from qgis.PyQt.QtCore import pyqtSignal
 
 from qgis.gui import QgsDockWidget
 
+from ee_plugin.ee_catalog import Dataset
+
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'ee_dock_widget_base.ui'))
 

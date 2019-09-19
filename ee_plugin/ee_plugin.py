@@ -10,6 +10,7 @@ import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
+from qgis.core import QgsProject
 
 # Import the code for the DockWidget
 from .ee_dock_widget import GoogleEarthEngineDockWidget
@@ -19,8 +20,12 @@ import ee
 ee.Initialize()
 
 # Initialize Qt resources from file resources.py
-from . import resources
+from . import resources, utils
 
+import ee
+from ee import deserializer
+
+ee.Initialize()
 
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
@@ -216,11 +221,9 @@ class GoogleEarthEnginePlugin(object):
             self.iface.projectRead.connect(self.updateLayers)
 
     def updateLayers(self):
-        print('Updating EE layers ...')
-
-        # layers = QgsProject.instance().mapLayers().values()
-
-        # for l in layers:
-        #     if(l.name() == name):
-        #         return l
-
+        layers = QgsProject.instance().mapLayers().values()    
+        
+        for l in filter(lambda layer: layer.customProperty('ee-layer'), layers):
+            ee_script = l.customProperty('ee-script')
+            image = deserializer.fromJSON(ee_script)
+            utils.update_ee_image_layer(image, l)

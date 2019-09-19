@@ -13,27 +13,37 @@ def get_image_url(image):
     url = map_id['tile_fetcher'].url_format
     return url
 
-def add_ee_image_layer(image, name):
-    url = get_image_url(image)
-
-    layer = QgsRasterLayer("type=xyz&url=" + url, name, "wms")
+def update_ee_layer_properties(layer, image, visibility, opacity):
     layer.setCustomProperty('ee-layer', True)
+
+    if not (opacity is None):
+        layer.renderer().setOpacity(opacity)
 
     # serialize EE code
     ee_script = image.serialize()
     layer.setCustomProperty('ee-script', ee_script)
 
+def add_ee_image_layer(image, name, visibility, opacity):
+    url = "type=xyz&url=" + get_image_url(image)
+    layer = QgsRasterLayer(url, name, "wms")
+    update_ee_layer_properties(layer, image, visibility, opacity)
     QgsProject.instance().addMapLayer(layer)
 
-def update_ee_image_layer(image, layer):
+    if not (visibility is None):
+        QgsProject.instance().layerTreeRoot().findLayer(layer.id()).setItemVisibilityChecked(visibility)
+
+def update_ee_image_layer(image, layer, visibility=True, opacity=1.0):
     url = "type=xyz&url=" + get_image_url(image)
-    
     layer.dataProvider().setDataSourceUri(url)
     layer.dataProvider().reloadData()
+    update_ee_layer_properties(layer, image, visibility, opacity)
     layer.triggerRepaint()
     layer.reload()
-    
     iface.mapCanvas().refresh()
+    
+    item = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+    if not (visibility is None):
+        item.setItemVisibilityChecked(visibility)
     
 def get_layer_by_name(name):
     layers = QgsProject.instance().mapLayers().values()    
@@ -44,17 +54,16 @@ def get_layer_by_name(name):
             
     return None
 
-def add_or_update_ee_image_layer(image, name):
+def add_or_update_ee_image_layer(image, name, visibility, opacity):
     layer = get_layer_by_name(name)
 
     if layer: 
         if not layer.customProperty('ee-layer'):
             raise Exception('Layer is not an EE layer: ' + name)
     
-        update_ee_image_layer(image, layer)
+        update_ee_image_layer(image, layer, visibility, opacity)
     else:
-        add_ee_image_layer(image, name)
-
+        add_ee_image_layer(image, name, visibility, opacity)
 
 def add_ee_catalog_image(name, asset_name, vis_props, collection_props):
     image = None
@@ -66,13 +75,3 @@ def add_ee_catalog_image(name, asset_name, vis_props, collection_props):
 
     add_or_update_ee_image_layer(image, name)
 
-    # set custom property ee_catalog_image = Truw
-
-def add_SRTM_layer():
-    palette = ['543005', '8c510a', 'bf812d', 'dfc27d', 'f6e8c3', 'f5f5f5', 'c7eae5', '80cdc1', '35978f', '01665e', '003c30']
-    palette.reverse()
-    
-    image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000) \
-        .visualize(**{ 'palette': palette})
-        
-    add_or_update_ee_image_layer(image, 'dem')

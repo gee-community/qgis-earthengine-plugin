@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Main plugin file.
 """
@@ -14,12 +14,13 @@ from qgis.PyQt.QtGui import QIcon
 # Import the code for the DockWidget
 from .ee_dock_widget import GoogleEarthEngineDockWidget
 
+# Google earth engine TODO: create a function for authenticate with GEE
+import ee
+ee.Initialize()
+
 # Initialize Qt resources from file resources.py
 from . import resources
 
-import ee
-
-ee.Initialize()
 
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
@@ -200,7 +201,7 @@ class GoogleEarthEnginePlugin(object):
             # dock widget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
-            if self.dock_widget == None:
+            if self.dock_widget is None:
                 # Create the dock widget (after translation) and keep reference
                 self.dock_widget = GoogleEarthEngineDockWidget()
 
@@ -217,8 +218,8 @@ class GoogleEarthEnginePlugin(object):
     def updateLayers(self):
         print('Updating EE layers ...')
 
-        # layers = QgsProject.instance().mapLayers().values()    
-        
+        # layers = QgsProject.instance().mapLayers().values()
+
         # for l in layers:
         #     if(l.name() == name):
         #         return l

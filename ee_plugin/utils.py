@@ -8,14 +8,17 @@ def get_image_url(image):
     url = map_id['tile_fetcher'].url_format
     return url
 
-def add_ee_xyz_tile_layer(url, name):
-    layer = QgsRasterLayer("type=xyz&url=" + url, name, "wms")
-    layer.setCustomProperty('ee-layer', True)
-    QgsProject.instance().addMapLayer(layer)
-
 def add_ee_image_layer(image, name):
     url = get_image_url(image)
-    add_ee_xyz_tile_layer(url, name)
+
+    layer = QgsRasterLayer("type=xyz&url=" + url, name, "wms")
+    layer.setCustomProperty('ee-layer', True)
+
+    # serialize EE code
+    ee_script = image.serialize()
+    layer.setCustomProperty('ee-script', ee_script)
+
+    QgsProject.instance().addMapLayer(layer)
 
 def update_ee_image_layer(image, layer):
     url = "type=xyz&url=" + get_image_url(image)

@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-
-# import all function inside ee_layer
-from .ee_layer import *
-from .utils import *
+# -*- coding: utf-8 -*-
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name

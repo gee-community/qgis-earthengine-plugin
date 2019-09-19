@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Utils functions GEE
+"""
+
 from qgis.core import QgsRasterLayer, QgsProject
 from qgis.utils import iface
 

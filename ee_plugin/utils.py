@@ -8,37 +8,36 @@ def get_image_url(image):
     url = map_id['tile_fetcher'].url_format
     return url
 
-def update_ee_layer(layer, image, visibility, opacity):
+def update_ee_layer_properties(layer, image, visibility, opacity):
     layer.setCustomProperty('ee-layer', True)
-    layer.renderer().setOpacity(opacity)
+
+    if not (opacity is None):
+        layer.renderer().setOpacity(opacity)
 
     # serialize EE code
     ee_script = image.serialize()
     layer.setCustomProperty('ee-script', ee_script)
 
-
 def add_ee_image_layer(image, name, visibility, opacity):
     url = "type=xyz&url=" + get_image_url(image)
     layer = QgsRasterLayer(url, name, "wms")
-    update_ee_layer(layer, image, visibility, opacity)
+    update_ee_layer_properties(layer, image, visibility, opacity)
     QgsProject.instance().addMapLayer(layer)
 
     if not (visibility is None):
         QgsProject.instance().layerTreeRoot().findLayer(layer.id()).setItemVisibilityChecked(visibility)
 
-
-def update_ee_image_layer(image, layer, visibility, opacity):
+def update_ee_image_layer(image, layer, visibility=True, opacity=1.0):
     url = "type=xyz&url=" + get_image_url(image)
     layer.dataProvider().setDataSourceUri(url)
     layer.dataProvider().reloadData()
-    update_ee_layer(layer, image, visibility, opacity)
+    update_ee_layer_properties(layer, image, visibility, opacity)
     layer.triggerRepaint()
     layer.reload()
     iface.mapCanvas().refresh()
     
     item = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
-    print('item: ', item)
-    if not (val is None):
+    if not (visibility is None):
         item.setItemVisibilityChecked(visibility)
     
 def get_layer_by_name(name):
@@ -60,7 +59,6 @@ def add_or_update_ee_image_layer(image, name, visibility, opacity):
         update_ee_image_layer(image, layer, visibility, opacity)
     else:
         add_ee_image_layer(image, name, visibility, opacity)
-
 
 def add_ee_catalog_image(name, asset_name, vis_props, collection_props):
     image = None

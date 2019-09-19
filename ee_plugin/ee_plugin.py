@@ -201,7 +201,7 @@ class GoogleEarthEnginePlugin(object):
             # dock widget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
-            if self.dock_widget == None:
+            if self.dock_widget is None:
                 # Create the dock widget (after translation) and keep reference
                 self.dock_widget = GoogleEarthEngineDockWidget()
 

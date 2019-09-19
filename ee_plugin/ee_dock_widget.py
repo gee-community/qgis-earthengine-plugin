@@ -32,3 +32,33 @@ class GoogleEarthEngineDockWidget(QgsDockWidget, FORM_CLASS):
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
+
+    def get_ee_catalog(self):
+        """
+        Get all google earth engine catalog and return a json
+        """
+        Dataset.instances = []
+        # TODO get all catalog datasets
+
+        # example
+        datasets = [
+            {"name": "DEM",
+             "url": 'USGS/SRTMGL1_003',
+             "scale": (0, 5000),
+             "thumbnails": "https://mw1.google.com/ges/dd/images/SRTM90_V4_sample.png"}
+        ]
+
+
+        for ee_img in datasets:
+            ee_dataset = Dataset()
+            # ....
+
+    def build_ee_catalog(self):
+        """
+        Build/show all the GEE catalog in a table inside the dockwidget plugin
+        """
+        ee_catalog = self.get_ee_catalog()
+
+
+
+

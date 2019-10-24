@@ -22,10 +22,6 @@ ee.Initialize()
 # Initialize Qt resources from file resources.py
 from . import resources, utils
 
-import ee
-from ee import deserializer
-
-ee.Initialize()
 
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
@@ -225,5 +221,5 @@ class GoogleEarthEnginePlugin(object):
         
         for l in filter(lambda layer: layer.customProperty('ee-layer'), layers):
             ee_script = l.customProperty('ee-script')
-            image = deserializer.fromJSON(ee_script)
+            image = ee.deserializer.fromJSON(ee_script)
             utils.update_ee_image_layer(image, l)

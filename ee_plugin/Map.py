@@ -2,10 +2,11 @@
 """
 functions to use GEE within Qgis python script
 """
+import ee
 
 import ee_plugin.utils
 
-def addLayer(image, vis=None, name=None, visible=None, opacity=None):
+def addLayer(image, vis_props=None, name='untitled', visibility=True, opacity=1.0):
     """
         Mimique addLayer GEE function
 
@@ -13,16 +14,11 @@ def addLayer(image, vis=None, name=None, visible=None, opacity=None):
             >>> from ee_plugin import Map
             >>> Map.addLayer(.....)
     """
+    if not isinstance(image, ee.Image):
+        err_str = "\n\nThe image argument in 'addLayer' function must be a 'ee.Image' instance."
+        raise AttributeError(err_str)
+
     if vis:
         image = image.visualize(**vis)
-        
-    if not name:
-        name = 'untitled'
 
-    if not opacity:
-        opacity = 1.0
-
-    if not (visible is None):
-        visible = True
-    
-    ee_plugin.utils.add_or_update_ee_image_layer(image, name, visible, opacity)
+    ee_plugin.utils.add_or_update_ee_image_layer(image, name, visibility, opacity)

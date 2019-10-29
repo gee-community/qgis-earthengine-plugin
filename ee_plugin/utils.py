@@ -8,10 +8,12 @@ from qgis.utils import iface
 
 import ee
 
+
 def get_image_url(image):
     map_id = ee.data.getMapId({'image': image}) 
     url = map_id['tile_fetcher'].url_format
     return url
+
 
 def update_ee_layer_properties(layer, image, visibility, opacity):
     layer.setCustomProperty('ee-layer', True)
@@ -23,6 +25,7 @@ def update_ee_layer_properties(layer, image, visibility, opacity):
     ee_script = image.serialize()
     layer.setCustomProperty('ee-script', ee_script)
 
+
 def add_ee_image_layer(image, name, visibility, opacity):
     url = "type=xyz&url=" + get_image_url(image)
     layer = QgsRasterLayer(url, name, "wms")
@@ -31,6 +34,7 @@ def add_ee_image_layer(image, name, visibility, opacity):
 
     if not (visibility is None):
         QgsProject.instance().layerTreeRoot().findLayer(layer.id()).setItemVisibilityChecked(visibility)
+
 
 def update_ee_image_layer(image, layer, visibility=True, opacity=1.0):
     url = "type=xyz&url=" + get_image_url(image)
@@ -44,17 +48,19 @@ def update_ee_image_layer(image, layer, visibility=True, opacity=1.0):
     item = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
     if not (visibility is None):
         item.setItemVisibilityChecked(visibility)
-    
+
+
 def get_layer_by_name(name):
     layers = QgsProject.instance().mapLayers().values()    
     
     for l in layers:
-        if(l.name() == name):
+        if l.name() == name:
             return l
             
     return None
 
-def add_or_update_ee_image_layer(image, name, visibility, opacity):
+
+def add_or_update_ee_image_layer(image, name, visibility=True, opacity=1.0):
     layer = get_layer_by_name(name)
 
     if layer: 
@@ -64,6 +70,7 @@ def add_or_update_ee_image_layer(image, name, visibility, opacity):
         update_ee_image_layer(image, layer, visibility, opacity)
     else:
         add_ee_image_layer(image, name, visibility, opacity)
+
 
 def add_ee_catalog_image(name, asset_name, vis_props, collection_props):
     image = None

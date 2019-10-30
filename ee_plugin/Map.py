@@ -6,7 +6,7 @@ import ee
 
 import ee_plugin.utils
 
-def addLayer(image, vis_props=None, name='untitled', visibility=True, opacity=1.0):
+def addLayer(image, vis=None, name='untitled', visibility=True, opacity=1.0):
     """
         Mimique addLayer GEE function
 

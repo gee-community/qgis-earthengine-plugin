@@ -2,12 +2,13 @@
 """
 functions to use GEE within Qgis python script
 """
+import json
 import ee
 
 import ee_plugin.utils
 
 
-def addLayer(image: ee.Image, visParams=None, name='untitled', shown=True, opacity=1.0):
+def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0):
     """
         Mimique addLayer GEE function
 
@@ -21,5 +22,12 @@ def addLayer(image: ee.Image, visParams=None, name='untitled', shown=True, opaci
 
     if visParams:
         image = image.visualize(**visParams)
+
+    if name is None:
+        # extract name from id
+        try:
+            name = json.loads(image.id().serialize())["scope"][0][1]["arguments"]["id"]
+        except:
+            name = "untitled"
 
     ee_plugin.utils.add_or_update_ee_image_layer(image, name, shown, opacity)

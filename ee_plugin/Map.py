@@ -6,7 +6,8 @@ import ee
 
 import ee_plugin.utils
 
-def addLayer(image, vis=None, name='untitled', visibility=True, opacity=1.0):
+
+def addLayer(image: ee.Image, visParams=None, name='untitled', shown=True, opacity=1.0):
     """
         Mimique addLayer GEE function
 
@@ -18,7 +19,7 @@ def addLayer(image, vis=None, name='untitled', visibility=True, opacity=1.0):
         err_str = "\n\nThe image argument in 'addLayer' function must be a 'ee.Image' instance."
         raise AttributeError(err_str)
 
-    if vis:
-        image = image.visualize(**vis)
+    if visParams:
+        image = image.visualize(**visParams)
 
-    ee_plugin.utils.add_or_update_ee_image_layer(image, name, visibility, opacity)
+    ee_plugin.utils.add_or_update_ee_image_layer(image, name, shown, opacity)

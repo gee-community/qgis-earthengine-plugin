@@ -10,8 +10,8 @@ from qgis.PyQt.QtCore import pyqtSignal, QUrl
 
 from qgis.gui import QgsDockWidget
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'ee_dock_widget_base.ui'))
+plugin_folder = os.path.dirname(__file__)
+FORM_CLASS, _ = uic.loadUiType(os.path.join(plugin_folder, 'ee_dock_widget_base.ui'))
 
 
 class GoogleEarthEngineDockWidget(QgsDockWidget, FORM_CLASS):
@@ -31,7 +31,7 @@ class GoogleEarthEngineDockWidget(QgsDockWidget, FORM_CLASS):
         self.tab_widget.currentChanged.connect(self.tab_activation)
 
         # home page
-        #self.home_plugin_webview.setUrl(QUrl("https://developers.google.com/earth-engine/datasets/catalog/"))
+        self.home_plugin_webview.load(QUrl.fromLocalFile(os.path.join(plugin_folder, "home_plugin.html")))
 
         # catalog tab
         self.catalog_webview.page().mainFrame().initialLayoutCompleted.connect(self.fix_catalog_tab)

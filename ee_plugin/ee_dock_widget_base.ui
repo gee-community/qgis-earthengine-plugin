@@ -63,10 +63,11 @@
         </property>
         <item>
          <widget class="QWebView" name="home_plugin_webview">
-          <property name="url">
-           <url>
-            <string>about:blank</string>
-           </url>
+          <property name="zoomFactor">
+           <double>1.500000000000000</double>
+          </property>
+          <property name="renderHints">
+           <set>QPainter::Antialiasing|QPainter::HighQualityAntialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
           </property>
          </widget>
         </item>

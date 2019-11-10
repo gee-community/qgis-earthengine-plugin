@@ -13,14 +13,15 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProject
 
 # Import the code for the DockWidget
-from .ee_dock_widget import GoogleEarthEngineDockWidget
+import ee_plugin
+from ee_plugin.ee_dock_widget import GoogleEarthEngineDockWidget
 
 # Google earth engine TODO: create a function for authenticate with GEE
 import ee
 ee.Initialize()
 
 # Initialize Qt resources from file resources.py
-from . import resources, utils
+from . import resources
 
 
 class GoogleEarthEnginePlugin(object):
@@ -222,4 +223,4 @@ class GoogleEarthEnginePlugin(object):
         for l in filter(lambda layer: layer.customProperty('ee-layer'), layers):
             ee_script = l.customProperty('ee-script')
             image = ee.deserializer.fromJSON(ee_script)
-            utils.update_ee_image_layer(image, l)
+            ee_plugin.utils.update_ee_image_layer(image, l)

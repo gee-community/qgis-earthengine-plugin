@@ -61,6 +61,6 @@ def setCenter(lon, lat, zoom=None):
 
     ### zoom
     if zoom is not None:
-        # transform scale level
+        # transform the zoom level to scale
         scale_value = 591657550.5 / 2 ** (zoom - 1)
         iface.mapCanvas().zoomScale(scale_value)

@@ -9,7 +9,7 @@ from qgis.utils import iface
 import ee
 
 
-def get_image_url(image):
+def get_ee_image_url(image):
     map_id = ee.data.getMapId({'image': image}) 
     url = map_id['tile_fetcher'].url_format
     return url
@@ -27,7 +27,7 @@ def update_ee_layer_properties(layer, image, shown, opacity):
 
 
 def add_ee_image_layer(image, name, shown, opacity):
-    url = "type=xyz&url=" + get_image_url(image)
+    url = "type=xyz&url=" + get_ee_image_url(image)
     layer = QgsRasterLayer(url, name, "wms")
     update_ee_layer_properties(layer, image, shown, opacity)
     QgsProject.instance().addMapLayer(layer)
@@ -37,7 +37,7 @@ def add_ee_image_layer(image, name, shown, opacity):
 
 
 def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
-    url = "type=xyz&url=" + get_image_url(image)
+    url = "type=xyz&url=" + get_ee_image_url(image)
     layer.dataProvider().setDataSourceUri(url)
     layer.dataProvider().reloadData()
     update_ee_layer_properties(layer, image, shown, opacity)

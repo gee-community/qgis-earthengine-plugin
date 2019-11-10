@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/ee_plugin/icons" >
+        <file>earth_engine.svg</file>
+    </qresource>
+</RCC>

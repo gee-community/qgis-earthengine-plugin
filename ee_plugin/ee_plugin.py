@@ -21,7 +21,7 @@ import ee
 ee.Initialize()
 
 # Initialize Qt resources from file resources.py
-from . import resources
+from ee_plugin.icons import resources
 
 
 class GoogleEarthEnginePlugin(object):
@@ -55,15 +55,9 @@ class GoogleEarthEnginePlugin(object):
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
-        # Declare instance attributes
-        self.actions = []
-        self.menu = self.tr(u'&Google Earth Engine')
-        # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'Google Earth Engine')
-        self.toolbar.setObjectName(u'GoogleEarthEngine')
-
+        self.menu_name_plugin = self.tr("Google Earth Engine Plugin")
         self.pluginIsActive = False
-        self.dock_widget = None
+        self.dockwidget = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -80,117 +74,16 @@ class GoogleEarthEnginePlugin(object):
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('GoogleEarthEngine', message)
 
-    def add_action(
-            self,
-            icon_path,
-            text,
-            callback,
-            enabled_flag=True,
-            add_to_menu=True,
-            add_to_toolbar=True,
-            status_tip=None,
-            whats_this=None,
-            parent=None):
-        """Add a toolbar icon to the toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
-
-        icon = QIcon(icon_path)
-        action = QAction(icon, text, parent)
-        action.triggered.connect(callback)
-        action.setEnabled(enabled_flag)
-
-        if status_tip is not None:
-            action.setStatusTip(status_tip)
-
-        if whats_this is not None:
-            action.setWhatsThis(whats_this)
-
-        if add_to_toolbar:
-            self.toolbar.addAction(action)
-
-        if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
-
-        self.actions.append(action)
-
-        return action
-
     def initGui(self):
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
-        icon_path = ':/plugins/GoogleEarthEngine/icons/earth_engine.svg'
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Google Earth Engine'),
-            callback=self.run,
-            parent=self.iface.mainWindow())
-
-        self.run()
-
-    # --------------------------------------------------------------------------
-
-    def onClosePlugin(self):
-        """Cleanup necessary items here when plugin dockwidget is closed"""
-
-        # disconnects
-        self.dock_widget.closingPlugin.disconnect(self.onClosePlugin)
-
-        # remove this statement if dockwidget is to remain
-        # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crashe
-        # when closing the docked window:
-        # self.dockwidget = None
-
-        self.pluginIsActive = False
-
-    def unload(self):
-        """Removes the plugin menu item and icon from QGIS GUI."""
-
-        for action in self.actions:
-            self.iface.removePluginMenu(
-                self.tr(u'&Google Earth Engine Plugin'),
-                action)
-            self.iface.removeToolBarIcon(action)
-        # remove the toolbar
-        del self.toolbar
+        ### Main dockwidget menu
+        # Create action that will start plugin configuration
+        icon_path = ':/plugins/ee_plugin/icons/earth_engine.svg'
+        self.dockable_action = QAction(QIcon(icon_path), "GoogleEarthEngine", self.iface.mainWindow())
+        # connect the action to the run method
+        self.dockable_action.triggered.connect(self.run)
+        # Add toolbar button and menu item
+        self.iface.addToolBarIcon(self.dockable_action)
+        self.iface.addPluginToMenu(self.menu_name_plugin, self.dockable_action)
 
     # --------------------------------------------------------------------------
 
@@ -200,22 +93,49 @@ class GoogleEarthEnginePlugin(object):
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-            # dock widget may not exist if:
+            # dockwidget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
-            if self.dock_widget is None:
-                # Create the dock widget (after translation) and keep reference
-                self.dock_widget = GoogleEarthEngineDockWidget()
+            if self.dockwidget == None:
+                # Create the dockwidget (after translation) and keep reference
+                self.dockwidget = GoogleEarthEngineDockWidget()
 
-            # connect to provide cleanup on closing of dock widget
-            self.dock_widget.closingPlugin.connect(self.onClosePlugin)
+            # connect to provide cleanup on closing of dockwidget
+            self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
-            # show the dock widget
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
+            # show the dockwidget
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            self.dockwidget.show()
 
-            self.dock_widget.show()
+    def onClosePlugin(self):
+        """Cleanup necessary items here when plugin dockwidget is closed"""
 
-            self.iface.projectRead.connect(self.updateLayers)
+        # disconnects
+        self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
+
+        # remove this statement if dockwidget is to remain
+        # for reuse if plugin is reopened
+        # Commented next statement since it causes QGIS crashe
+        # when closing the docked window:
+        # self.dockwidget = None
+
+        self.dockwidget.deleteLater()
+        self.dockwidget = None
+
+        self.pluginIsActive = False
+
+        from qgis.utils import reloadPlugin
+        reloadPlugin("Google Earh Engine Plugin")
+
+    def unload(self):
+        # Remove the plugin menu item and icon
+        self.iface.removePluginMenu(self.menu_name_plugin, self.dockable_action)
+        self.iface.removeToolBarIcon(self.dockable_action)
+
+        if self.dockwidget:
+            self.iface.removeDockWidget(self.dockwidget)
+
+    # --------------------------------------------------------------------------
 
     def updateLayers(self):
         layers = QgsProject.instance().mapLayers().values()    

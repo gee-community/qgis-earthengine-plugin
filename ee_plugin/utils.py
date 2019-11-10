@@ -15,7 +15,7 @@ def get_image_url(image):
     return url
 
 
-def update_ee_layer_properties(layer, image, visibility, opacity):
+def update_ee_layer_properties(layer, image, shown, opacity):
     layer.setCustomProperty('ee-layer', True)
 
     if not (opacity is None):
@@ -26,28 +26,28 @@ def update_ee_layer_properties(layer, image, visibility, opacity):
     layer.setCustomProperty('ee-script', ee_script)
 
 
-def add_ee_image_layer(image, name, visibility, opacity):
+def add_ee_image_layer(image, name, shown, opacity):
     url = "type=xyz&url=" + get_image_url(image)
     layer = QgsRasterLayer(url, name, "wms")
-    update_ee_layer_properties(layer, image, visibility, opacity)
+    update_ee_layer_properties(layer, image, shown, opacity)
     QgsProject.instance().addMapLayer(layer)
 
-    if not (visibility is None):
-        QgsProject.instance().layerTreeRoot().findLayer(layer.id()).setItemVisibilityChecked(visibility)
+    if not (shown is None):
+        QgsProject.instance().layerTreeRoot().findLayer(layer.id()).setItemVisibilityChecked(shown)
 
 
-def update_ee_image_layer(image, layer, visibility=True, opacity=1.0):
+def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
     url = "type=xyz&url=" + get_image_url(image)
     layer.dataProvider().setDataSourceUri(url)
     layer.dataProvider().reloadData()
-    update_ee_layer_properties(layer, image, visibility, opacity)
+    update_ee_layer_properties(layer, image, shown, opacity)
     layer.triggerRepaint()
     layer.reload()
     iface.mapCanvas().refresh()
     
     item = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
-    if not (visibility is None):
-        item.setItemVisibilityChecked(visibility)
+    if not (shown is None):
+        item.setItemVisibilityChecked(shown)
 
 
 def get_layer_by_name(name):
@@ -60,25 +60,25 @@ def get_layer_by_name(name):
     return None
 
 
-def add_or_update_ee_image_layer(image, name, visibility=True, opacity=1.0):
+def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
     layer = get_layer_by_name(name)
 
     if layer: 
         if not layer.customProperty('ee-layer'):
             raise Exception('Layer is not an EE layer: ' + name)
     
-        update_ee_image_layer(image, layer, visibility, opacity)
+        update_ee_image_layer(image, layer, shown, opacity)
     else:
-        add_ee_image_layer(image, name, visibility, opacity)
+        add_ee_image_layer(image, name, shown, opacity)
 
 
-def add_ee_catalog_image(name, asset_name, vis_props, collection_props):
+def add_ee_catalog_image(name, asset_name, visParams, collection_props):
     image = None
     
     if collection_props:
         raise Exception('Not supported yet')
     else:
-        image = ee.Image(asset_name).visualize(vis_props)
+        image = ee.Image(asset_name).visualize(visParams)
 
     add_or_update_ee_image_layer(image, name)
 

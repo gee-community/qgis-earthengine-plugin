@@ -5,15 +5,13 @@ Main dock panel
 
 import os
 
-from qgis.PyQt import QtGui, uic
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSignal, QUrl
 
 from qgis.gui import QgsDockWidget
 
-from ee_plugin.ee_catalog import Dataset
-
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'ee_dock_widget_base.ui'))
+plugin_folder = os.path.dirname(__file__)
+FORM_CLASS, _ = uic.loadUiType(os.path.join(plugin_folder, 'ee_dock_widget_base.ui'))
 
 
 class GoogleEarthEngineDockWidget(QgsDockWidget, FORM_CLASS):
@@ -29,36 +27,47 @@ class GoogleEarthEngineDockWidget(QgsDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
+        # switch tabs
+        self.tab_widget.currentChanged.connect(self.tab_activation)
+
+        # home page
+        self.home_plugin_webview.load(QUrl.fromLocalFile(os.path.join(plugin_folder, "home_plugin.html")))
+
+        # catalog tab
+        self.catalog_webview.page().mainFrame().initialLayoutCompleted.connect(self.fix_catalog_tab)
+
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
 
-    def get_ee_catalog(self):
+    def tab_activation(self, tab_index):
+        # GEE Catalog
+        if tab_index == 1:
+            if self.catalog_webview.url().isEmpty():
+                self.catalog_webview.setUrl(QUrl("https://developers.google.com/earth-engine/datasets/catalog/"))
+        # GEE Doc Api
+        if tab_index == 2:
+            if self.doc_api_webview.url().isEmpty():
+                self.doc_api_webview.load(QUrl("https://developers.google.com/earth-engine/api_docs"))
+
+    def fix_catalog_tab(self):
+        # fix thumbnails
+        java_script = """
+            var styleTag = document.createElement('style');
+            styleTag.innerHTML = `
+            .ee-datasets-grid .ee-sample-image img {
+                display: block !important;
+                height: 150px !important;
+            }
+            .ee-datasets-grid ul.list h3 {
+                font-size: 13pt;
+                height: unset;
+                line-height: 18pt;
+                margin-top: 8px;
+                margin-bottom: 8px;
+                overflow: hidden;
+            }
+            `
+            document.body.appendChild(styleTag);
         """
-        Get all google earth engine catalog and return a json
-        """
-        Dataset.instances = []
-        # TODO get all catalog datasets
-
-        # example
-        datasets = [
-            {"name": "DEM",
-             "url": 'USGS/SRTMGL1_003',
-             "scale": (0, 5000),
-             "thumbnails": "https://mw1.google.com/ges/dd/images/SRTM90_V4_sample.png"}
-        ]
-
-
-        for ee_img in datasets:
-            ee_dataset = Dataset()
-            # ....
-
-    def build_ee_catalog(self):
-        """
-        Build/show all the GEE catalog in a table inside the dockwidget plugin
-        """
-        ee_catalog = self.get_ee_catalog()
-
-
-
-
+        self.catalog_webview.page().mainFrame().evaluateJavaScript(java_script)

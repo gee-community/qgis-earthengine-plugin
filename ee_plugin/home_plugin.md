@@ -20,6 +20,18 @@ Map.addLayer(image, visParams=None,
 # image: must be a 'ee.Image' instance
 ```
 
+- **Map.setCenter**
+
+```python
+from ee_plugin import Map
+
+Map.setCenter(lon, lat, zoom=None)
+
+# Note:
+# lon and lat in geographical values
+# zoom (optional) scale level, from 1 to 24
+```
+
 ### Examples
 
 ```python

@@ -5,12 +5,17 @@ functions to use GEE within Qgis python script
 import json
 import ee
 
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, Qgis, QgsProject, QgsPointXY
+from qgis.utils import iface
+
 import ee_plugin.utils
 
 
 def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0):
     """
         Mimique addLayer GEE function
+
+        https://developers.google.com/earth-engine/api_docs#map.addlayer
 
         Uses:
             >>> from ee_plugin import Map
@@ -31,3 +36,31 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
             name = "untitled"
 
     ee_plugin.utils.add_or_update_ee_image_layer(image, name, shown, opacity)
+
+
+def setCenter(lon, lat, zoom=None):
+    """
+        Mimique setCenter GEE function
+
+        https://developers.google.com/earth-engine/api_docs#map.setcenter
+
+        Uses:
+            >>> from ee_plugin import Map
+            >>> Map.setCenter(lon, lat, zoom)
+    """
+
+    ### center
+    center_point_in = QgsPointXY(lon, lat)
+    # convert coordinates
+    crsSrc = QgsCoordinateReferenceSystem(4326)  # WGS84
+    crsDest = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
+    xform = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
+    # forward transformation: src -> dest
+    center_point = xform.transform(center_point_in)
+    iface.mapCanvas().setCenter(center_point)
+
+    ### zoom
+    if zoom is not None:
+        # transform scale level
+        scale_value = 591657550.5 / 2 ** (zoom - 1)
+        iface.mapCanvas().zoomScale(scale_value)

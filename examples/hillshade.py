@@ -1,6 +1,5 @@
 from ee_plugin import Map
-from ee_plugin import utils
-from ee_plugin import palettes
+from ee_plugin.resources import palettes
 import ee
 
 dem = ee.Image("JAXA/ALOS/AW3D30_V1_1").select('MED')

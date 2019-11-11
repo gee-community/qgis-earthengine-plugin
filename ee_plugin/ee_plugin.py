@@ -12,7 +12,8 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProject
 
-# Import the code for the DockWidget
+import ee
+
 import ee_plugin
 from ee_plugin.ee_dock_widget import GoogleEarthEngineDockWidget
 

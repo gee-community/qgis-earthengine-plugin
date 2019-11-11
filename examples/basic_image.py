@@ -6,8 +6,8 @@ image = ee.Image.pixelLonLat() \
 
 # image = image.multiply(50).sin()
 
+Map.setCenter(0, 28, 2.5)
 Map.addLayer(image, {}, 'coords', True)
-
 
 #######
 
@@ -15,9 +15,9 @@ import ee
 ee.Initialize()
 
 from ee_plugin import Map
-from ee_plugin import utils
 
 image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000) \
     .visualize(**{'palette': ['blue', 'red']})
 
-utils.add_or_update_ee_image_layer(image, 'dem')
+Map.setCenter(0, 28, 2.5)
+Map.addLayer(image, {}, 'dem', True)

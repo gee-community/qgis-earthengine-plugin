@@ -18,7 +18,5 @@ hs = hs.multiply(1-weight).add(hsv.select('value').multiply(weight))
 hsv = hsv.addBands(hs.rename('value'), ['value'], True)
 rgb = hsv.hsvToRgb()
 
+Map.setCenter(0, 28, 2.5)
 Map.addLayer(rgb, {}, 'ALOS DEM', True)
-
-
-

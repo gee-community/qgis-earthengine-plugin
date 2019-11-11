@@ -12,8 +12,6 @@ Map.addLayer(image, {}, 'coords', True)
 #######
 
 import ee
-ee.Initialize()
-
 from ee_plugin import Map
 
 image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000) \

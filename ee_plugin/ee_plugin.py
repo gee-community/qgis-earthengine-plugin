@@ -16,10 +16,6 @@ from qgis.core import QgsProject
 import ee_plugin
 from ee_plugin.ee_dock_widget import GoogleEarthEngineDockWidget
 
-# Google earth engine TODO: create a function for authenticate with GEE
-import ee
-ee.Initialize()
-
 # Initialize Qt resources from file resources.py
 from ee_plugin.icons import resources
 

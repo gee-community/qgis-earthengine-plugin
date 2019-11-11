@@ -1,6 +1,4 @@
 import ee
-ee.Initialize()
-
 from ee_plugin import Map
 
 collection = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')\

@@ -9,6 +9,7 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, Qgis
 from qgis.utils import iface
 
 import ee_plugin.utils
+import ee_plugin.ee_auth
 
 
 def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0):
@@ -21,6 +22,8 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
             >>> from ee_plugin import Map
             >>> Map.addLayer(.....)
     """
+    ee_plugin.ee_auth.init()
+
     if not isinstance(image, ee.Image):
         err_str = "\n\nThe image argument in 'addLayer' function must be a 'ee.Image' instance."
         raise AttributeError(err_str)

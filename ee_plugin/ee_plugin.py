@@ -14,7 +14,9 @@ from qgis.core import QgsProject
 
 import ee
 
-import ee_plugin
+import ee_plugin.ee_auth
+ee_plugin.ee_auth.init()
+
 from ee_plugin.ee_dock_widget import GoogleEarthEngineDockWidget
 
 # Initialize Qt resources from file resources.py

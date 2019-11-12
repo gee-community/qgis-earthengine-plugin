@@ -2,7 +2,7 @@ from ee_plugin import Map
 import ee
 
 image = ee.ImageCollection('COPERNICUS/S2') \
-  .filterDate('2017-01-01', '2018-01-01').median() \
+  .filterDate('2017-01-01', '2017-01-02').median() \
   .divide(10000).visualize(**{'bands': ['B12', 'B8', 'B4'], 'min': 0.05, 'max': 0.5})
   
 Map.setCenter(35.2, 31, 13)

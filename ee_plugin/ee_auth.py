@@ -7,6 +7,7 @@ from qgis.PyQt.QtWidgets import QInputDialog
 
 import ee
 
+
 def init():
     try:
         ee.Initialize()

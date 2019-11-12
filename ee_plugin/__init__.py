@@ -16,6 +16,7 @@ site.addsitedir(os.path.abspath(os.path.dirname(__file__) + extlib_path))
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtWidgets import QMessageBox
 
+
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Instantiates Google Earth Engine Plugin.

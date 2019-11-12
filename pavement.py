@@ -101,7 +101,7 @@ def read_requirements():
 ])
 def package(options):
     '''create package for plugin'''
-    builddocs(options)
+    #builddocs(options) TODO
     package_file = options.plugin.package_dir / ('%s.zip' % options.plugin.name)
     with zipfile.ZipFile(package_file, "w", zipfile.ZIP_DEFLATED) as f:
         if not hasattr(options.package, 'tests'):

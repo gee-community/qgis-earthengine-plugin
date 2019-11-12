@@ -8,7 +8,6 @@ from qgis.utils import iface
 
 import ee
 
-
 def get_ee_image_url(image):
     map_id = ee.data.getMapId({'image': image}) 
     url = map_id['tile_fetcher'].url_format

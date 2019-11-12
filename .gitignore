@@ -2,3 +2,6 @@
 .idea/
 
 __pycache__
+extlibs
+
+help/build

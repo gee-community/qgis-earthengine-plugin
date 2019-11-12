@@ -1,0 +1,2 @@
+qgiscommons
+earthengine-api

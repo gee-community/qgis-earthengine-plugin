@@ -4,10 +4,10 @@ import os
 import sys
 import site
 
-if os.name == 'nt':
+if sys.platform == 'win32':
     extlib_path = '/extlibs_windows'
 elif sys.platform == 'darwin':
-    extlib_path = '/extlibs_macos'
+    extlib_path = '/extlibs_darwin'
 else:
     extlib_path = '/extlibs_linux'
 

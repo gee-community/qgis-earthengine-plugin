@@ -12,10 +12,19 @@ from collections import defaultdict
 from paver.easy import *
 from paver.doctools import html
 
+def get_extlibs():
+    if os.name == 'nt':
+        return 'ee_plugin/extlibs_windows'
+    elif sys.platform == 'darwin':
+        return 'ee_plugin/extlibs_macos'
+    else:
+        return 'ee_plugin/extlibs_linux'
+
+
 options(
     plugin = Bunch(
         name = 'ee_plugin',
-        ext_libs = path('ee_plugin/extlibs'),
+        ext_libs = path(get_extlibs()),
         source_dir = path('ee_plugin'),
         package_dir = path('.'),
         tests = ['test', 'tests'],

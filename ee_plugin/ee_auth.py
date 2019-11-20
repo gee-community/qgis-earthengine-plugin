@@ -13,6 +13,7 @@ def init():
         ee.Initialize()
     except ee.ee_exception.EEException:
         authenticate()
+        ee.Initialize() # retry initialization once the user logs in
 
 
 def authenticate():

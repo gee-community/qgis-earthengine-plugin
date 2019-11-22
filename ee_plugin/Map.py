@@ -33,10 +33,11 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
         if visParams and 'color' in visParams:
             color = visParams['color']
 
-        image = features.style(**{ 'color': color, 'fillColor': color + '22' })
+        image = features.style(**{ 'color': color })
 
-    if isinstance(image, ee.Image) and visParams:
-        image = image.visualize(**visParams)
+    else:
+        if isinstance(image, ee.Image) and visParams:
+            image = image.visualize(**visParams)
 
     if name is None:
         # extract name from id

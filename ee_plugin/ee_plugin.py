@@ -16,6 +16,9 @@ from qgis.core import QgsProject
 import ee
 
 import ee_plugin.ee_auth
+
+import ee_plugin.utils as utils
+
 ee_plugin.ee_auth.init()
 
 # Initialize Qt resources from file resources.py
@@ -79,6 +82,8 @@ class GoogleEarthEnginePlugin(object):
         self.dockable_action.triggered.connect(self.run)
         # Add menu item
         self.iface.addPluginToMenu(self.menu_name_plugin, self.dockable_action)
+        # Register signal to initialize EE layers on project load
+        self.iface.projectRead.connect(self.updateLayers)
 
     # --------------------------------------------------------------------------
 
@@ -94,8 +99,9 @@ class GoogleEarthEnginePlugin(object):
 
     def updateLayers(self):
         layers = QgsProject.instance().mapLayers().values()    
-        
+
         for l in filter(lambda layer: layer.customProperty('ee-layer'), layers):
             ee_script = l.customProperty('ee-script')
+
             image = ee.deserializer.fromJSON(ee_script)
-            ee_plugin.utils.update_ee_image_layer(image, l)
+            utils.update_ee_image_layer(image, l)

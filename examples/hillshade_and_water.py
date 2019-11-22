@@ -30,7 +30,7 @@ water_occurrence = ( ee.Image("JRC/GSW1_0/GlobalSurfaceWater")
 palette = ["ffffcc","ffeda0","fed976","feb24c","fd8d3c","fc4e2a","e31a1c","bd0026","800026"][::-1][1:]
 
 land = ee.Image("users/gena/land_polygons_image").mask()
-Map.setCenter(0, 28, 2.5)
+
 Map.addLayer(water_occurrence.mask(water_occurrence.multiply(2).multiply(land)), {'min': 0, 'max': 1, 'palette': palette}, 'water occurrence', True)
 
 

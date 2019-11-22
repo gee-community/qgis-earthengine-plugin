@@ -75,3 +75,12 @@ def setCenter(lon, lat, zoom=None):
         # transform the zoom level to scale
         scale_value = 591657550.5 / 2 ** (zoom - 1)
         iface.mapCanvas().zoomScale(scale_value)
+
+def centerObject(feature, zoom):
+    if not zoom:
+        raise NotImplementedError('Please specify zoom, defult zoom calculation from an feature is not implemented yet')
+
+    center = feature.geometry().centroid().coordinates().getInfo()
+
+    setCenter(center[0], center[1], zoom)
+

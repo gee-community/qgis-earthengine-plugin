@@ -21,11 +21,21 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
             >>> Map.addLayer(.....)
     """
 
-    if not isinstance(image, ee.Image):
-        err_str = "\n\nThe image argument in 'addLayer' function must be a 'ee.Image' instance."
+    if not isinstance(image, ee.Image) and not isinstance(image, ee.FeatureCollection) and not isinstance(image, ee.Feature) and not isinstance(image, ee.Geometry):
+        err_str = "\n\nThe image argument in 'addLayer' function must be an instace of one of ee.Image, ee.Geometry, ee.Feature or ee.FeatureCollection."
         raise AttributeError(err_str)
 
-    if visParams:
+    if isinstance(image, ee.Geometry) or isinstance(image, ee.Feature) or isinstance(image, ee.FeatureCollection):
+        features = ee.FeatureCollection(image)
+
+        color = '000000'
+
+        if visParams and 'color' in visParams:
+            color = visParams['color']
+
+        image = features.style(**{ 'color': color, 'fillColor': color + '22' })
+
+    if isinstance(image, ee.Image) and visParams:
         image = image.visualize(**visParams)
 
     if name is None:

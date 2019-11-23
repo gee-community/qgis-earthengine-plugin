@@ -48,15 +48,16 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
 
     ee_plugin.utils.add_or_update_ee_image_layer(image, name, shown, opacity)
 
-def getBounds():
+def getBounds(asGeoJSON=False):
     """
-        Mimique getBounds GEE function
+        Map.getBounds GEE function
 
         https://developers.google.com/earth-engine/api_docs#map.getBounds
 
         Uses:
             >>> from ee_plugin import Map
-            >>> Map.getBounds()
+            >>> bounds = Map.getBounds(True)
+            >>> Map.addLayer(bounds, {}, 'bounds')
     """
     ex = iface.mapCanvas().extent()
     # return ex
@@ -64,12 +65,20 @@ def getBounds():
     ymax = ex.yMaximum()
     xmin = ex.xMinimum()
     ymin = ex.yMinimum()
-    return ee.Geometry.Rectangle([xmin, ymin, xmax, ymax])
+
+    # return as [west, south, east, north]
+    if not asGeoJSON: 
+        return [xmin, ymin, xmax, ymax]
+    
+    # return as geometry
+    crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
+
+    return ee.Geometry.Rectangle([xmin, ymin, xmax, ymax], crs, False)
 
 
 def setCenter(lon, lat, zoom=None):
     """
-        Mimique setCenter GEE function
+        Map.setCenter GEE function
 
         https://developers.google.com/earth-engine/api_docs#map.setcenter
 
@@ -95,6 +104,15 @@ def setCenter(lon, lat, zoom=None):
         iface.mapCanvas().zoomScale(scale_value)
 
 def centerObject(feature, zoom):
+    """
+        Map.centerObject GEE function
+
+        https://developers.google.com/earth-engine/api_docs#map.centerObject
+
+        Uses:
+            >>> from ee_plugin import Map
+            >>> Map.centerObject(feature)
+    """
     if not zoom:
         raise NotImplementedError('Please specify zoom, defult zoom calculation from an feature is not implemented yet')
 

@@ -4,5 +4,5 @@ from ee_plugin import Map
 dem = ee.Image("JAXA/ALOS/AW3D30_V1_1").select('MED')
 Map.addLayer(dem, {'min': 0, 'max': 5000, 'palette': ['000000', 'ffffff'] }, 'DEM', True)
 
-# Test Map.setCenter
+# TEST Map.setCenter
 Map.setCenter(0, 28, 2.5)

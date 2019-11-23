@@ -15,7 +15,7 @@ Integrates Google Earth Engine with QGIS using Python API
        * test install using https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
 - [x] Implement Map.addLayer() for ee.Image
 - [x] Implement Map.addLayer() for ee.Geometry, ee.Feature and ee.FeatureCollection
-- [~] Implement Map.centerObject()
+- [ ] Implement Map.centerObject()
 - [x] Implement Map.getBounds()
 - [x] Implement Map.getCenter()
 - [x] Implement Map.setCenter()

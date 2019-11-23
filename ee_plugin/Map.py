@@ -91,8 +91,6 @@ def getCenter():
 
     crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
 
-    print([center.x(), center.y()], crs)
-
     return ee.Geometry.Point([center.x(), center.y()], crs)
 
 
@@ -204,4 +202,5 @@ def setZoom(zoom):
             >>> Map.setZoom(15)
     """
 
-    raise NotImplementedError('Setting map zoom is not implemented yet')
+    center = getCenter()
+    centerObject(ee.Feature(center), zoom)

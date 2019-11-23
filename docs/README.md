@@ -4,7 +4,7 @@ Once installed, the plugin can be accessed via QGIS Python Console ![](https://d
 
 Current version of the plugin adds access to the EE Python API to the QGIS environment so that ee package can be used for QGIS scripting.
 
-![Add Sentinel-2 image](/media/add_map_layer.png)
+![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
 ### Map
 

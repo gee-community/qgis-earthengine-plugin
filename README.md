@@ -2,7 +2,7 @@
 
 Integrates Google Earth Engine with QGIS using Python API
 
-See [docs/README.md](docs/README.md) on how to use the ee_plugin.
+See [docs/README.md](docs/README.md) on how to use it in QGIS.
 
 ### Status
 

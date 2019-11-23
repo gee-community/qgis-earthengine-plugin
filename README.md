@@ -2,6 +2,8 @@
 
 Integrates Google Earth Engine with QGIS using Python API
 
+See [docs/README.md](docs/README.md) on how to use it in QGIS.
+
 ### Status
 
 * Pre-alpha
@@ -38,12 +40,6 @@ Integrates Google Earth Engine with QGIS using Python API
 
 * Wiki: https://github.com/gena/qgis-earthengine-plugin/wiki
 * Board: https://github.com/gena/qgis-earthengine-plugin/projects/1
-
-### Contributors
-
-Gennadii Donchyts (@gena)
-Xavier Corredor Llano (@XavierCLL)
-Hessel Winsemius (@hcwinsemius)
 
 ### For Developers
 

@@ -8,7 +8,7 @@ Once installed, the plugin can be accessed via QGIS Python Console ![](https://d
 
 Current version of the EE QGIS plugin adds access to the EE Python API within the QGIS environment and implements most of the Map.* functionality typically used in the [Code Editor](https://developers.google.com/earth-engine/playground).
 
-The following functions are currently implemented, optional arguments are marked _italic_:
+The following functions are currently implemented, optional arguments are in _italic_:
 
 * Map.addLayer(eeObject, _visParams, name, shown, opacity_), [example](../examples/map_add_features.py)
 * Map.centerObject(object, _zoom_), [example](../examples/map_center_object.py)

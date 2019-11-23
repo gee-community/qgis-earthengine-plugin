@@ -19,7 +19,7 @@ The following functions are currently implemented:
 * [Map.getZoom()](https://developers.google.com/earth-engine/api_docs#map.getzoom)
 * [Map.setZoom()](https://developers.google.com/earth-engine/api_docs#map.setzoom)
 
-- **Importing plugin**
+#### Importing plugin
 
 To get started, make sure to include the following two importes at the beginning:
 
@@ -30,7 +30,7 @@ import ee
 
 After that, the Map.* functions can be used in a similar way to how this is done in Code Editor:
 
-- **Adding map layer to QGIS map**
+#### Adding map layer to QGIS map
 
 ```python
 image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000)

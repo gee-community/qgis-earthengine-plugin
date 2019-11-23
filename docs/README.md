@@ -8,16 +8,18 @@ Once installed, the plugin can be accessed via QGIS Python Console ![](https://d
 
 Current version of the EE QGIS plugin adds access to the EE Python API within the QGIS environment and implements most of the Map.* functionality typically used in the [Code Editor](https://developers.google.com/earth-engine/playground).
 
-The following functions are currently implemented:
+The following functions are currently implemented, optional arguments are marked _italic_:
 
-* [Map.addLayer()](https://developers.google.com/earth-engine/api_docs#map.addlayer), [example](../examples/map_add_features.py)
-* [Map.centerObject()](https://developers.google.com/earth-engine/api_docs#map.centetrobject), [example](../examples/map_center_object.py)
-* [Map.getBounds()](https://developers.google.com/earth-engine/api_docs#map.getbounds), [example](../examples/map_get_bounds.py)
-* [Map.getCenter()](https://developers.google.com/earth-engine/api_docs#map.getcenter), [example](../examples/map_get_center.py)
-* [Map.setCenter()](https://developers.google.com/earth-engine/api_docs#map.setcenter), [example](../examples/map_set_center.py)
-* [Map.getScale()](https://developers.google.com/earth-engine/api_docs#map.getscale)
-* [Map.getZoom()](https://developers.google.com/earth-engine/api_docs#map.getzoom)
-* [Map.setZoom()](https://developers.google.com/earth-engine/api_docs#map.setzoom), [example](../examples/map_set_zoom.py)
+* Map.addLayer(eeObject, _visParams, name, shown, opacity_), [example](../examples/map_add_features.py)
+* Map.centerObject(object, _zoom_), [example](../examples/map_center_object.py)
+* Map.getBounds(_asGeoJSON_), [example](../examples/map_get_bounds.py)
+* Map.getCenter(), [example](../examples/map_get_center.py)
+* Map.setCenter(lon, lat, _zoom_), [example](../examples/map_set_center.py)
+* Map.getScale()
+* Map.getZoom()
+* Map.setZoom(zoom), [example](../examples/map_set_zoom.py)
+
+Check official [EE API documentation](https://developers.google.com/earth-engine/getstarted#adding-data-to-the-map) for Map usage.
 
 #### Importing plugin
 

@@ -41,9 +41,9 @@ Integrates Google Earth Engine with QGIS using Python API
 
 ### Contributors
 
-Gennadii Donchyts (@gena)
-Xavier Corredor Llano (@XavierCLL)
-Hessel Winsemius (@hcwinsemius)
+* Gennadii Donchyts (@gena)
+* Xavier Corredor Llano (@XavierCLL)
+* Hessel Winsemius (@hcwinsemius)
 
 ### For Developers
 

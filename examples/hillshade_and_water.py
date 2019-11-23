@@ -1,5 +1,4 @@
 from ee_plugin import Map
-from ee_plugin import utils
 from ee_plugin import palettes
 import ee
 

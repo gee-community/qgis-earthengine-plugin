@@ -85,8 +85,6 @@ class GoogleEarthEnginePlugin(object):
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self.updateLayers)
 
-    # --------------------------------------------------------------------------
-
     def run(self):
         # open user guide in external web browser
         webbrowser.open_new("https://github.com/gee-community/qgis-earthengine-plugin")
@@ -94,8 +92,6 @@ class GoogleEarthEnginePlugin(object):
     def unload(self):
         # Remove the plugin menu item and icon
         self.iface.removePluginMenu(self.menu_name_plugin, self.dockable_action)
-
-    # --------------------------------------------------------------------------
 
     def updateLayers(self):
         layers = QgsProject.instance().mapLayers().values()    

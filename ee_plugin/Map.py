@@ -49,11 +49,48 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
 
     ee_plugin.utils.add_or_update_ee_image_layer(image, name, shown, opacity)
 
+def centerObject(feature, zoom=None):
+    """
+        Centers the map view on a given object.
+
+        https://developers.google.com/earth-engine/api_docs#map.centerobject
+
+        Uses:
+            >>> from ee_plugin import Map
+            >>> Map.centerObject(feature)
+    """
+    if not zoom:
+        # make sure our geometry is in geo
+        rect = feature.geometry().transform(ee.Projection('EPSG:4326'), 1)
+
+        # get coordinates
+        coords = rect.bounds().getInfo()['coordinates'][0]
+        xmin = coords[0][0]
+        ymin = coords[0][1]
+        xmax = coords[2][0]
+        ymax = coords[2][1]
+
+        # construct QGIS geometry
+        rect = QgsRectangle(xmin, ymin, xmax, ymax)
+
+        # transform rect to a crs used by current project
+        crs_src = QgsCoordinateReferenceSystem(4326)
+        crs_dst = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
+        xform = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
+        rect_proj = xform.transform(rect)
+        
+        # center geometry
+        iface.mapCanvas().zoomToFeatureExtent(rect_proj)
+    else:
+        # set map center to feature centroid at a specified zoom
+        center = feature.geometry().centroid().coordinates().getInfo()
+        setCenter(center[0], center[1], zoom)
+
 def getBounds(asGeoJSON=False):
     """
         Returns the bounds of the current map view, as a list in the format [west, south, east, north] in degrees.
 
-        https://developers.google.com/earth-engine/api_docs#map.getBounds
+        https://developers.google.com/earth-engine/api_docs#map.getbounds
 
         Uses:
             >>> from ee_plugin import Map
@@ -80,7 +117,7 @@ def getCenter():
     """
         Returns the coordinates at the center of the map.
 
-        https://developers.google.com/earth-engine/api_docs#map.getCenter
+        https://developers.google.com/earth-engine/api_docs#map.getcenter
 
         Uses:
             >>> from ee_plugin import Map
@@ -121,48 +158,11 @@ def setCenter(lon, lat, zoom=None):
         scale_value = 591657550.5 / 2 ** (zoom - 1)
         iface.mapCanvas().zoomScale(scale_value)
 
-def centerObject(feature, zoom=None):
-    """
-        Centers the map view on a given object.
-
-        https://developers.google.com/earth-engine/api_docs#map.centerObject
-
-        Uses:
-            >>> from ee_plugin import Map
-            >>> Map.centerObject(feature)
-    """
-    if not zoom:
-        # make sure our geometry is in geo
-        rect = feature.geometry().transform(ee.Projection('EPSG:4326'), 1)
-
-        # get coordinates
-        coords = rect.bounds().getInfo()['coordinates'][0]
-        xmin = coords[0][0]
-        ymin = coords[0][1]
-        xmax = coords[2][0]
-        ymax = coords[2][1]
-
-        # construct QGIS geometry
-        rect = QgsRectangle(xmin, ymin, xmax, ymax)
-
-        # transform rect to a crs used by current project
-        crs_src = QgsCoordinateReferenceSystem(4326)
-        crs_dst = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
-        xform = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
-        rect_proj = xform.transform(rect)
-        
-        # center geometry
-        iface.mapCanvas().zoomToFeatureExtent(rect_proj)
-    else:
-        # set map center to feature centroid at a specified zoom
-        center = feature.geometry().centroid().coordinates().getInfo()
-        setCenter(center[0], center[1], zoom)
-
 def getScale():
     """
         Returns the approximate pixel scale of the current map view, in meters.
 
-        https://developers.google.com/earth-engine/api_docs#map.getScale
+        https://developers.google.com/earth-engine/api_docs#map.getscale
 
         Uses:
             >>> from ee_plugin import Map
@@ -175,7 +175,7 @@ def getZoom():
     """
         Returns the current zoom level of the map.
 
-        https://developers.google.com/earth-engine/api_docs#map.getZoom, note that in QGIS zoom is a floating point number
+        https://developers.google.com/earth-engine/api_docs#map.getzoom, note that in QGIS zoom is a floating point number
 
         Uses:
             >>> from ee_plugin import Map
@@ -195,7 +195,7 @@ def setZoom(zoom):
     """
         Sets the zoom level of the map.
 
-        https://developers.google.com/earth-engine/api_docs#map.setZoom
+        https://developers.google.com/earth-engine/api_docs#map.setzoom
 
         Uses:
             >>> from ee_plugin import Map

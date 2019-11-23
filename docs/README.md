@@ -40,5 +40,5 @@ Map.addLayer(image, {'palette': ['blue', 'red'], 'min': 0, 'max': 1000}, 'dem', 
 
 The code above will query Earth Engine for an image and will add it as an XYZ tile layer to the QGIS Canvas. 
 
-Check [examples](examples) directory for scripts showing how to use these functions.
+Check [examples](../examples) directory for scripts showing how to use these functions.
 

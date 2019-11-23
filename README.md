@@ -32,6 +32,7 @@ See [docs/README.md](docs/README.md) for usage.
 ...
 
 #### Beta
+- [ ] Add support for map layers in a way similar to EE Code Editor
 - [ ] Add support for Data Catalog, allowing adding assets without the need to write scripts (select time, styling)
 - [ ] Custom EE scripts as Processing algorithms, so that users can use it within Graphical Modeller
 - [ ] Fetch (cache?) raster assets locally (EE > QGIS), for a given rectangle / CRS, as a Processing tool

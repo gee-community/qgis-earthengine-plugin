@@ -11,6 +11,7 @@ from qgis.utils import iface
 
 import ee_plugin.utils
 
+
 def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0):
     """
         Adds a given EE object to the map as a layer.
@@ -34,7 +35,7 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
         if visParams and 'color' in visParams:
             color = visParams['color']
 
-        image = features.style(**{ 'color': color })
+        image = features.style(**{'color': color})
 
     else:
         if isinstance(image, ee.Image) and visParams:
@@ -43,11 +44,13 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
     if name is None:
         # extract name from id
         try:
-            name = json.loads(image.id().serialize())["scope"][0][1]["arguments"]["id"]
+            name = json.loads(image.id().serialize())[
+                "scope"][0][1]["arguments"]["id"]
         except:
             name = "untitled"
 
     ee_plugin.utils.add_or_update_ee_image_layer(image, name, shown, opacity)
+
 
 def centerObject(feature, zoom=None):
     """
@@ -78,13 +81,14 @@ def centerObject(feature, zoom=None):
         crs_dst = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
         xform = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
         rect_proj = xform.transform(rect)
-        
+
         # center geometry
         iface.mapCanvas().zoomToFeatureExtent(rect_proj)
     else:
         # set map center to feature centroid at a specified zoom
         center = feature.geometry().centroid().coordinates().getInfo()
         setCenter(center[0], center[1], zoom)
+
 
 def getBounds(asGeoJSON=False):
     """
@@ -105,13 +109,14 @@ def getBounds(asGeoJSON=False):
     ymin = ex.yMinimum()
 
     # return as [west, south, east, north]
-    if not asGeoJSON: 
+    if not asGeoJSON:
         return [xmin, ymin, xmax, ymax]
-    
+
     # return as geometry
     crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
 
     return ee.Geometry.Rectangle([xmin, ymin, xmax, ymax], crs, False)
+
 
 def getCenter():
     """
@@ -158,6 +163,7 @@ def setCenter(lon, lat, zoom=None):
         scale_value = 591657550.5 / 2 ** (zoom - 1)
         iface.mapCanvas().zoomScale(scale_value)
 
+
 def getScale():
     """
         Returns the approximate pixel scale of the current map view, in meters.
@@ -170,6 +176,7 @@ def getScale():
     """
 
     return iface.mapCanvas().scale() / 1000
+
 
 def getZoom():
     """
@@ -188,8 +195,9 @@ def getZoom():
     maxScalePerPixel = 156543.04
     inchesPerMeter = 39.37
     zoom = math.log((dpi * inchesPerMeter * maxScalePerPixel / scale), 2)
-    
+
     return zoom
+
 
 def setZoom(zoom):
     """

@@ -13,7 +13,7 @@ def init():
         ee.Initialize()
     except ee.ee_exception.EEException:
         authenticate()
-        ee.Initialize() # retry initialization once the user logs in
+        ee.Initialize()  # retry initialization once the user logs in
 
 
 def authenticate():
@@ -25,9 +25,9 @@ def authenticate():
           'please manually browse the URL below:\n"{}"'.format(auth_url))
 
     token, ok = QInputDialog.getText(None, 'Earth Engine Authentication',
-                                    'To authorize access needed by Earth Engine, follow the\n'
-                                    'instructions and paste the token here:\n\n'
-                                    '(If the web browser does not start automatically\n'
-                                    'see the python shell).')
+                                     'To authorize access needed by Earth Engine, follow the\n'
+                                     'instructions and paste the token here:\n\n'
+                                     '(If the web browser does not start automatically\n'
+                                     'see the python shell).')
     if ok and token:
         ee.oauth._obtain_and_write_token(token.strip())

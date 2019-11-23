@@ -4,6 +4,7 @@ Main plugin file.
 """
 from __future__ import absolute_import
 
+from ee_plugin.icons import resources
 import webbrowser
 from builtins import object
 import os.path
@@ -22,7 +23,6 @@ import ee_plugin.utils as utils
 ee_plugin.ee_auth.init()
 
 # Initialize Qt resources from file resources.py
-from ee_plugin.icons import resources
 
 
 class GoogleEarthEnginePlugin(object):
@@ -77,7 +77,8 @@ class GoogleEarthEnginePlugin(object):
         ### Main dockwidget menu
         # Create action that will start plugin configuration
         icon_path = ':/plugins/ee_plugin/icons/earth_engine.svg'
-        self.dockable_action = QAction(QIcon(icon_path), "User Guide", self.iface.mainWindow())
+        self.dockable_action = QAction(
+            QIcon(icon_path), "User Guide", self.iface.mainWindow())
         # connect the action to the run method
         self.dockable_action.triggered.connect(self.run)
         # Add menu item
@@ -87,14 +88,16 @@ class GoogleEarthEnginePlugin(object):
 
     def run(self):
         # open user guide in external web browser
-        webbrowser.open_new("https://github.com/gee-community/qgis-earthengine-plugin")
+        webbrowser.open_new(
+            "https://github.com/gee-community/qgis-earthengine-plugin")
 
     def unload(self):
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(self.menu_name_plugin, self.dockable_action)
+        self.iface.removePluginMenu(
+            self.menu_name_plugin, self.dockable_action)
 
     def updateLayers(self):
-        layers = QgsProject.instance().mapLayers().values()    
+        layers = QgsProject.instance().mapLayers().values()
 
         for l in filter(lambda layer: layer.customProperty('ee-layer'), layers):
             ee_script = l.customProperty('ee-script')

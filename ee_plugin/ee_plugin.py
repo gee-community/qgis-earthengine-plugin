@@ -100,8 +100,6 @@ class GoogleEarthEnginePlugin(object):
         if version_checked:
             return
 
-        print('Checking EE plugin version')
-
         try:
             latest_version = requests.get('https://qgis-ee-plugin.appspot.com/get_latest_version').text
 

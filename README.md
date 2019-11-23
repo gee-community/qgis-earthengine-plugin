@@ -16,7 +16,6 @@ See [docs/README.md](docs/README.md) for usage.
 - [x] Create a new QGIS plugin skeleton
 - [x] Migrate to QGIS3
 - [x] Embed GEE Python library
-       * test install using https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
 - [x] Implement Map.addLayer() for ee.Image
 - [x] Implement Map.addLayer() for ee.Geometry, ee.Feature and ee.FeatureCollection
 - [x] Implement Map.centerObject()

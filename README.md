@@ -13,7 +13,15 @@ Integrates Google Earth Engine with QGIS using Python API
 - [x] Migrate to QGIS3
 - [x] Embed GEE Python library
        * test install using https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
-- [x] Enable raster layer visualization as a tile layer
+- [x] Implement Map.addLayer() for ee.Image
+- [x] Implement Map.addLayer() for ee.Geometry, ee.Feature and ee.FeatureCollection
+- [~] Implement Map.centerObject()
+- [x] Implement Map.getBounds()
+- [x] Implement Map.getCenter()
+- [x] Implement Map.setCenter()
+- [x] Implement Map.getScale()
+- [x] Implement Map.getZoom()
+- [ ] Implement Map.setZoom()
 - [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
 
 #### Alpha 0.2 (Q1 2020)

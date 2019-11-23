@@ -1,14 +1,14 @@
-## Introduction
-
-This plugin adds support for [Google Earth Engine Python API](https://github.com/google/earthengine-api/tree/master/python) to QGIS.
+The ee_plugin adds support for [Google Earth Engine Python API](https://github.com/google/earthengine-api/tree/master/python) to QGIS.
 
 Once installed, the plugin can be accessed via QGIS Python Console ![](https://docs.qgis.org/3.4/en/_images/iconRunConsole.png) in [`Plugins > Python Console`](https://docs.qgis.org/2.18/en/docs/user_manual/plugins/python_console.html#the-interactive-console). However, it is more convenient to use QGIS Python [`Code Editor`](https://docs.qgis.org/2.18/en/docs/user_manual/plugins/python_console.html#the-code-editor)  ![](https://docs.qgis.org/3.4/en/_images/iconShowEditorConsole.png) to write and execute EE scripts.
 
-### Supported Functionality
+Current version of the plugin adds access to the EE Python API to the QGIS environment so that ee package can be used for QGIS scripting.
 
-Current version of the EE QGIS plugin adds access to the EE Python API within the QGIS environment and implements most of the Map.* functionality typically used in the [Code Editor](https://developers.google.com/earth-engine/playground).
+### Map
 
-The following functions are currently implemented, optional arguments are in _italic_:
+The plugin implements most of the Map.* functionality typically used in the [Code Editor](https://developers.google.com/earth-engine/playground). Note, that no UI or Layers functionality is supported right now. 
+
+The following Map functions are currently implemented, optional arguments are in _italic_:
 
 * Map.addLayer(eeObject, _visParams, name, shown, opacity_), [example](../examples/map_add_features.py)
 * Map.centerObject(object, _zoom_), [example](../examples/map_center_object.py)
@@ -32,7 +32,7 @@ import ee
 
 After that, the Map.* functions can be used in a similar way to how this is done in Code Editor:
 
-#### Adding map layer to QGIS map
+#### Adding map layers
 
 ```python
 image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000)
@@ -41,6 +41,8 @@ Map.addLayer(image, {'palette': ['blue', 'red'], 'min': 0, 'max': 1000}, 'dem', 
 ```
 
 The code above will query Earth Engine for an image and will add it as an XYZ tile layer to the QGIS Canvas. 
+
+Note that QGIS projects containing EE map layers can be also saved, in this case, the code required to connect the to EE is stored in a QGIS project and is used to re-initialize these layers when the project is loaded. Currently, this works only if ee_plugin is installed in the QGIS where these layers are loaded.
 
 Check [examples](../examples) directory for scripts showing how to use these functions.
 

@@ -2,7 +2,9 @@
 
 Integrates Google Earth Engine with QGIS using Python API
 
-See [docs/README.md](docs/README.md) on how to use it in QGIS.
+See [docs/README.md](docs/README.md) for usage.
+
+![Add Sentinel-2 image](/media/add_map_layer.png)
 
 ### Status
 
@@ -14,7 +16,6 @@ See [docs/README.md](docs/README.md) on how to use it in QGIS.
 - [x] Create a new QGIS plugin skeleton
 - [x] Migrate to QGIS3
 - [x] Embed GEE Python library
-       * test install using https://landscapearchaeology.org/2018/installing-python-packages-in-qgis-3-for-windows/
 - [x] Implement Map.addLayer() for ee.Image
 - [x] Implement Map.addLayer() for ee.Geometry, ee.Feature and ee.FeatureCollection
 - [x] Implement Map.centerObject()
@@ -23,13 +24,14 @@ See [docs/README.md](docs/README.md) on how to use it in QGIS.
 - [x] Implement Map.setCenter()
 - [x] Implement Map.getScale()
 - [x] Implement Map.getZoom()
-- [ ] Implement Map.setZoom()
+- [x] Implement Map.setZoom()
 - [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
 
 #### Alpha 0.2 (Q1 2020)
 ...
 
 #### Beta
+- [ ] Add support for map layers in a way similar to EE Code Editor
 - [ ] Add support for Data Catalog, allowing adding assets without the need to write scripts (select time, styling)
 - [ ] Custom EE scripts as Processing algorithms, so that users can use it within Graphical Modeller
 - [ ] Fetch (cache?) raster assets locally (EE > QGIS), for a given rectangle / CRS, as a Processing tool

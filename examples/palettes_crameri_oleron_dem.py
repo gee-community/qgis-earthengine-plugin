@@ -7,7 +7,7 @@ extrusion = 3
 weight = 0.7
 palette = palettes.crameri['oleron']['50']
 
-rgb = dem.visualize(**{'min': -5, 'max': 5, 'palette': palette })
+rgb = dem.visualize(**{'min': 0, 'max': 3, 'palette': palette })
 hsv = rgb.unitScale(0, 255).rgbToHsv()
 hs = ee.Terrain.hillshade(dem.multiply(extrusion), 315, 35).unitScale(0, 255)
 hs = hs.multiply(weight).add(hsv.select('value').multiply(1 - weight))
@@ -16,5 +16,7 @@ hsv = hsv.addBands(hs.rename('value'), ['value'], True)
 hsv = hsv.addBands(saturation, ['saturation'], True)
 rgb = hsv.hsvToRgb()
 
-Map.addLayer(rgb, {}, 'Dutch AHN DEM')
+# rgb = rgb.updateMask(dem.unitScale(0, 3))
+
+Map.addLayer(rgb, {}, 'Dutch AHN DEM', True)
 Map.setCenter(4.5618, 52.1664, 18)

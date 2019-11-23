@@ -2,7 +2,9 @@
 
 Integrates Google Earth Engine with QGIS using Python API
 
-See [docs/README.md](docs/README.md) on how to use it in QGIS.
+See [docs/README.md](docs/README.md) for usage.
+
+![Add Sentinel-2 image](/media/add_map_layer.png)
 
 ### Status
 
@@ -23,7 +25,7 @@ See [docs/README.md](docs/README.md) on how to use it in QGIS.
 - [x] Implement Map.setCenter()
 - [x] Implement Map.getScale()
 - [x] Implement Map.getZoom()
-- [ ] Implement Map.setZoom()
+- [x] Implement Map.setZoom()
 - [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
 
 #### Alpha 0.2 (Q1 2020)

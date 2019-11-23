@@ -75,6 +75,25 @@ def getBounds(asGeoJSON=False):
 
     return ee.Geometry.Rectangle([xmin, ymin, xmax, ymax], crs, False)
 
+def getCenter():
+    """
+        Map.getCenter GEE function
+
+        https://developers.google.com/earth-engine/api_docs#map.getCenter
+
+        Uses:
+            >>> from ee_plugin import Map
+            >>> center = Map.getCenter()
+            >>> Map.addLayer(center, { 'color': 'red' }, 'center')
+    """
+    center = iface.mapCanvas().center()
+
+    crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
+
+    print([center.x(), center.y()], crs)
+
+    return ee.Geometry.Point([center.x(), center.y()], crs)
+
 
 def setCenter(lon, lat, zoom=None):
     """

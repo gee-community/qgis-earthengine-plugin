@@ -48,6 +48,24 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
 
     ee_plugin.utils.add_or_update_ee_image_layer(image, name, shown, opacity)
 
+def getBounds():
+    """
+        Mimique getBounds GEE function
+
+        https://developers.google.com/earth-engine/api_docs#map.getBounds
+
+        Uses:
+            >>> from ee_plugin import Map
+            >>> Map.getBounds()
+    """
+    ex = iface.mapCanvas().extent()
+    # return ex
+    xmax = ex.xMaximum()
+    ymax = ex.yMaximum()
+    xmin = ex.xMinimum()
+    ymin = ex.yMinimum()
+    return ee.Geometry.Rectangle([xmin, ymin, xmax, ymax])
+
 
 def setCenter(lon, lat, zoom=None):
     """

@@ -4,11 +4,13 @@ This plugin adds support for [Google Earth Engine Python API](https://github.com
 
 Once installed, the plugin can be accessed via QGIS Python Console ![](https://docs.qgis.org/3.4/en/_images/iconRunConsole.png) in [`Plugins > Python Console`](https://docs.qgis.org/2.18/en/docs/user_manual/plugins/python_console.html#the-interactive-console). However, it is more convenient to use QGIS Python [`Code Editor`](https://docs.qgis.org/2.18/en/docs/user_manual/plugins/python_console.html#the-code-editor)  ![](https://docs.qgis.org/3.4/en/_images/iconShowEditorConsole.png) to write and execute EE scripts.
 
-### Supported Functionality
+Current version of the plugin adds access to the EE Python API to the QGIS environment so that ee package can be used for QGIS scripting.
 
-Current version of the EE QGIS plugin adds access to the EE Python API within the QGIS environment and implements most of the Map.* functionality typically used in the [Code Editor](https://developers.google.com/earth-engine/playground).
+### Map
 
-The following functions are currently implemented, optional arguments are in _italic_:
+The plugin implements most of the Map.* functionality typically used in the [Code Editor](https://developers.google.com/earth-engine/playground). Note, that no UI or Layers functionality is supported right now. 
+
+The following Map functions are currently implemented, optional arguments are in _italic_:
 
 * Map.addLayer(eeObject, _visParams, name, shown, opacity_), [example](../examples/map_add_features.py)
 * Map.centerObject(object, _zoom_), [example](../examples/map_center_object.py)

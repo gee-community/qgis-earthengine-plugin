@@ -5,9 +5,9 @@ Utils functions GEE
 
 from qgis.core import QgsRasterLayer, QgsProject
 from qgis.utils import iface
+import qgis
 
 import ee
-
 
 def get_ee_image_url(image):
     map_id = ee.data.getMapId({'image': image})
@@ -27,6 +27,8 @@ def update_ee_layer_properties(layer, image, shown, opacity):
 
 
 def add_ee_image_layer(image, name, shown, opacity):
+    check_version()
+
     url = "type=xyz&url=" + get_ee_image_url(image)
     layer = QgsRasterLayer(url, name, "wms")
     update_ee_layer_properties(layer, image, shown, opacity)
@@ -38,6 +40,8 @@ def add_ee_image_layer(image, name, shown, opacity):
 
 
 def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
+    check_version()
+
     url = "type=xyz&url=" + get_ee_image_url(image)
     layer.dataProvider().setDataSourceUri(url)
     layer.dataProvider().reloadData()
@@ -82,3 +86,7 @@ def add_ee_catalog_image(name, asset_name, visParams, collection_props):
         image = ee.Image(asset_name).visualize(visParams)
 
     add_or_update_ee_image_layer(image, name)
+
+def check_version():
+    # check if we have the latest version only once plugin is used, not once it is loaded
+    qgis.utils.plugins['ee_plugin'].check_version()

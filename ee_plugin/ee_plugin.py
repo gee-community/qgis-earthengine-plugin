@@ -2,7 +2,12 @@
 """
 Main plugin file.
 """
+
 from __future__ import absolute_import
+
+__version__ = '0.0.1'
+
+import requests
 
 from ee_plugin.icons import resources
 import webbrowser
@@ -15,15 +20,12 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProject
 
 import ee
-
 import ee_plugin.ee_auth
-
 import ee_plugin.utils as utils
 
 ee_plugin.ee_auth.init()
 
-# Initialize Qt resources from file resources.py
-
+version_checked = False
 
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
@@ -85,11 +87,32 @@ class GoogleEarthEnginePlugin(object):
         self.iface.addPluginToMenu(self.menu_name_plugin, self.dockable_action)
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self.updateLayers)
+         
 
     def run(self):
         # open user guide in external web browser
         webbrowser.open_new(
             "https://github.com/gee-community/qgis-earthengine-plugin")
+
+    def check_version(self):
+        global version_checked
+        
+        if version_checked:
+            return
+
+        print('Checking EE plugin version')
+
+        try:
+            latest_version = requests.get('https://qgis-ee-plugin.appspot.com/get_latest_version').text
+
+            if __version__ != latest_version:
+                self.iface.messageBar().pushMessage(u'Earth Engine plugin says', u'Hey there, there is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!'.format(latest_version, __version__), duration=6)
+        except: 
+            print('Error occurrend when checking for recent plugin version, skipping ...')
+
+        finally:
+            version_checked = True
+
 
     def unload(self):
         # Remove the plugin menu item and icon

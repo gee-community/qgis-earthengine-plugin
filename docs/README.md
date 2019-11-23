@@ -34,7 +34,7 @@ import ee
 
 After that, the Map.* functions can be used in a similar way to how this is done in Code Editor:
 
-#### Adding map layer to QGIS map
+#### Adding map layers
 
 ```python
 image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000)
@@ -43,6 +43,8 @@ Map.addLayer(image, {'palette': ['blue', 'red'], 'min': 0, 'max': 1000}, 'dem', 
 ```
 
 The code above will query Earth Engine for an image and will add it as an XYZ tile layer to the QGIS Canvas. 
+
+Note that QGIS projects containing EE map layers can be also saved, in this case, the code required to connect the to EE is stored in a QGIS project and is used to re-initialize these layers when the project is loaded. Currently, this works only if ee_plugin is installed in the QGIS where these layers are loaded.
 
 Check [examples](../examples) directory for scripts showing how to use these functions.
 

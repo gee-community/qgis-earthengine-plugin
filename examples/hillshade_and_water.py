@@ -10,11 +10,11 @@ rgb = dem.visualize(**{'min': 0, 'max': 5000, 'palette': palette })
 hsv = rgb.unitScale(0, 255).rgbToHsv()
 
 extrusion = 30
-weight = 0.3
+weight = 0.7
 
 hs = ee.Terrain.hillshade(dem.multiply(extrusion), 315, 35).unitScale(10, 250).resample('bicubic')
 
-hs = hs.multiply(1-weight).add(hsv.select('value').multiply(weight))
+hs = hs.multiply(weight).add(hsv.select('value').multiply(1 - weight))
 hsv = hsv.addBands(hs.rename('value'), ['value'], True)
 rgb = hsv.hsvToRgb()
 

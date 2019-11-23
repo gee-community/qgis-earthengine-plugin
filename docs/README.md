@@ -10,14 +10,14 @@ Current version of the EE QGIS plugin adds access to the EE Python API within th
 
 The following functions are currently implemented:
 
-* [Map.addLayer()](https://developers.google.com/earth-engine/api_docs#map.addlayer) - works for images and features or geometries
-* [Map.centerObject()](https://developers.google.com/earth-engine/api_docs#map.centetrobject)
-* [Map.getBounds()](https://developers.google.com/earth-engine/api_docs#map.getbounds)
-* [Map.getCenter()](https://developers.google.com/earth-engine/api_docs#map.getcenter)
-* [Map.setCenter()](https://developers.google.com/earth-engine/api_docs#map.setcenter)
+* [Map.addLayer()](https://developers.google.com/earth-engine/api_docs#map.addlayer), [example](../examples/map_add_features.py)
+* [Map.centerObject()](https://developers.google.com/earth-engine/api_docs#map.centetrobject), [example](../examples/map_center_object.py)
+* [Map.getBounds()](https://developers.google.com/earth-engine/api_docs#map.getbounds), [example](../examples/map_get_bounds.py)
+* [Map.getCenter()](https://developers.google.com/earth-engine/api_docs#map.getcenter), [example](../examples/map_get_center.py)
+* [Map.setCenter()](https://developers.google.com/earth-engine/api_docs#map.setcenter), [example](../examples/map_set_center.py)
 * [Map.getScale()](https://developers.google.com/earth-engine/api_docs#map.getscale)
 * [Map.getZoom()](https://developers.google.com/earth-engine/api_docs#map.getzoom)
-* [Map.setZoom()](https://developers.google.com/earth-engine/api_docs#map.setzoom)
+* [Map.setZoom()](https://developers.google.com/earth-engine/api_docs#map.setzoom), [example](../examples/map_set_zoom.py)
 
 #### Importing plugin
 

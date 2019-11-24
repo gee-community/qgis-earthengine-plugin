@@ -13,14 +13,14 @@ The plugin implements most of the Map.* functionality typically used in the [Cod
 
 The following Map functions are currently implemented, optional arguments are in _italic_:
 
-* Map.addLayer(eeObject, _visParams, name, shown, opacity_), [example](../examples/map_add_features.py)
-* Map.centerObject(object, _zoom_), [example](../examples/map_center_object.py)
-* Map.getBounds(_asGeoJSON_), [example](../examples/map_get_bounds.py)
-* Map.getCenter(), [example](../examples/map_get_center.py)
-* Map.setCenter(lon, lat, _zoom_), [example](../examples/map_set_center.py)
+* Map.addLayer(eeObject, _visParams, name, shown, opacity_), [example](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples/map_add_features.py)
+* Map.centerObject(object, _zoom_), [example](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples/map_center_object.py)
+* Map.getBounds(_asGeoJSON_), [example](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples/map_get_bounds.py)
+* Map.getCenter(), [example](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples/map_get_center.py)
+* Map.setCenter(lon, lat, _zoom_), [example](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples/map_set_center.py)
 * Map.getScale()
 * Map.getZoom()
-* Map.setZoom(zoom), [example](../examples/map_set_zoom.py)
+* Map.setZoom(zoom), [example](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples/map_set_zoom.py)
 
 Check official [EE API documentation](https://developers.google.com/earth-engine/getstarted#adding-data-to-the-map) for Map usage.
 

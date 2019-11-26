@@ -2,7 +2,7 @@
 
 Integrates Google Earth Engine with QGIS using Python API
 
-See [https://gee-community.github.io/qgis-earthengine-plugin/](https://gee-community.github.io/qgis-earthengine-plugin/) for Roadmap and some docs. 
+See [https://gee-community.github.io/qgis-earthengine-plugin/](https://gee-community.github.io/qgis-earthengine-plugin/) for a Roadmap and some docs. 
 
 ### Roadmap
 

@@ -2,13 +2,7 @@
 
 Integrates Google Earth Engine with QGIS using Python API
 
-See [https://gee-community.github.io/qgis-earthengine-plugin/](https://gee-community.github.io/qgis-earthengine-plugin/) for usage.
-
-![Add Sentinel-2 image](/media/add_map_layer.png)
-
-### Status
-
-* Pre-alpha
+See [https://gee-community.github.io/qgis-earthengine-plugin/](https://gee-community.github.io/qgis-earthengine-plugin/) for a Roadmap and some docs. 
 
 ### Roadmap
 
@@ -28,6 +22,8 @@ See [https://gee-community.github.io/qgis-earthengine-plugin/](https://gee-commu
 - [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
 
 #### Alpha 0.2 (Q1 2020)
+- [ ] EE layer tnspector
+- [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
 ...
 
 #### Beta

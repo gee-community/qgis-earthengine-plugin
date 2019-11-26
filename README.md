@@ -2,9 +2,37 @@
 
 Integrates Google Earth Engine with QGIS using Python API
 
-See [https://gee-community.github.io/qgis-earthengine-plugin/](https://gee-community.github.io/qgis-earthengine-plugin/) for Roadmap and some docs.
+See [https://gee-community.github.io/qgis-earthengine-plugin/](https://gee-community.github.io/qgis-earthengine-plugin/) for Roadmap and some docs. 
 
-![Add Sentinel-2 image](/media/add_map_layer.png)
+### Roadmap
+
+#### Alpha 0.1 (Q4 2019)
+- [x] Create a new QGIS plugin skeleton
+- [x] Migrate to QGIS3
+- [x] Embed GEE Python library
+- [x] Implement Map.addLayer() for ee.Image
+- [x] Implement Map.addLayer() for ee.Geometry, ee.Feature and ee.FeatureCollection
+- [x] Implement Map.centerObject()
+- [x] Implement Map.getBounds()
+- [x] Implement Map.getCenter()
+- [x] Implement Map.setCenter()
+- [x] Implement Map.getScale()
+- [x] Implement Map.getZoom()
+- [x] Implement Map.setZoom()
+- [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
+
+#### Alpha 0.2 (Q1 2020)
+- [ ] EE layer tnspector
+- [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
+...
+
+#### Beta
+- [ ] Add support for map layers in a way similar to EE Code Editor
+- [ ] Add support for Data Catalog, allowing adding assets without the need to write scripts (select time, styling)
+- [ ] Custom EE scripts as Processing algorithms, so that users can use it within Graphical Modeller
+- [ ] Fetch (cache?) raster assets locally (EE > QGIS), for a given rectangle / CRS, as a Processing tool
+- [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
+- [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
 ### Misc
 

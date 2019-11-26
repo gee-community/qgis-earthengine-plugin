@@ -6,6 +6,11 @@ import webbrowser
 from qgis.PyQt.QtWidgets import QInputDialog
 
 import ee
+import logging
+
+# fix the warnings/errors messages from 'file_cache is unavailable when using oauth2client'
+# https://github.com/googleapis/google-api-python-client/issues/299
+logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
 
 def init():

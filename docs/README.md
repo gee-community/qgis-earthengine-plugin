@@ -1,10 +1,40 @@
 This is a home page for QGIS Earth Engine plugin. The ee_plugin adds support for [Google Earth Engine Python API](https://github.com/google/earthengine-api/tree/master/python) to QGIS. 
 
+*Latest version: 0.0.1 pre-alpha (not released yet)*
+
 Once installed, the plugin can be accessed via QGIS Python Console ![](https://docs.qgis.org/3.4/en/_images/iconRunConsole.png) in [`Plugins > Python Console`](https://docs.qgis.org/2.18/en/docs/user_manual/plugins/python_console.html#the-interactive-console). However, it is more convenient to use QGIS Python [`Code Editor`](https://docs.qgis.org/2.18/en/docs/user_manual/plugins/python_console.html#the-code-editor)  ![](https://docs.qgis.org/3.4/en/_images/iconShowEditorConsole.png) to write and execute EE scripts.
 
 Current version of the plugin adds access to the EE Python API to the QGIS environment so that ee package can be used for QGIS scripting.
 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
+
+### Roadmap
+
+#### Alpha 0.1 (Q4 2019)
+- [x] Create a new QGIS plugin skeleton
+- [x] Migrate to QGIS3
+- [x] Embed GEE Python library
+- [x] Implement Map.addLayer() for ee.Image
+- [x] Implement Map.addLayer() for ee.Geometry, ee.Feature and ee.FeatureCollection
+- [x] Implement Map.centerObject()
+- [x] Implement Map.getBounds()
+- [x] Implement Map.getCenter()
+- [x] Implement Map.setCenter()
+- [x] Implement Map.getScale()
+- [x] Implement Map.getZoom()
+- [x] Implement Map.setZoom()
+- [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
+
+#### Alpha 0.2 (Q1 2020)
+...
+
+#### Beta
+- [ ] Add support for map layers in a way similar to EE Code Editor
+- [ ] Add support for Data Catalog, allowing adding assets without the need to write scripts (select time, styling)
+- [ ] Custom EE scripts as Processing algorithms, so that users can use it within Graphical Modeller
+- [ ] Fetch (cache?) raster assets locally (EE > QGIS), for a given rectangle / CRS, as a Processing tool
+- [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
+- [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
 
 ### Map

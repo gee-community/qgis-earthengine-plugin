@@ -1,7 +1,7 @@
 import ee
 
 from ee_plugin import Map
-from ee_plugin.packages import utils, palettes
+from ee_plugin.contrib import utils, palettes
 
 Map.setCenter(4.408241, 52.177595, 18)
 

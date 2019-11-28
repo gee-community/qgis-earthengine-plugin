@@ -1,5 +1,5 @@
 from ee_plugin import Map
-from ee_plugin.packages import palettes
+from ee_plugin.contrib import palettes
 import ee
 
 dem = ee.Image("AHN/AHN2_05M_RUW").convolve(ee.Kernel.gaussian(0.5, 0.3, 'meters'))

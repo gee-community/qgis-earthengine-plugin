@@ -9,11 +9,9 @@ dem = ee.Image("AHN/AHN2_05M_RUW") \
   .resample('bicubic') \
   .convolve(ee.Kernel.gaussian(0.5, 0.25, 'meters'))
 
-#  palette = palettes.crameri.lisbon[25]
-
-palette = palettes.crameri.oleron[50]
-
-#  palette = palettes.crameri.roma[25].slice(0).reverse()
+#  palette = palettes.crameri['lisbon'][50]
+palette = palettes.crameri['oleron'][50]
+#  palette = palettes.crameri['roma'][50].slice(0).reverse()
 
 demRGB = dem.visualize(**{ 'min': -5, 'max': 15, 'palette': palette })
 

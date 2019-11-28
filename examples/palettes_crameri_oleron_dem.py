@@ -6,7 +6,7 @@ dem = ee.Image("AHN/AHN2_05M_RUW").convolve(ee.Kernel.gaussian(0.5, 0.3, 'meters
 
 extrusion = 3
 weight = 0.7
-palette = palettes.crameri['oleron']['50']
+palette = palettes.crameri['oleron'][50]
 
 rgb = dem.visualize(**{'min': 0, 'max': 3, 'palette': palette })
 hsv = rgb.unitScale(0, 255).rgbToHsv()

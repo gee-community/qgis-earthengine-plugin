@@ -4,7 +4,7 @@ import ee
 
 dem = ee.Image("JAXA/ALOS/AW3D30_V1_1").select('MED')
 dem = dem.updateMask(dem.gt(0))
-palette = palettes.cb['Pastel1']['7']
+palette = palettes.cb['Pastel1'][7]
 #palette = ['black', 'white']
 rgb = dem.visualize(**{'min': 0, 'max': 5000, 'palette': palette })
 hsv = rgb.unitScale(0, 255).rgbToHsv()

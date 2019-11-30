@@ -12,12 +12,12 @@ dem = ee.Image("AHN/AHN2_05M_RUW") \
 # palette = palettes.crameri['lisbon'][50]
 palette = palettes.crameri['oleron'][50]
 # palette = palettes.crameri['roma'][50][::-1] # reversed
-# palette = palettes.crameri[batlow]['50']
+# palette = palettes.crameri['batlow'][50]
 
 demRGB = dem.visualize(**{ 'min': -5, 'max': 5, 'palette': palette })
 Map.addLayer(demRGB , {}, 'DEM (RGB)', False)
 
-weight = 0.5 # wegith of Hillshade vs RGB intensity (0 - flat, 1 - HS)
+weight = 0.5 # hillshade vs RGB intensity (0 - flat, 1 - HS)
 exaggeration = 5 # vertical exaggeration
 azimuth = 315 # Sun azimuth
 zenith = 20 # Sun elevation

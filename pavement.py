@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
+import platform
 import fnmatch
 import zipfile
 
@@ -9,11 +9,11 @@ from paver.easy import *
 
 
 def get_extlibs():
-    if os.name == 'nt':
+    if platform.system() == "Windows":
         return 'ee_plugin/extlibs_windows'
-    elif sys.platform == 'darwin':
+    if platform.system() == "Darwin":
         return 'ee_plugin/extlibs_macos'
-    else:
+    if platform.system() == "Linux":
         return 'ee_plugin/extlibs_linux'
 
 
@@ -66,7 +66,6 @@ def read_requirements():
 @cmdopts([('tests', 't', 'Package tests with plugin')])
 def package(options):
     '''create package for plugin'''
-    #builddocs(options) TODO
     package_file = options.plugin.package_dir / ('%s.zip' % options.plugin.name)
     with zipfile.ZipFile(package_file, "w", zipfile.ZIP_DEFLATED) as f:
         if not hasattr(options.package, 'tests'):

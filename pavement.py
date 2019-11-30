@@ -4,12 +4,8 @@ import os
 import sys
 import fnmatch
 import zipfile
-import json
-from collections import defaultdict
 
-# this pulls in the sphinx target
 from paver.easy import *
-from paver.doctools import html
 
 
 def get_extlibs():
@@ -33,19 +29,11 @@ options(
             ".git"
         ]
     ),
-
-    sphinx=Bunch(
-        docroot=path('help'),
-        sourcedir=path('help/source'),
-        builddir=path('help/build')
-    )
 )
 
 
 @task
-@cmdopts([
-    ('clean', 'c', 'clean out dependencies first'),
-])
+@cmdopts([('clean', 'c', 'clean out dependencies first')])
 def setup():
     clean = getattr(options, 'clean', False)
     ext_libs = options.plugin.ext_libs
@@ -75,9 +63,7 @@ def read_requirements():
 
 
 @task
-@cmdopts([
-    ('tests', 't', 'Package tests with plugin')
-])
+@cmdopts([('tests', 't', 'Package tests with plugin')])
 def package(options):
     '''create package for plugin'''
     #builddocs(options) TODO
@@ -108,8 +94,3 @@ def make_zip(zipFile, options):
             relpath = os.path.relpath(root, '.')
             zipFile.write(path(root) / f, path(relpath) / f)
         filter_excludes(dirs)
-
-    for root, dirs, files in os.walk(options.sphinx.builddir):
-        for f in files:
-            relpath = os.path.join(options.plugin.name, "help", os.path.relpath(root, options.sphinx.builddir))
-            zipFile.write(path(root) / f, path(relpath) / f)

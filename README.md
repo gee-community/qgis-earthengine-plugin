@@ -37,10 +37,9 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
 ## Contributors
-
-![@gena](https://github.com/gena.png?size=40 "Gena")
-![@XavierCLL](https://github.com/XavierCLL.png?size=40 "Xavier")
-![@hcwinsemius](https://github.com/github.png?size=40 "Hessel")
+[![@gena](https://github.com/gena.png?size=40 "Gena")](http://github.com/gena)
+[![@XavierCLL](https://github.com/XavierCLL.png?size=40 "Xavier")](http://github.com/XavierCLL)
+[![@hcwinsemius](https://github.com/github.png?size=40 "Hessel")](http://github.com/hcwinsemius)
 
 ### Misc
 

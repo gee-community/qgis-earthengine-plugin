@@ -43,7 +43,7 @@ def setup():
     reqs = read_requirements()
     os.environ['PYTHONPATH'] = ext_libs.abspath()
     for req in reqs:
-        if os.name == 'nt':
+        if platform.system() == "Windows":
             sh('pip install -U -t %(ext_libs)s %(dep)s' % {
                 'ext_libs': ext_libs.abspath(),
                 'dep': req
@@ -60,12 +60,12 @@ def install(options):
     '''install plugin to qgis'''
     plugin_name = options.plugin.name
     src = path(__file__).dirname() / plugin_name
-    if os.name == 'nt':
+    if platform.system() == "Windows":
         dst = path('~/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins').expanduser() / plugin_name
-    elif sys.platform == 'darwin':
+    if platform.system() == "Darwin":
         dst = path(
             '~/Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins').expanduser() / plugin_name
-    else:
+    if platform.system() == "Linux":
         dst = path('~/.local/share/QGIS/QGIS3/profiles/default/python/plugins').expanduser() / plugin_name
     src = src.abspath()
     dst = dst.abspath()

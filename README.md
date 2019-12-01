@@ -57,7 +57,11 @@ Install into QGIS by running
 
 ```paver install```
 
-This should create a symbolic link to the plugin directory wihin the QGIS plugins deployment directory. Check Settings > User Profiles > Open Active Profile Folder, and then go to python/plugins.
+This should create a symbolic link to the plugin directory wihin the QGIS plugins deployment directory. Check Settings > User Profiles > Open Active Profile Folder, and then go to python/plugins. To reload any changes made in the plugin into Qgis, it is recommended to use the [plugin reloader](https://plugins.qgis.org/plugins/plugin_reloader/).
+
+To generate the installable zip package
+
+```paver package``` 
 
 ### Random Links
 

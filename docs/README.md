@@ -12,6 +12,16 @@ After the installation, the plugin checks if the user has Python API logged in. 
 
 Once installed and authenticated, the plugin can be accessed from the QGIS Python [`Code Editor`](https://docs.qgis.org/2.18/en/docs/user_manual/plugins/python_console.html#the-code-editor)  ![](https://docs.qgis.org/3.4/en/_images/iconShowEditorConsole.png) to write and execute EE scripts. There is not UI support available yet, you will have to write code!
 
+To test if the plugin is installed and authenticated properly - type the following in the QGIS Python Console:
+
+```python
+>>> import ee
+>>> print(ee.String('Hello World form EE!').getInfo())
+Hello World form EE!
+```
+
+A more advanced script would look like this:
+
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
 ### Map
@@ -33,14 +43,14 @@ Check official [EE API documentation](https://developers.google.com/earth-engine
 
 #### Importing plugin
 
-To get started, make sure to include the following two importes at the beginning:
+For most of the EE scripts, the following two imports must be included:
 
 ```python
-from ee_plugin import Map
 import ee
+from ee_plugin import Map
 ```
 
-After that, the Map.* functions can be used in a similar way to how this is done in Code Editor:
+After that, the Map.* functions can be used in a similar way to the official Google Earth Engine (Code Editor)[https://developers.google.com/earth-engine/playground]:
 
 #### Adding map layers
 

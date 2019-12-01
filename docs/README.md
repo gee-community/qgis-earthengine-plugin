@@ -43,14 +43,14 @@ Check official [EE API documentation](https://developers.google.com/earth-engine
 
 #### Importing plugin
 
-To get started, make sure to include the following two importes at the beginning:
+For most of the EE scripts, the following two imports must be included:
 
 ```python
-from ee_plugin import Map
 import ee
+from ee_plugin import Map
 ```
 
-After that, the Map.* functions can be used in a similar way to how this is done in Code Editor:
+After that, the Map.* functions can be used in a similar way to the official Google Earth Engine (Code Editor)[https://developers.google.com/earth-engine/playground]:
 
 #### Adding map layers
 

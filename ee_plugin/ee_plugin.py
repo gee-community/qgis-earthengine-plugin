@@ -92,7 +92,7 @@ class GoogleEarthEnginePlugin(object):
     def run(self):
         # open user guide in external web browser
         webbrowser.open_new(
-            "https://github.com/gee-community/qgis-earthengine-plugin")
+            "http://qgis-ee-plugin.appspot.com/user-guide")
 
     def check_version(self):
         global version_checked

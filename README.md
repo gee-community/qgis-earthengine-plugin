@@ -36,6 +36,10 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 - [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
+## Contributors
+
+@gena @XavierCLL @hcwinsemius
+
 ### Misc
 
 * Wiki: https://github.com/gena/qgis-earthengine-plugin/wiki

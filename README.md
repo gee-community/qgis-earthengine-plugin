@@ -38,7 +38,9 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 
 ## Contributors
 
-@gena @XavierCLL @hcwinsemius
+![@gena](https://github.com/gena.png?size=40 "Gena")
+![@XavierCLL](https://github.com/XavierCLL.png?size=40 "Xavier")
+![@hcwinsemius](https://github.com/github.png?size=40 "Hessel")
 
 ### Misc
 

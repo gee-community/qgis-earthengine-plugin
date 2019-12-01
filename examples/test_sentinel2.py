@@ -1,5 +1,5 @@
-from ee_plugin import Map
 import ee
+from ee_plugin import Map
 
 image = ee.ImageCollection('COPERNICUS/S2') \
   .filterDate('2017-01-01', '2017-01-02').median() \

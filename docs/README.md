@@ -1,14 +1,16 @@
 **Current Version: 0.0.1 pre-alpha (not released yet)**
 
+[![Gitter](https://badges.gitter.im/gee-community/qgis-earthengine-plugin.svg)](https://gitter.im/gee-community/qgis-earthengine-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 This is a home page for QGIS Earth Engine plugin. The ee_plugin adds support for [Google Earth Engine Python API](https://github.com/google/earthengine-api/tree/master/python) to QGIS and implements Map API typically used within the [Google Earth Engine Code Editor](https://developers.google.com/earth-engine/getstarted). To get started - please make sure you're familiar with the EE API first and/or check examples.
 
 ### Getting Started
 
-The plugin can be installed from the QGIS Plugin Repository as any other plugin. It takes some time to get installed (~30-60 sec), so be patient. 
+The plugin can be installed from the QGIS Plugin Repository as any other plugin. It may take some time install (~30-60 sec) due to EE dependencies included in the distribution. 
 
-The user needs to have an active Google Earth Engine account to get started. If you don't have one - please sign-up here: https://earthengine.google.com/signup/.
+The user needs to have an active Google Earth Engine (EE) account to use the plugin. If you don't have one - please sign-up here: https://earthengine.google.com/signup/.
 
-After the installation, the plugin checks if the user has Python API logged in. If this is not the case - the user will be asked to authenticate.
+After the installation, the plugin checks if the user is authenticated to use the EE. If this is not the case - the user will be asked to authenticate.
 
 Once installed and authenticated, the plugin can be accessed from the QGIS Python [`Code Editor`](https://docs.qgis.org/2.18/en/docs/user_manual/plugins/python_console.html#the-code-editor)  ![](https://docs.qgis.org/3.4/en/_images/iconShowEditorConsole.png) to write and execute EE scripts. There is not UI support available yet, you will have to write code!
 
@@ -50,7 +52,7 @@ import ee
 from ee_plugin import Map
 ```
 
-After that, the Map.* functions can be used in a similar way to the official Google Earth Engine (Code Editor)[https://developers.google.com/earth-engine/playground]:
+After that, the Map.* functions can be used in a similar way to the official EE Code Editor[https://developers.google.com/earth-engine/playground]:
 
 #### Adding map layers
 

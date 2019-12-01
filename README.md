@@ -1,8 +1,12 @@
 # Google Earth Engine plugin for QGIS
 
-Integrates Google Earth Engine with QGIS using Python API
+Integrates Google Earth Engine with QGIS using Python API. 
 
 Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to get started.
+
+[![Gitter](https://badges.gitter.im/gee-community/qgis-earthengine-plugin.svg)](https://gitter.im/gee-community/qgis-earthengine-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
+![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
 ### Roadmap
 
@@ -22,7 +26,7 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 - [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
 
 #### Alpha 0.2 (Q1 2020)
-- [ ] EE layer tnspector
+- [ ] EE layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
 ...
 
@@ -34,10 +38,10 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 - [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
-### Misc
-
-* Wiki: https://github.com/gena/qgis-earthengine-plugin/wiki
-* Board: https://github.com/gena/qgis-earthengine-plugin/projects/1
+## Contributors
+[![@gena](https://github.com/gena.png?size=40 "Gena")](http://github.com/gena)
+[![@XavierCLL](https://github.com/XavierCLL.png?size=40 "Xavier")](http://github.com/XavierCLL)
+[![@hcwinsemius](https://github.com/github.png?size=40 "Hessel")](http://github.com/hcwinsemius)
 
 ### For Developers
 

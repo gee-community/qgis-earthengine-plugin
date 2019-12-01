@@ -24,7 +24,7 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 - [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
 
 #### Alpha 0.2 (Q1 2020)
-- [ ] EE layer tnspector
+- [ ] EE layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
 ...
 

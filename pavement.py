@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
+import platform
 import fnmatch
 import zipfile
-import json
-from collections import defaultdict
 
-# this pulls in the sphinx target
 from paver.easy import *
-from paver.doctools import html
 
 
 def get_extlibs():
-    if os.name == 'nt':
+    if platform.system() == "Windows":
         return 'ee_plugin/extlibs_windows'
-    elif sys.platform == 'darwin':
+    if platform.system() == "Darwin":
         return 'ee_plugin/extlibs_macos'
-    else:
+    if platform.system() == "Linux":
         return 'ee_plugin/extlibs_linux'
 
 
@@ -33,19 +29,11 @@ options(
             ".git"
         ]
     ),
-
-    sphinx=Bunch(
-        docroot=path('help'),
-        sourcedir=path('help/source'),
-        builddir=path('help/build')
-    )
 )
 
 
 @task
-@cmdopts([
-    ('clean', 'c', 'clean out dependencies first'),
-])
+@cmdopts([('clean', 'c', 'clean out dependencies first')])
 def setup():
     clean = getattr(options, 'clean', False)
     ext_libs = options.plugin.ext_libs
@@ -55,7 +43,7 @@ def setup():
     reqs = read_requirements()
     os.environ['PYTHONPATH'] = ext_libs.abspath()
     for req in reqs:
-        if os.name == 'nt':
+        if platform.system() == "Windows":
             sh('pip install -U -t %(ext_libs)s %(dep)s' % {
                 'ext_libs': ext_libs.abspath(),
                 'dep': req
@@ -72,12 +60,12 @@ def install(options):
     '''install plugin to qgis'''
     plugin_name = options.plugin.name
     src = path(__file__).dirname() / plugin_name
-    if os.name == 'nt':
+    if platform.system() == "Windows":
         dst = path('~/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins').expanduser() / plugin_name
-    elif sys.platform == 'darwin':
+    if platform.system() == "Darwin":
         dst = path(
             '~/Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins').expanduser() / plugin_name
-    else:
+    if platform.system() == "Linux":
         dst = path('~/.local/share/QGIS/QGIS3/profiles/default/python/plugins').expanduser() / plugin_name
     src = src.abspath()
     dst = dst.abspath()
@@ -96,12 +84,9 @@ def read_requirements():
 
 
 @task
-@cmdopts([
-    ('tests', 't', 'Package tests with plugin')
-])
+@cmdopts([('tests', 't', 'Package tests with plugin')])
 def package(options):
     '''create package for plugin'''
-    #builddocs(options) TODO
     package_file = options.plugin.package_dir / ('%s.zip' % options.plugin.name)
     with zipfile.ZipFile(package_file, "w", zipfile.ZIP_DEFLATED) as f:
         if not hasattr(options.package, 'tests'):
@@ -129,58 +114,3 @@ def make_zip(zipFile, options):
             relpath = os.path.relpath(root, '.')
             zipFile.write(path(root) / f, path(relpath) / f)
         filter_excludes(dirs)
-
-    for root, dirs, files in os.walk(options.sphinx.builddir):
-        for f in files:
-            relpath = os.path.join(options.plugin.name, "help", os.path.relpath(root, options.sphinx.builddir))
-            zipFile.write(path(root) / f, path(relpath) / f)
-
-
-def create_settings_docs(options):
-    settings_file = path(options.plugin.name) / "settings.json"
-    doc_file = options.sphinx.sourcedir / "settingsconf.rst"
-    try:
-        with open(settings_file) as f:
-            settings = json.load(f)
-    except:
-        return
-    grouped = defaultdict(list)
-    for setting in settings:
-        grouped[setting["group"]].append(setting)
-    with open(doc_file, "w") as f:
-        f.write(".. _plugin_settings:\n\n"
-                "Plugin settings\n===============\n\n"
-                "The plugin can be adjusted using the following settings, "
-                "to be found in its settings dialog (|path_to_settings|).\n")
-        for groupName, group in grouped.items():
-            section_marks = "-" * len(groupName)
-            f.write("\n%s\n%s\n\n"
-                    ".. list-table::\n"
-                    "   :header-rows: 1\n"
-                    "   :stub-columns: 1\n"
-                    "   :widths: 20 80\n"
-                    "   :class: non-responsive\n\n"
-                    "   * - Option\n"
-                    "     - Description\n"
-                    % (groupName, section_marks))
-            for setting in group:
-                f.write("   * - %s\n"
-                        "     - %s\n"
-                        % (setting["label"], setting["description"]))
-
-
-@task
-@cmdopts([
-    ('clean', 'c', 'clean out built artifacts first')
-])
-def builddocs(options):
-    create_settings_docs(options)
-    if getattr(options, 'sphinx_theme', False):
-        # overrides default theme by the one provided in command line
-        set_theme = "-D html_theme='{}'".format(options.sphinx_theme)
-    else:
-        # Uses default theme defined in conf.py
-        set_theme = ""
-    sh("sphinx-build -a {} {} {}/html".format(set_theme,
-                                              options.sphinx.sourcedir,
-                                              options.sphinx.builddir))

@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
-
-from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.PyQt.QtCore import QCoreApplication
 import os
-import sys
+import platform
 import site
 
-if sys.platform == 'win32':
-    extlib_path = '/extlibs_windows'
-elif sys.platform == 'darwin':
-    extlib_path = '/extlibs_darwin'
-else:
-    extlib_path = '/extlibs_linux'
+if platform.system() == "Windows":
+    extlib_path = 'extlibs_windows'
+if platform.system() == "Darwin":
+    extlib_path = 'extlibs_darwin'
+if platform.system() == "Linux":
+    extlib_path = 'extlibs_linux'
 
-site.addsitedir(os.path.abspath(os.path.dirname(__file__) + extlib_path))
+site.addsitedir(os.path.abspath(os.path.join(os.path.dirname(__file__), extlib_path)))
 
 
 # noinspection PyPep8Naming

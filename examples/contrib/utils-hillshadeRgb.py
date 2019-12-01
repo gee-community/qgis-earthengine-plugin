@@ -5,6 +5,7 @@ from ee_plugin.contrib import utils, palettes
 
 dem = ee.Image("AHN/AHN2_05M_RUW") \
   .resample('bicubic') \
+  .focal_max(0.5, 'circle', 'meters') \
   .convolve(ee.Kernel.gaussian(0.5, 0.25, 'meters'))
 
 # See https://github.com/gee-community/ee-palettes 
@@ -18,9 +19,9 @@ demRGB = dem.visualize(**{ 'min': -5, 'max': 5, 'palette': palette })
 Map.addLayer(demRGB , {}, 'DEM (RGB)', False)
 
 weight = 0.5 # hillshade vs RGB intensity (0 - flat, 1 - HS)
-exaggeration = 5 # vertical exaggeration
-azimuth = 315 # Sun azimuth
-zenith = 20 # Sun elevation
+exaggeration = 3 # vertical exaggeration
+azimuth = 300 # Sun azimuth
+zenith = 25 # Sun elevation
 brightness = -0.05 # 0 - default
 contrast = 0.05 # 0 - default
 saturation = 0.8 # 1 - default
@@ -38,4 +39,4 @@ rgb = utils.hillshadeRGB(demRGB, dem, weight, exaggeration,
 Map.addLayer(rgb, {}, 'DEM (hillshade, shadows)')
 
 
-Map.setCenter(4.407, 52.177, 18)
+# Map.setCenter(4.407, 52.177, 18)

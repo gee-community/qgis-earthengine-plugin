@@ -28,7 +28,7 @@ repository=https://github.com/gena/qgis-earthengine-plugin
 # Tags are comma separated with spaces allowed
 tags=cloud, analysis, dem, geojson, geometry, google, landsat, land cover, processing, raster, remote sensing, statistics, topography, webservice
 
-homepage=https://github.com/gena/qgis-earthengine-plugin
+homepage=https://qgis-ee-plugin.appspot.com/
 category=Plugins
 icon=icons/earth_engine.svg
 # experimental flag

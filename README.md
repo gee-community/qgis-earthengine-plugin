@@ -41,11 +41,6 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 [![@XavierCLL](https://github.com/XavierCLL.png?size=40 "Xavier")](http://github.com/XavierCLL)
 [![@hcwinsemius](https://github.com/github.png?size=40 "Hessel")](http://github.com/hcwinsemius)
 
-### Misc
-
-* Wiki: https://github.com/gena/qgis-earthengine-plugin/wiki
-* Board: https://github.com/gena/qgis-earthengine-plugin/projects/1
-
 ### For Developers
 
 This section is for developers-only. 

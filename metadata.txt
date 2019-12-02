@@ -16,8 +16,8 @@ email=gennadiy.donchyts@gmail.com
 
 about=Integrates Google Earth Engine (GEE) by wrapping GEE Python API.
 
-tracker=https://github.com/gena/qgis-earthengine-plugin/issues
-repository=https://github.com/gena/qgis-earthengine-plugin
+tracker=https://github.com/gee-community/qgis-earthengine-plugin/issues
+repository=https://github.com/gee-community/qgis-earthengine-plugin
 # End of mandatory metadata
 
 # Recommended items:

@@ -10,23 +10,26 @@ from paver.easy import *
 
 def get_extlibs():
     if platform.system() == "Windows":
-        return 'ee_plugin/extlibs_windows'
+        return 'extlibs_windows'
     if platform.system() == "Darwin":
-        return 'ee_plugin/extlibs_macos'
+        return 'extlibs_macos'
     if platform.system() == "Linux":
-        return 'ee_plugin/extlibs_linux'
+        return 'extlibs_linux'
 
 
 options(
     plugin=Bunch(
         name='ee_plugin',
         ext_libs=path(get_extlibs()),
-        source_dir=path('ee_plugin'),
+        source_dir=path('.'),
         package_dir=path('.'),
         tests=['test', 'tests'],
         excludes=[
             '*.pyc',
-            ".git"
+            ".git",
+            "__pycache__",
+            "media",
+            "ee_plugin.zip"
         ]
     ),
 )
@@ -112,5 +115,5 @@ def make_zip(zipFile, options):
     for root, dirs, files in os.walk(src_dir):
         for f in filter_excludes(files):
             relpath = os.path.relpath(root, '.')
-            zipFile.write(path(root) / f, path(relpath) / f)
+            zipFile.write(path(root) / f, path('ee_plugin') / path(relpath) / f)
         filter_excludes(dirs)

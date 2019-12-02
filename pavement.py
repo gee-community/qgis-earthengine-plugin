@@ -25,8 +25,11 @@ options(
         package_dir=path('.'),
         tests=['test', 'tests'],
         excludes=[
-            '*.pyc',
+            "*.pyc",
             ".git",
+            ".idea",
+            ".gitignore",
+            ".travis.yml",
             "__pycache__",
             "media",
             "ee_plugin.zip"

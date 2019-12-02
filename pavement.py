@@ -65,7 +65,7 @@ def setup():
 def install(options):
     '''install plugin to qgis'''
     plugin_name = options.plugin.name
-    src = path(__file__).dirname() / plugin_name
+    src = path(__file__).dirname()
     if platform.system() == "Windows":
         dst = path('~/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins').expanduser() / plugin_name
     if platform.system() == "Darwin":

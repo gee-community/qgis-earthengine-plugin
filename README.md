@@ -42,6 +42,7 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 [![@gena](https://github.com/gena.png?size=40 "Gena")](http://github.com/gena)
 [![@XavierCLL](https://github.com/XavierCLL.png?size=40 "Xavier")](http://github.com/XavierCLL)
 [![@hcwinsemius](https://github.com/github.png?size=40 "Hessel")](http://github.com/hcwinsemius)
+[![@siggyf](https://github.com/siggyf.png?size=40 "Fedor")](http://github.com/siggyf)
 
 ### For Developers
 

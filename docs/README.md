@@ -1,10 +1,10 @@
-**Current Version: 0.0.1 pre-alpha (not released yet)**
+**Current Version: 0.0.1 pre-alpha (pending approval)**
 
 [![Gitter](https://badges.gitter.im/gee-community/qgis-earthengine-plugin.svg)](https://gitter.im/gee-community/qgis-earthengine-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-This is a home page for QGIS Earth Engine plugin. The ee_plugin adds support for [Google Earth Engine Python API](https://github.com/google/earthengine-api/tree/master/python) to QGIS and implements Map API typically used within the [Google Earth Engine Code Editor](https://developers.google.com/earth-engine/getstarted). To get started - please make sure you're familiar with the EE API first and/or check examples.
+The QGIS Earth Engine plugin integrates [Google Earth Engine](http://earthengine.google.com) and [QGIS](https://qgis.org/) using [EE Python API](https://github.com/google/earthengine-api/tree/master/python). Currently, the plugin implements only a subset of Map API typically used within the [Google Earth Engine Code Editor](https://developers.google.com/earth-engine/getstarted). To get started - please make sure you're familiar with the EE first by visiting: https://developers.google.com/earth-engine/getstarted. 
 
-### Getting Started
+### Installation
 
 The plugin can be installed from the QGIS Plugin Repository as any other plugin. It may take some time install (~30-60 sec) due to EE dependencies included in the distribution. 
 
@@ -22,7 +22,7 @@ To test if the plugin is installed and authenticated properly - type the followi
 Hello World form EE!
 ```
 
-A more advanced script would look like this:
+A more advanced script may look like this:
 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 

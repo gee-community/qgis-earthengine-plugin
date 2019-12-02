@@ -1,4 +1,4 @@
-**Current Version: 0.0.1 pre-alpha (pending approval)**
+**Current Version: 0.0.1 alpha (Experimental)**
 
 [![Gitter](https://badges.gitter.im/gee-community/qgis-earthengine-plugin.svg)](https://gitter.im/gee-community/qgis-earthengine-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -6,7 +6,9 @@ The QGIS Earth Engine plugin integrates [Google Earth Engine](http://earthengine
 
 ### Installation
 
-The plugin can be installed from the QGIS Plugin Repository as any other plugin. It may take some time install (~30-60 sec) due to EE dependencies included in the distribution. 
+The plugin can be installed from the QGIS Plugin Repository as any other plugin, but is available as Experimantal for this version. So make sure the option **Show also experimental plugins** is enabled under Plugins >  > Settings before searching for it.
+
+It may take some time install (~30-60 sec) due to EE dependencies included in the distribution. 
 
 The user needs to have an active Google Earth Engine (EE) account to use the plugin. If you don't have one - please sign-up here: https://earthengine.google.com/signup/.
 

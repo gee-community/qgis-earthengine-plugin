@@ -6,7 +6,7 @@ The QGIS Earth Engine plugin integrates [Google Earth Engine](http://earthengine
 
 ### Installation
 
-The plugin can be installed from the QGIS Plugin Repository as any other plugin, but is available as Experimantal for this version. So make sure the option **Show also experimental plugins** is enabled under Plugins >  > Settings before searching for it.
+The plugin can be installed from the QGIS Plugin Repository as any other plugin, but is available as Experimantal for this version. So make sure the option **Show also experimental plugins** is enabled under Plugins > Settings before searching for it.
 
 It may take some time install (~30-60 sec) due to EE dependencies included in the distribution. 
 

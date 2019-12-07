@@ -41,7 +41,7 @@ def authenticate():
                                      'This plugin uses Google Earth Engine Python API and requires users \n'
                                      'to be authorized, please follow the instructions in the opened web page\n'
                                      'and paste the resulting auth token here.\n\n'
-                                     'If the web page does not open automatically, visit the followin link manually:\n\n'
+                                     'If the web page does not open automatically, visit the following link manually:\n'
                                      'URL: ' + tiny_url(auth_url))
 
     if ok and token:

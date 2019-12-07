@@ -18,8 +18,8 @@ To test if the plugin is installed and authenticated properly - type the followi
 
 ```python
 >>> import ee
->>> print(ee.String('Hello World form EE!').getInfo())
-Hello World form EE!
+>>> print(ee.String('Hello World from EE!').getInfo())
+Hello World from EE!
 ```
 
 A more advanced script may look like this:

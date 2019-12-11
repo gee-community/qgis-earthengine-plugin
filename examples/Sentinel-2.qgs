@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis projectname="" version="3.8.2-Zanzibar">
+<qgis version="3.10.0-A CoruÃ±a" projectname="">
   <homePath path=""/>
   <title></title>
   <autotransaction active="0"/>
@@ -19,10 +19,10 @@
   </projectCrs>
   <layer-tree-group>
     <customproperties/>
-    <layer-tree-layer checked="Qt::Checked" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://earthengine.googleapis.com/map/e68510b4e5a3d4e7c79ff490c9442567/%7Bz%7D/%7Bx%7D/%7By%7D?token%3D6689119a60477bc651b9da2ebc567e26" id="Sentinel_2_images_January__2018_32ae65d2_92a8_479e_9aee_b7f425eab480" providerKey="wms" expanded="1" name="Sentinel-2 images January, 2018">
+    <layer-tree-layer id="Sentinel_2_images_January__2018_32ae65d2_92a8_479e_9aee_b7f425eab480" name="Sentinel-2 images January, 2018" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://earthengine.googleapis.com/map/e68510b4e5a3d4e7c79ff490c9442567/%7Bz%7D/%7Bx%7D/%7By%7D?token%3D6689119a60477bc651b9da2ebc567e26" providerKey="wms" expanded="1" checked="Qt::Checked">
       <customproperties/>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Checked" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://earthengine.googleapis.com/map/5de9db1837d26c2ac0d9eead8e805867/%7Bz%7D/%7Bx%7D/%7By%7D?token%3D3b66d147f6cf604c669f36e4126bc124" id="ALOS_DEM_671838cf_a5d2_439e_91da_b3999ed1e6f8" providerKey="wms" expanded="1" name="ALOS DEM">
+    <layer-tree-layer id="ALOS_DEM_671838cf_a5d2_439e_91da_b3999ed1e6f8" name="ALOS DEM" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://earthengine.googleapis.com/map/5de9db1837d26c2ac0d9eead8e805867/%7Bz%7D/%7Bx%7D/%7By%7D?token%3D3b66d147f6cf604c669f36e4126bc124" providerKey="wms" expanded="1" checked="Qt::Checked">
       <customproperties/>
     </layer-tree-layer>
     <custom-order enabled="0">
@@ -30,7 +30,7 @@
       <item>Sentinel_2_images_January__2018_32ae65d2_92a8_479e_9aee_b7f425eab480</item>
     </custom-order>
   </layer-tree-group>
-  <snapping-settings mode="2" enabled="0" unit="1" intersection-snapping="0" type="1" tolerance="12">
+  <snapping-settings type="1" intersection-snapping="0" enabled="0" tolerance="12" mode="2" unit="1">
     <individual-layer-settings/>
   </snapping-settings>
   <relations/>
@@ -60,21 +60,21 @@
   </mapcanvas>
   <projectModels/>
   <legend updateDrawingOrder="true">
-    <legendlayer showFeatureCount="0" checked="Qt::Checked" drawingOrder="-1" open="true" name="Sentinel-2 images January, 2018">
+    <legendlayer open="true" showFeatureCount="0" name="Sentinel-2 images January, 2018" checked="Qt::Checked" drawingOrder="-1">
       <filegroup open="true" hidden="false">
-        <legendlayerfile visible="1" isInOverview="0" layerid="Sentinel_2_images_January__2018_32ae65d2_92a8_479e_9aee_b7f425eab480"/>
+        <legendlayerfile isInOverview="0" visible="1" layerid="Sentinel_2_images_January__2018_32ae65d2_92a8_479e_9aee_b7f425eab480"/>
       </filegroup>
     </legendlayer>
-    <legendlayer showFeatureCount="0" checked="Qt::Checked" drawingOrder="-1" open="true" name="ALOS DEM">
+    <legendlayer open="true" showFeatureCount="0" name="ALOS DEM" checked="Qt::Checked" drawingOrder="-1">
       <filegroup open="true" hidden="false">
-        <legendlayerfile visible="1" isInOverview="0" layerid="ALOS_DEM_671838cf_a5d2_439e_91da_b3999ed1e6f8"/>
+        <legendlayerfile isInOverview="0" visible="1" layerid="ALOS_DEM_671838cf_a5d2_439e_91da_b3999ed1e6f8"/>
       </filegroup>
     </legendlayer>
   </legend>
   <mapViewDocks/>
   <mapViewDocks3D/>
   <projectlayers>
-    <maplayer maxScale="0" autoRefreshEnabled="0" refreshOnNotifyEnabled="0" autoRefreshTime="0" hasScaleBasedVisibilityFlag="0" minScale="1e+08" refreshOnNotifyMessage="" type="raster" styleCategories="AllStyleCategories">
+    <maplayer type="raster" styleCategories="AllStyleCategories" refreshOnNotifyMessage="" maxScale="0" hasScaleBasedVisibilityFlag="0" autoRefreshEnabled="0" autoRefreshTime="0" minScale="1e+08" refreshOnNotifyEnabled="0">
       <extent>
         <xmin>-20037508.34278924390673637</xmin>
         <ymin>-20037508.34278925508260727</ymin>
@@ -118,7 +118,7 @@
             <description></description>
             <projectionacronym></projectionacronym>
             <ellipsoidacronym></ellipsoidacronym>
-            <geographicflag>true</geographicflag>
+            <geographicflag>false</geographicflag>
           </spatialrefsys>
         </crs>
         <extent/>
@@ -136,12 +136,12 @@
         <Searchable>1</Searchable>
       </flags>
       <customproperties>
-        <property key="ee-layer" value="true"/>
-        <property key="ee-script" value="{&quot;type&quot;: &quot;CompoundValue&quot;, &quot;scope&quot;: [[&quot;0&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;id&quot;: &quot;JAXA/ALOS/AW3D30_V1_1&quot;}, &quot;functionName&quot;: &quot;Image.load&quot;}], [&quot;1&quot;, [&quot;MED&quot;]], [&quot;2&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;0&quot;}, &quot;bandSelectors&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;1&quot;}}, &quot;functionName&quot;: &quot;Image.select&quot;}], [&quot;3&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 0}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;4&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;2&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;3&quot;}}, &quot;functionName&quot;: &quot;Image.gt&quot;}], [&quot;5&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;2&quot;}, &quot;mask&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;4&quot;}}, &quot;functionName&quot;: &quot;Image.updateMask&quot;}], [&quot;6&quot;, [&quot;fbb4ae&quot;, &quot;b3cde3&quot;, &quot;ccebc5&quot;, &quot;decbe4&quot;, &quot;fed9a6&quot;, &quot;ffffcc&quot;, &quot;e5d8bd&quot;]], [&quot;7&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;5&quot;}, &quot;min&quot;: 0, &quot;max&quot;: 5000, &quot;palette&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;6&quot;}}, &quot;functionName&quot;: &quot;Image.visualize&quot;}], [&quot;8&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;7&quot;}, &quot;low&quot;: 0, &quot;high&quot;: 255}, &quot;functionName&quot;: &quot;Image.unitScale&quot;}], [&quot;9&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;8&quot;}}, &quot;functionName&quot;: &quot;Image.rgbToHsv&quot;}], [&quot;10&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 30}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;11&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;5&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;10&quot;}}, &quot;functionName&quot;: &quot;Image.multiply&quot;}], [&quot;12&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;11&quot;}, &quot;azimuth&quot;: 315, &quot;elevation&quot;: 35}, &quot;functionName&quot;: &quot;Terrain.hillshade&quot;}], [&quot;13&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;12&quot;}, &quot;low&quot;: 10, &quot;high&quot;: 250}, &quot;functionName&quot;: &quot;Image.unitScale&quot;}], [&quot;14&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;13&quot;}, &quot;mode&quot;: &quot;bicubic&quot;}, &quot;functionName&quot;: &quot;Image.resample&quot;}], [&quot;15&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 0.7}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;16&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;14&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;15&quot;}}, &quot;functionName&quot;: &quot;Image.multiply&quot;}], [&quot;17&quot;, [&quot;value&quot;]], [&quot;18&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;9&quot;}, &quot;bandSelectors&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;17&quot;}}, &quot;functionName&quot;: &quot;Image.select&quot;}], [&quot;19&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 0.3}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;20&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;18&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;19&quot;}}, &quot;functionName&quot;: &quot;Image.multiply&quot;}], [&quot;21&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;16&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;20&quot;}}, &quot;functionName&quot;: &quot;Image.add&quot;}], [&quot;22&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;21&quot;}, &quot;names&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;17&quot;}}, &quot;functionName&quot;: &quot;Image.rename&quot;}], [&quot;23&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;dstImg&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;9&quot;}, &quot;srcImg&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;22&quot;}, &quot;names&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;17&quot;}, &quot;overwrite&quot;: true}, &quot;functionName&quot;: &quot;Image.addBands&quot;}], [&quot;24&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;23&quot;}}, &quot;functionName&quot;: &quot;Image.hsvToRgb&quot;}]], &quot;value&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;24&quot;}}"/>
-        <property key="identify/format" value="Undefined"/>
+        <property value="true" key="ee-layer"/>
+        <property value="{&quot;type&quot;: &quot;CompoundValue&quot;, &quot;scope&quot;: [[&quot;0&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;id&quot;: &quot;JAXA/ALOS/AW3D30_V1_1&quot;}, &quot;functionName&quot;: &quot;Image.load&quot;}], [&quot;1&quot;, [&quot;MED&quot;]], [&quot;2&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;0&quot;}, &quot;bandSelectors&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;1&quot;}}, &quot;functionName&quot;: &quot;Image.select&quot;}], [&quot;3&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 0}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;4&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;2&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;3&quot;}}, &quot;functionName&quot;: &quot;Image.gt&quot;}], [&quot;5&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;2&quot;}, &quot;mask&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;4&quot;}}, &quot;functionName&quot;: &quot;Image.updateMask&quot;}], [&quot;6&quot;, [&quot;fbb4ae&quot;, &quot;b3cde3&quot;, &quot;ccebc5&quot;, &quot;decbe4&quot;, &quot;fed9a6&quot;, &quot;ffffcc&quot;, &quot;e5d8bd&quot;]], [&quot;7&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;5&quot;}, &quot;min&quot;: 0, &quot;max&quot;: 5000, &quot;palette&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;6&quot;}}, &quot;functionName&quot;: &quot;Image.visualize&quot;}], [&quot;8&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;7&quot;}, &quot;low&quot;: 0, &quot;high&quot;: 255}, &quot;functionName&quot;: &quot;Image.unitScale&quot;}], [&quot;9&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;8&quot;}}, &quot;functionName&quot;: &quot;Image.rgbToHsv&quot;}], [&quot;10&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 30}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;11&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;5&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;10&quot;}}, &quot;functionName&quot;: &quot;Image.multiply&quot;}], [&quot;12&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;11&quot;}, &quot;azimuth&quot;: 315, &quot;elevation&quot;: 35}, &quot;functionName&quot;: &quot;Terrain.hillshade&quot;}], [&quot;13&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;12&quot;}, &quot;low&quot;: 10, &quot;high&quot;: 250}, &quot;functionName&quot;: &quot;Image.unitScale&quot;}], [&quot;14&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;13&quot;}, &quot;mode&quot;: &quot;bicubic&quot;}, &quot;functionName&quot;: &quot;Image.resample&quot;}], [&quot;15&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 0.7}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;16&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;14&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;15&quot;}}, &quot;functionName&quot;: &quot;Image.multiply&quot;}], [&quot;17&quot;, [&quot;value&quot;]], [&quot;18&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;9&quot;}, &quot;bandSelectors&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;17&quot;}}, &quot;functionName&quot;: &quot;Image.select&quot;}], [&quot;19&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 0.3}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;20&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;18&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;19&quot;}}, &quot;functionName&quot;: &quot;Image.multiply&quot;}], [&quot;21&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;16&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;20&quot;}}, &quot;functionName&quot;: &quot;Image.add&quot;}], [&quot;22&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;input&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;21&quot;}, &quot;names&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;17&quot;}}, &quot;functionName&quot;: &quot;Image.rename&quot;}], [&quot;23&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;dstImg&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;9&quot;}, &quot;srcImg&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;22&quot;}, &quot;names&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;17&quot;}, &quot;overwrite&quot;: true}, &quot;functionName&quot;: &quot;Image.addBands&quot;}], [&quot;24&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;23&quot;}}, &quot;functionName&quot;: &quot;Image.hsvToRgb&quot;}]], &quot;value&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;24&quot;}}" key="ee-script"/>
+        <property value="Undefined" key="identify/format"/>
       </customproperties>
       <pipe>
-        <rasterrenderer alphaBand="-1" band="1" opacity="1" type="singlebandcolordata">
+        <rasterrenderer type="singlebandcolordata" band="1" opacity="1" alphaBand="-1">
           <rasterTransparency/>
           <minMaxOrigin>
             <limits>None</limits>
@@ -153,12 +153,12 @@
           </minMaxOrigin>
         </rasterrenderer>
         <brightnesscontrast contrast="0" brightness="0"/>
-        <huesaturation colorizeGreen="128" colorizeRed="255" grayscaleMode="0" saturation="0" colorizeBlue="128" colorizeStrength="100" colorizeOn="0"/>
+        <huesaturation colorizeRed="255" colorizeStrength="100" colorizeOn="0" colorizeBlue="128" colorizeGreen="128" saturation="0" grayscaleMode="0"/>
         <rasterresampler maxOversampling="2"/>
       </pipe>
       <blendMode>0</blendMode>
     </maplayer>
-    <maplayer maxScale="0" autoRefreshEnabled="0" refreshOnNotifyEnabled="0" autoRefreshTime="0" hasScaleBasedVisibilityFlag="0" minScale="1e+08" refreshOnNotifyMessage="" type="raster" styleCategories="AllStyleCategories">
+    <maplayer type="raster" styleCategories="AllStyleCategories" refreshOnNotifyMessage="" maxScale="0" hasScaleBasedVisibilityFlag="0" autoRefreshEnabled="0" autoRefreshTime="0" minScale="1e+08" refreshOnNotifyEnabled="0">
       <extent>
         <xmin>-20037508.34278924390673637</xmin>
         <ymin>-20037508.34278925508260727</ymin>
@@ -202,7 +202,7 @@
             <description></description>
             <projectionacronym></projectionacronym>
             <ellipsoidacronym></ellipsoidacronym>
-            <geographicflag>true</geographicflag>
+            <geographicflag>false</geographicflag>
           </spatialrefsys>
         </crs>
         <extent/>
@@ -220,12 +220,12 @@
         <Searchable>1</Searchable>
       </flags>
       <customproperties>
-        <property key="ee-layer" value="true"/>
-        <property key="ee-script" value="{&quot;type&quot;: &quot;CompoundValue&quot;, &quot;scope&quot;: [[&quot;0&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;id&quot;: &quot;COPERNICUS/S2&quot;}, &quot;functionName&quot;: &quot;ImageCollection.load&quot;}], [&quot;1&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;start&quot;: &quot;2018-01-01&quot;, &quot;end&quot;: &quot;2018-01-02&quot;}, &quot;functionName&quot;: &quot;DateRange&quot;}], [&quot;2&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;rightField&quot;: &quot;system:time_start&quot;, &quot;leftValue&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;1&quot;}}, &quot;functionName&quot;: &quot;Filter.dateRangeContains&quot;}], [&quot;3&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;collection&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;0&quot;}, &quot;filter&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;2&quot;}}, &quot;functionName&quot;: &quot;Collection.filter&quot;}], [&quot;4&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;collection&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;3&quot;}}, &quot;functionName&quot;: &quot;reduce.median&quot;}], [&quot;5&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 10000}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;6&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;4&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;5&quot;}}, &quot;functionName&quot;: &quot;Image.divide&quot;}], [&quot;7&quot;, [&quot;B12&quot;, &quot;B8&quot;, &quot;B4&quot;]], [&quot;8&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;6&quot;}, &quot;bands&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;7&quot;}, &quot;min&quot;: 0.05, &quot;max&quot;: 0.5}, &quot;functionName&quot;: &quot;Image.visualize&quot;}]], &quot;value&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;8&quot;}}"/>
-        <property key="identify/format" value="Undefined"/>
+        <property value="true" key="ee-layer"/>
+        <property value="{&quot;type&quot;: &quot;CompoundValue&quot;, &quot;scope&quot;: [[&quot;0&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;id&quot;: &quot;COPERNICUS/S2&quot;}, &quot;functionName&quot;: &quot;ImageCollection.load&quot;}], [&quot;1&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;start&quot;: &quot;2018-01-01&quot;, &quot;end&quot;: &quot;2018-01-02&quot;}, &quot;functionName&quot;: &quot;DateRange&quot;}], [&quot;2&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;rightField&quot;: &quot;system:time_start&quot;, &quot;leftValue&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;1&quot;}}, &quot;functionName&quot;: &quot;Filter.dateRangeContains&quot;}], [&quot;3&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;collection&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;0&quot;}, &quot;filter&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;2&quot;}}, &quot;functionName&quot;: &quot;Collection.filter&quot;}], [&quot;4&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;collection&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;3&quot;}}, &quot;functionName&quot;: &quot;reduce.median&quot;}], [&quot;5&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;value&quot;: 10000}, &quot;functionName&quot;: &quot;Image.constant&quot;}], [&quot;6&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image1&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;4&quot;}, &quot;image2&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;5&quot;}}, &quot;functionName&quot;: &quot;Image.divide&quot;}], [&quot;7&quot;, [&quot;B12&quot;, &quot;B8&quot;, &quot;B4&quot;]], [&quot;8&quot;, {&quot;type&quot;: &quot;Invocation&quot;, &quot;arguments&quot;: {&quot;image&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;6&quot;}, &quot;bands&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;7&quot;}, &quot;min&quot;: 0.05, &quot;max&quot;: 0.5}, &quot;functionName&quot;: &quot;Image.visualize&quot;}]], &quot;value&quot;: {&quot;type&quot;: &quot;ValueRef&quot;, &quot;value&quot;: &quot;8&quot;}}" key="ee-script"/>
+        <property value="Undefined" key="identify/format"/>
       </customproperties>
       <pipe>
-        <rasterrenderer alphaBand="-1" band="1" opacity="1" type="singlebandcolordata">
+        <rasterrenderer type="singlebandcolordata" band="1" opacity="1" alphaBand="-1">
           <rasterTransparency/>
           <minMaxOrigin>
             <limits>None</limits>
@@ -237,7 +237,7 @@
           </minMaxOrigin>
         </rasterrenderer>
         <brightnesscontrast contrast="0" brightness="0"/>
-        <huesaturation colorizeGreen="128" colorizeRed="255" grayscaleMode="0" saturation="0" colorizeBlue="128" colorizeStrength="100" colorizeOn="0"/>
+        <huesaturation colorizeRed="255" colorizeStrength="100" colorizeOn="0" colorizeBlue="128" colorizeGreen="128" saturation="0" grayscaleMode="0"/>
         <rasterresampler maxOversampling="2"/>
       </pipe>
       <blendMode>0</blendMode>
@@ -272,11 +272,13 @@
       <CandidatesPoint type="int">16</CandidatesPoint>
       <CandidatesPolygon type="int">30</CandidatesPolygon>
       <DrawRectOnly type="bool">false</DrawRectOnly>
+      <DrawUnplaced type="bool">false</DrawUnplaced>
       <SearchMethod type="int">0</SearchMethod>
       <ShowingAllLabels type="bool">false</ShowingAllLabels>
       <ShowingCandidates type="bool">false</ShowingCandidates>
       <ShowingPartialsLabels type="bool">true</ShowingPartialsLabels>
       <TextFormat type="int">0</TextFormat>
+      <UnplacedColor type="QString">255,0,0,255</UnplacedColor>
     </PAL>
     <Paths>
       <Absolute type="bool">false</Absolute>
@@ -304,4 +306,5 @@
   </projectMetadata>
   <Annotations/>
   <Layouts/>
+  <Bookmarks/>
 </qgis>

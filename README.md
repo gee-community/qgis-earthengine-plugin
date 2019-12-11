@@ -23,7 +23,7 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 - [x] Implement Map.getScale()
 - [x] Implement Map.getZoom()
 - [x] Implement Map.setZoom()
-- [ ] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/
+- [x] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/ - approved!
 
 #### Alpha 0.2 (Q1 2020)
 - [ ] EE layer inspector

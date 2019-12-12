@@ -2,18 +2,10 @@
 """
 Utils functions GEE
 """
-
-from qgis.core import QgsRasterLayer, QgsProject, QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry, QgsProviderMetadata, QgsWmsProvider
+import qgis.core
+from qgis.core import QgsRasterLayer, QgsProject, QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry, QgsProviderMetadata, QgsMessageLog
 from qgis.utils import iface
 import qgis
-
-import logging
-logging.basicConfig()
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-
-logger.debug('loading qgis ee plugin')
 
 import ee
 
@@ -27,7 +19,9 @@ def update_ee_layer_properties(layer, image, shown, opacity):
     layer.setCustomProperty('ee-layer', True)
 
     if not (opacity is None):
-        layer.renderer().setOpacity(opacity)
+        renderer = layer.renderer()
+        if renderer:
+            renderer.setOpacity(opacity)
 
     # serialize EE code
     ee_script = image.serialize()
@@ -39,7 +33,13 @@ def add_ee_image_layer(image, name, shown, opacity):
 
 
     url = "type=xyz&url=" + get_ee_image_url(image)
-    layer = QgsRasterLayer(url, name, "wms")
+    layer = QgsRasterLayer(url, name, "EE")
+
+    if layer:
+        provider = layer.dataProvider()
+        QgsMessageLog.logMessage('Created layer with provider %s' % (type(provider).__name__, ), 'ee')
+    else:
+        QgsMessageLog.logMessage('Layer not created', 'ee')
     
     update_ee_layer_properties(layer, image, shown, opacity)
     QgsProject.instance().addMapLayer(layer)
@@ -53,8 +53,13 @@ def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
     check_version()
 
     url = "type=xyz&url=" + get_ee_image_url(image)
-    layer.dataProvider().setDataSourceUri(url)
-    layer.dataProvider().reloadData()
+
+    provider = layer.dataProvider()
+    msg = 'Updating layer with provider %s' % (type(provider).__name__, )
+    QgsMessageLog.logMessage(msg, 'ee')
+    
+    provider.setDataSourceUri(url)
+    provider.reloadData()
     update_ee_layer_properties(layer, image, shown, opacity)
     layer.triggerRepaint()
     layer.reload()
@@ -75,11 +80,8 @@ def get_layer_by_name(name):
     return None
 
 
-def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
-    layer = get_layer_by_name(name)
-
-
-    class EEProvider(QgsWmsProvider):
+def register_data_provider():
+    class EEProvider(QgsRasterDataProvider):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
@@ -92,29 +94,31 @@ def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
         @classmethod
         def createProvider(cls, uri, providerOptions):
             return EEProvider(uri, providerOptions)
+
+        def dataType(self, band_no):
+            # can't find qgis.core.ARGB32
+            return 12
         
         def identify(self, *args, **kwargs):
             print('identify', *args, **kwargs)
             result = QgsRasterIdentifyResult()
             return result
-            
-    provider = EEProvider()
 
-    assert isinstance(provider, QgsRasterDataProvider)
+        def isValid(self):
+            return True
+
+        def name(self):
+            return 'EE Provider'
 
     metadata = QgsProviderMetadata(EEProvider.providerKey(), EEProvider.description(), EEProvider.createProvider)
-    registry =  qgis.core.QgsProviderRegistry.instance()
+    registry = qgis.core.QgsProviderRegistry.instance()
     registry.registerProvider(metadata)
+    
 
-        
-    provider = layer.dataProvider()
-    logger.debug('provider: %s', provider)
-    logger.warning('capabilities: %s',  provider.capabilities())
 
-    
-    layer.setDataProvider('EE')
-    
-    
+def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
+    layer = get_layer_by_name(name)
+
     if layer:
         if not layer.customProperty('ee-layer'):
             raise Exception('Layer is not an EE layer: ' + name)
@@ -137,3 +141,9 @@ def add_ee_catalog_image(name, asset_name, visParams, collection_props):
 def check_version():
     # check if we have the latest version only once plugin is used, not once it is loaded
     qgis.utils.plugins['ee_plugin'].check_version()
+
+
+
+    
+
+

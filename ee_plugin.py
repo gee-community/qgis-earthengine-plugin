@@ -60,6 +60,10 @@ class GoogleEarthEnginePlugin(object):
 
         self.menu_name_plugin = self.tr("Google Earth Engine Plugin")
 
+        # Create and register the ee data provider
+        utils.register_data_provider()
+        
+
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
         """Get the translation for a string using Qt translation API.

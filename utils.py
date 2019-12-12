@@ -3,9 +3,17 @@
 Utils functions GEE
 """
 
-from qgis.core import QgsRasterLayer, QgsProject
+from qgis.core import QgsRasterLayer, QgsProject, QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry, QgsProviderMetadata, QgsWmsProvider
 from qgis.utils import iface
 import qgis
+
+import logging
+logging.basicConfig()
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+logger.debug('loading qgis ee plugin')
 
 import ee
 
@@ -29,8 +37,10 @@ def update_ee_layer_properties(layer, image, shown, opacity):
 def add_ee_image_layer(image, name, shown, opacity):
     check_version()
 
+
     url = "type=xyz&url=" + get_ee_image_url(image)
     layer = QgsRasterLayer(url, name, "wms")
+    
     update_ee_layer_properties(layer, image, shown, opacity)
     QgsProject.instance().addMapLayer(layer)
 
@@ -68,6 +78,43 @@ def get_layer_by_name(name):
 def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
     layer = get_layer_by_name(name)
 
+
+    class EEProvider(QgsWmsProvider):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+        @classmethod
+        def description(cls):
+            return 'Earth Engine Provider'
+        @classmethod
+        def providerKey(cls):
+            return 'EE'
+        @classmethod
+        def createProvider(cls, uri, providerOptions):
+            return EEProvider(uri, providerOptions)
+        
+        def identify(self, *args, **kwargs):
+            print('identify', *args, **kwargs)
+            result = QgsRasterIdentifyResult()
+            return result
+            
+    provider = EEProvider()
+
+    assert isinstance(provider, QgsRasterDataProvider)
+
+    metadata = QgsProviderMetadata(EEProvider.providerKey(), EEProvider.description(), EEProvider.createProvider)
+    registry =  qgis.core.QgsProviderRegistry.instance()
+    registry.registerProvider(metadata)
+
+        
+    provider = layer.dataProvider()
+    logger.debug('provider: %s', provider)
+    logger.warning('capabilities: %s',  provider.capabilities())
+
+    
+    layer.setDataProvider('EE')
+    
+    
     if layer:
         if not layer.customProperty('ee-layer'):
             raise Exception('Layer is not an EE layer: ' + name)

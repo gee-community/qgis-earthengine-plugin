@@ -8,6 +8,10 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
+### FAQ
+- I am getting authentication errors, what can I do? Install the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
+
+
 ### Roadmap
 
 #### Alpha 0.1 (Q4 2019)

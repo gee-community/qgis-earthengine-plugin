@@ -2,12 +2,15 @@
 """
 Utils functions GEE
 """
+import json
 import qgis.core
 from qgis.core import QgsRasterLayer, QgsProject, QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry, QgsProviderMetadata, QgsMessageLog
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, Qgis, QgsProject, QgsRaster, QgsRasterInterface, QgsSettings
 from qgis.utils import iface
 import qgis
-
 import ee
+
+from ee_plugin import Map
 
 def get_ee_image_url(image):
     map_id = ee.data.getMapId({'image': image})
@@ -15,7 +18,7 @@ def get_ee_image_url(image):
     return url
 
 
-def update_ee_layer_properties(layer, image, shown, opacity):
+def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     layer.setCustomProperty('ee-layer', True)
 
     if not (opacity is None):
@@ -24,29 +27,34 @@ def update_ee_layer_properties(layer, image, shown, opacity):
             renderer.setOpacity(opacity)
 
     # serialize EE code
-    ee_script = image.serialize()
-    layer.setCustomProperty('ee-script', ee_script)
+    ee_object = eeObject.serialize()
+    ee_object_vis = json.dumps(visParams)
+    layer.setCustomProperty('ee-object', ee_object)
+    layer.setCustomProperty('ee-object-vis', ee_object_vis)
+
+    # update EE script in provider 
+    layer.dataProvider().ee_object = eeObject
 
 
 def add_ee_image_layer(image, name, shown, opacity):
     check_version()
-
 
     url = "type=xyz&url=" + get_ee_image_url(image)
     layer = QgsRasterLayer(url, name, "EE")
 
     if layer:
         provider = layer.dataProvider()
-        QgsMessageLog.logMessage('Created layer with provider %s' % (type(provider).__name__, ), 'ee')
+        QgsMessageLog.logMessage('Created layer with provider %s' % (type(provider).__name__, ), 'Earth Engine')
     else:
-        QgsMessageLog.logMessage('Layer not created', 'ee')
+        QgsMessageLog.logMessage('Layer not created', 'Earth Engine')
     
-    update_ee_layer_properties(layer, image, shown, opacity)
     QgsProject.instance().addMapLayer(layer)
 
     if not (shown is None):
         QgsProject.instance().layerTreeRoot().findLayer(
             layer.id()).setItemVisibilityChecked(shown)
+
+    return layer
 
 
 def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
@@ -56,11 +64,10 @@ def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
 
     provider = layer.dataProvider()
     msg = 'Updating layer with provider %s' % (type(provider).__name__, )
-    QgsMessageLog.logMessage(msg, 'ee')
+    QgsMessageLog.logMessage(msg, 'Earth Engine')
     
     provider.setDataSourceUri(url)
     provider.reloadData()
-    update_ee_layer_properties(layer, image, shown, opacity)
     layer.triggerRepaint()
     layer.reload()
     iface.mapCanvas().refresh()
@@ -79,42 +86,137 @@ def get_layer_by_name(name):
 
     return None
 
-
 def register_data_provider():
-    class EEProvider(QgsRasterDataProvider):
+    class EarthEngineRasterDateProvider(QgsRasterDataProvider):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
+            # create WMS provider
+            self.wms = qgis.core.QgsProviderRegistry.instance().createProvider('wms', *args)
+            # print('wms', self.wms)
+
         @classmethod
         def description(cls):
-            return 'Earth Engine Provider'
+            return 'Google Earth Engine Raster Data Provider'
+        
         @classmethod
         def providerKey(cls):
             return 'EE'
+
         @classmethod
         def createProvider(cls, uri, providerOptions):
-            return EEProvider(uri, providerOptions)
+            return EarthEngineRasterDateProvider(uri, providerOptions)
+
+        def capabilities(self):
+            caps = QgsRasterInterface.Size | QgsRasterInterface.Identify | QgsRasterInterface.IdentifyHtml
+            return QgsRasterDataProvider.ProviderCapabilities(caps)
+
+        def extent(self):
+            return self.wms.extent()
+
+        def crs(self):
+            return self.wms.crs()
+
+        def clone(self):
+            return self.wms.clone()
+
+        def bandCount(self):
+            return self.wms.bandCount()
 
         def dataType(self, band_no):
-            # can't find qgis.core.ARGB32
-            return 12
+            return self.wms.dataType(band_no)
         
-        def identify(self, *args, **kwargs):
-            print('identify', *args, **kwargs)
-            result = QgsRasterIdentifyResult()
+        def identify(self, point, format, boundingBox, width, height, dpi):
+            point = point_to_geo(point) 
+
+            point_ee = ee.Geometry.Point([point.x(), point.y()])
+            scale = Map.getScale()
+            print('scale', scale)
+            value = self.ee_object.reduceRegion(ee.Reducer.first(), point_ee, scale).getInfo()
+
+            settings = QgsSettings()
+
+            color_text = settings.value("pythonConsole/defaultFontColor").name()
+            color_bg = settings.value("pythonConsole/paperBackgroundColor").name()
+            
+            html = '''
+                <table style="font-family: monospace; border: 1px solid black; background: {0}; color: {1}">
+                    <tr>
+                        <th>Band</th>
+                        <th>Value</th>
+                    </tr>
+            '''
+
+            for key in value.keys():
+                row = '''
+                    <tr>
+                        <td>{0}</td>
+                        <td>{1}</td>
+                    </tr>
+                '''
+
+                row = row.format(key, str(value[key]))
+
+                html += row
+            
+            html += '</table>'
+
+            html = html.format(color_bg, color_text)
+
+            value = { 1: html }
+
+            # IdentifyFormatHtml
+            result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatHtml, value) 
+
             return result
 
         def isValid(self):
-            return True
+            return self.wms.isValid()
 
         def name(self):
-            return 'EE Provider'
+            return 'Google Earth Engine Raster Data Provider'
 
-    metadata = QgsProviderMetadata(EEProvider.providerKey(), EEProvider.description(), EEProvider.createProvider)
+    metadata = QgsProviderMetadata(
+        EarthEngineRasterDateProvider.providerKey(), 
+        EarthEngineRasterDateProvider.description(), 
+        EarthEngineRasterDateProvider.createProvider)
     registry = qgis.core.QgsProviderRegistry.instance()
     registry.registerProvider(metadata)
-    
+    QgsMessageLog.logMessage('EE provider registered')
 
+
+def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
+    image = None
+
+    if not isinstance(eeObject, ee.Image) and not isinstance(eeObject, ee.FeatureCollection) and not isinstance(eeObject, ee.Feature) and not isinstance(eeObject, ee.Geometry):
+        err_str = "\n\nThe image argument in 'addLayer' function must be an instace of one of ee.Image, ee.Geometry, ee.Feature or ee.FeatureCollection."
+        raise AttributeError(err_str)
+
+    if isinstance(eeObject, ee.Geometry) or isinstance(eeObject, ee.Feature) or isinstance(eeObject, ee.FeatureCollection):
+        features = ee.FeatureCollection(eeObject)
+
+        color = '000000'
+
+        if visParams and 'color' in visParams:
+            color = visParams['color']
+
+        image = features.style(**{'color': color})
+
+    else:
+        if isinstance(eeObject, ee.Image):
+            image = eeObject.visualize(**visParams)
+
+    if name is None:
+        # extract name from id
+        try:
+            name = json.loads(eeObject.id().serialize())[
+                "scope"][0][1]["arguments"]["id"]
+        except:
+            name = "untitled"
+
+    layer = add_or_update_ee_image_layer(image, name, shown, opacity)
+
+    update_ee_layer_properties(layer, eeObject, visParams, shown, opacity)
 
 def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
     layer = get_layer_by_name(name)
@@ -125,7 +227,9 @@ def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
 
         update_ee_image_layer(image, layer, shown, opacity)
     else:
-        add_ee_image_layer(image, name, shown, opacity)
+        layer = add_ee_image_layer(image, name, shown, opacity)
+
+    return layer
 
 
 def add_ee_catalog_image(name, asset_name, visParams, collection_props):
@@ -142,8 +246,9 @@ def check_version():
     # check if we have the latest version only once plugin is used, not once it is loaded
     qgis.utils.plugins['ee_plugin'].check_version()
 
-
-
+def point_to_geo(point):
+    crs_src = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
+    crs_dst = QgsCoordinateReferenceSystem(4326)
+    proj2geo = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
     
-
-
+    return proj2geo.transform(point)

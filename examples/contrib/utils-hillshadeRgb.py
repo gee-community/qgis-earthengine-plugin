@@ -16,7 +16,7 @@ palette = palettes.crameri['oleron'][50]
 # palette = palettes.crameri['batlow'][50]
 
 demRGB = dem.visualize(**{ 'min': -5, 'max': 5, 'palette': palette })
-Map.addLayer(demRGB , {}, 'DEM (RGB)', False)
+Map.addLayer(demRGB , {}, 'DEM (RGB)', True)
 
 weight = 0.5 # hillshade vs RGB intensity (0 - flat, 1 - HS)
 exaggeration = 3 # vertical exaggeration
@@ -36,7 +36,7 @@ Map.addLayer(rgb, {}, 'DEM (hillshade)', False)
 castShadows = True
 rgb = utils.hillshadeRGB(demRGB, dem, weight, exaggeration, 
     azimuth, zenith, contrast, brightness, saturation, castShadows)
-Map.addLayer(rgb, {}, 'DEM (hillshade, shadows)')
+Map.addLayer(rgb, {}, 'DEM (hillshade, shadows)', False)
 
 
-# Map.setCenter(4.407, 52.177, 18)
+Map.setCenter(4.407, 52.177, 18)

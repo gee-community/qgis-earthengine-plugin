@@ -13,6 +13,7 @@ from ee_plugin.icons import resources
 import webbrowser
 from builtins import object
 import os.path
+import json
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from qgis.PyQt.QtWidgets import QAction
@@ -62,7 +63,6 @@ class GoogleEarthEnginePlugin(object):
 
         # Create and register the ee data provider
         utils.register_data_provider()
-        
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -125,7 +125,18 @@ class GoogleEarthEnginePlugin(object):
         layers = QgsProject.instance().mapLayers().values()
 
         for l in filter(lambda layer: layer.customProperty('ee-layer'), layers):
-            ee_script = l.customProperty('ee-script')
+            ee_object = l.customProperty('ee-object')
+            ee_object_vis = l.customProperty('ee-object-vis')
 
-            image = ee.deserializer.fromJSON(ee_script)
-            utils.update_ee_image_layer(image, l)
+            ee_object = ee.deserializer.fromJSON(ee_object)
+            ee_object_vis = json.loads(ee_object_vis)
+            
+            # update loaded EE layer
+
+            # get existing values for name, visibility, and opacity 
+            # TODO: this should not be needed, refactor add_or_update_ee_layer to update_ee_layer
+            name = l.name()
+            shown = QgsProject.instance().layerTreeRoot().findLayer(l.id()).itemVisibilityChecked()
+            opacity = l.renderer().opacity()
+
+            utils.add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)

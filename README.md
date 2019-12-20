@@ -10,9 +10,11 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 
 ### FAQ
 Q: I am getting authentication errors, what can I do? 
+
 A: Install the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
 
 Q: I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
+
 A: Open Finder and double clicking on this file /Applications/Python 3.6/Install Certificates.command. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
 
 ### Roadmap

@@ -6,6 +6,7 @@ import json
 import qgis.core
 from qgis.core import QgsRasterLayer, QgsProject, QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry, QgsProviderMetadata, QgsMessageLog
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, Qgis, QgsProject, QgsRaster, QgsRasterInterface, QgsSettings
+from qgis.core import QgsPointXY, QgsRectangle
 from qgis.utils import iface
 import qgis
 import ee
@@ -127,25 +128,34 @@ def register_data_provider():
             return self.wms.dataType(band_no)
         
         def identify(self, point, format, boundingBox, width, height, dpi):
-            point = point_to_geo(point) 
+            # THIS IS NOT A DRAWN RECT BUT A FULL SCREEN RECT?
+            # rect = geom_to_geo(boundingBox)
+            # rect = ee.Geometry.Rectangle([rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()], 'EPSG:4326', False)
+            # print(width, height, dpi)
+
+            point = geom_to_geo(point) 
 
             point_ee = ee.Geometry.Point([point.x(), point.y()])
+
+
             scale = Map.getScale()
-            print('scale', scale)
             value = self.ee_object.reduceRegion(ee.Reducer.first(), point_ee, scale).getInfo()
 
             settings = QgsSettings()
 
             color_text = settings.value("pythonConsole/defaultFontColor").name()
             color_bg = settings.value("pythonConsole/paperBackgroundColor").name()
-            
-            html = '''
-                <table style="font-family: monospace; border: 1px solid black; background: {0}; color: {1}">
-                    <tr>
-                        <th>Band</th>
-                        <th>Value</th>
-                    </tr>
+
+            style = '''
+            <style>
+                .container {{ overflow: hidden; background-color: {0}; margin: -8px; padding: 0; min-height: 100px }}
+            </style>
             '''
+
+            html = style + '''
+            <div class="container">
+                <table style="font-family: monospace; color: {1}">
+           '''
 
             for key in value.keys():
                 row = '''
@@ -159,11 +169,26 @@ def register_data_provider():
 
                 html += row
             
-            html += '</table>'
-
+            html += '</table></div>'
             html = html.format(color_bg, color_text)
 
-            value = { 1: html }
+            import matplotlib.pyplot as plt
+            import base64
+            from io import BytesIO
+            
+            plt.style.use('dark_background')
+            fig = plt.figure(figsize=(5,2.5))
+            ax = plt.gca()
+            ax.set_facecolor(color_bg)
+            fig.set_facecolor(color_bg)
+            plt.scatter([1, 10], [5, 9])
+            tmpfile = BytesIO()
+            fig.savefig(tmpfile, format='png', facecolor=fig.get_facecolor())
+            encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+            html_figure = style + '<div class="container"><img src=\'data:image/png;base64,{1}\'></div>'
+            html_figure = html_figure.format(color_bg, encoded)
+            
+            value = { 1: html, 2: html_figure }
 
             # IdentifyFormatHtml
             result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatHtml, value) 
@@ -200,7 +225,10 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
         if visParams and 'color' in visParams:
             color = visParams['color']
 
-        image = features.style(**{'color': color})
+        image_fill = features.style(**{'fillColor': color}).updateMask(ee.Image.constant(0.5))
+        image_outline = features.style(**{'color': color, 'fillColor': '00000000', 'width': 2})
+
+        image = image_fill.blend(image_outline)
 
     else:
         if isinstance(eeObject, ee.Image):
@@ -246,9 +274,15 @@ def check_version():
     # check if we have the latest version only once plugin is used, not once it is loaded
     qgis.utils.plugins['ee_plugin'].check_version()
 
-def point_to_geo(point):
+def geom_to_geo(geom):
+    print(geom)
     crs_src = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
     crs_dst = QgsCoordinateReferenceSystem(4326)
     proj2geo = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
     
-    return proj2geo.transform(point)
+    if isinstance(geom, QgsPointXY):
+        return proj2geo.transform(geom)
+    elif isinstance(geom, QgsRectangle):
+        return proj2geo.transformBoundingBox(geom)
+    else: 
+        return geom.transform(proj2geo)

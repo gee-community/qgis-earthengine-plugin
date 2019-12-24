@@ -225,13 +225,18 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
     if isinstance(eeObject, ee.Geometry) or isinstance(eeObject, ee.Feature) or isinstance(eeObject, ee.FeatureCollection):
         features = ee.FeatureCollection(eeObject)
 
+        width = 2
+
+        if 'width' in visParams:
+            width = visParams['width']
+
         color = '000000'
 
         if 'color' in visParams:
             color = visParams['color']
 
         image_fill = features.style(**{'fillColor': color}).updateMask(ee.Image.constant(0.5))
-        image_outline = features.style(**{'color': color, 'fillColor': '00000000', 'width': 2})
+        image_outline = features.style(**{'color': color, 'fillColor': '00000000', 'width': width})
 
         image = image_fill.blend(image_outline)
 

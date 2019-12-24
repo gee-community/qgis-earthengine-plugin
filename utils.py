@@ -121,6 +121,12 @@ def register_data_provider():
         def clone(self):
             return self.wms.clone()
 
+        def setDataSourceUri(self, uri):
+            return self.wms.setDataSourceUri(uri)
+
+        def reloadData(self):
+            return self.wms.reloadData()
+
         def bandCount(self):
             return self.wms.bandCount()
 
@@ -136,7 +142,6 @@ def register_data_provider():
             point = geom_to_geo(point) 
 
             point_ee = ee.Geometry.Point([point.x(), point.y()])
-
 
             scale = Map.getScale()
             value = self.ee_object.reduceRegion(ee.Reducer.first(), point_ee, scale).getInfo()
@@ -222,7 +227,7 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
 
         color = '000000'
 
-        if visParams and 'color' in visParams:
+        if 'color' in visParams:
             color = visParams['color']
 
         image_fill = features.style(**{'fillColor': color}).updateMask(ee.Image.constant(0.5))

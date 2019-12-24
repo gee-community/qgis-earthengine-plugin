@@ -280,7 +280,6 @@ def check_version():
     qgis.utils.plugins['ee_plugin'].check_version()
 
 def geom_to_geo(geom):
-    print(geom)
     crs_src = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
     crs_dst = QgsCoordinateReferenceSystem(4326)
     proj2geo = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())

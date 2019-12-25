@@ -94,7 +94,6 @@ def register_data_provider():
 
             # create WMS provider
             self.wms = qgis.core.QgsProviderRegistry.instance().createProvider('wms', *args)
-            # print('wms', self.wms)
 
         @classmethod
         def description(cls):
@@ -134,7 +133,7 @@ def register_data_provider():
             return self.wms.dataType(band_no)
         
         def identify(self, point, format, boundingBox, width, height, dpi):
-            # THIS IS NOT A DRAWN RECT BUT A FULL SCREEN RECT?
+            # QGIS: THIS IS NOT A DRAWN RECT BUT A FULL SCREEN RECT?
             # rect = geom_to_geo(boundingBox)
             # rect = ee.Geometry.Rectangle([rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()], 'EPSG:4326', False)
             # print(width, height, dpi)
@@ -177,23 +176,11 @@ def register_data_provider():
             html += '</table></div>'
             html = html.format(color_bg, color_text)
 
-            import matplotlib.pyplot as plt
-            import base64
-            from io import BytesIO
-            
-            plt.style.use('dark_background')
-            fig = plt.figure(figsize=(5,2.5))
-            ax = plt.gca()
-            ax.set_facecolor(color_bg)
-            fig.set_facecolor(color_bg)
-            plt.scatter([1, 10], [5, 9])
-            tmpfile = BytesIO()
-            fig.savefig(tmpfile, format='png', facecolor=fig.get_facecolor())
-            encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
-            html_figure = style + '<div class="container"><img src=\'data:image/png;base64,{1}\'></div>'
-            html_figure = html_figure.format(color_bg, encoded)
-            
-            value = { 1: html, 2: html_figure }
+            value = { 1: html }
+
+            # THIS IS INCOMPLETE
+            # html_figure = plot_values(value, color_bg, color_text)
+            # value = { 1: html, 2: html_figure }
 
             # IdentifyFormatHtml
             result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatHtml, value) 
@@ -213,7 +200,6 @@ def register_data_provider():
     registry = qgis.core.QgsProviderRegistry.instance()
     registry.registerProvider(metadata)
     QgsMessageLog.logMessage('EE provider registered')
-
 
 def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
     image = None
@@ -295,3 +281,25 @@ def geom_to_geo(geom):
         return proj2geo.transformBoundingBox(geom)
     else: 
         return geom.transform(proj2geo)
+
+def plot_values(values, color_bg, color_text):
+    """
+        Testing plotting feature values
+    """
+    import matplotlib.pyplot as plt
+    import base64
+    from io import BytesIO
+            
+    plt.style.use('dark_background')
+    fig = plt.figure(figsize=(5,2.5))
+    ax = plt.gca()
+    ax.set_facecolor(color_bg)
+    fig.set_facecolor(color_bg)
+    plt.scatter([1, 10], [5, 9])
+    tmpfile = BytesIO()
+    fig.savefig(tmpfile, format='png', facecolor=fig.get_facecolor())
+    encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+    html_figure = style + '<div class="container"><img src=\'data:image/png;base64,{1}\'></div>'
+    html_figure = html_figure.format(color_bg, encoded)
+
+    return html_figure

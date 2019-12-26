@@ -22,7 +22,8 @@ from qgis.core import QgsProject
 
 import ee
 import ee_plugin.ee_auth
-import ee_plugin.utils as utils
+from ee_plugin import utils
+from ee_plugin import provider
 
 ee_plugin.ee_auth.init()
 
@@ -62,7 +63,7 @@ class GoogleEarthEnginePlugin(object):
         self.menu_name_plugin = self.tr("Google Earth Engine Plugin")
 
         # Create and register the ee data provider
-        utils.register_data_provider()
+        provider.register_data_provider()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):

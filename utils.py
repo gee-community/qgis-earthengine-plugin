@@ -3,15 +3,20 @@
 Utils functions GEE
 """
 import json
-import qgis.core
-from qgis.core import QgsRasterLayer, QgsProject, QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry, QgsProviderMetadata, QgsMessageLog
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, Qgis, QgsProject, QgsRaster, QgsRasterInterface, QgsSettings
+import qgis
+from qgis.core import QgsProject
+from qgis.core import QgsRasterLayer
+from qgis.core import QgsMessageLog
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform
 from qgis.core import QgsPointXY, QgsRectangle
 from qgis.utils import iface
-import qgis
-import ee
 
+import ee
+import ee_plugin
+
+# from ee_plugin.provider import EarthEngineRasterDateProvider
 from ee_plugin import Map
+
 
 def get_ee_image_url(image):
     map_id = ee.data.getMapId({'image': image})
@@ -30,11 +35,12 @@ def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     # serialize EE code
     ee_object = eeObject.serialize()
     ee_object_vis = json.dumps(visParams)
+    layer.setCustomProperty('ee-plugin-version', ee_plugin.ee_plugin.__version__)
     layer.setCustomProperty('ee-object', ee_object)
     layer.setCustomProperty('ee-object-vis', ee_object_vis)
 
-    # update EE script in provider 
-    layer.dataProvider().ee_object = eeObject
+    # update EE script in provider
+    layer.dataProvider().set_ee_object(eeObject)
 
 
 def add_ee_image_layer(image, name, shown, opacity):
@@ -43,12 +49,6 @@ def add_ee_image_layer(image, name, shown, opacity):
     url = "type=xyz&url=" + get_ee_image_url(image)
     layer = QgsRasterLayer(url, name, "EE")
 
-    if layer:
-        provider = layer.dataProvider()
-        QgsMessageLog.logMessage('Created layer with provider %s' % (type(provider).__name__, ), 'Earth Engine')
-    else:
-        QgsMessageLog.logMessage('Layer not created', 'Earth Engine')
-    
     QgsProject.instance().addMapLayer(layer)
 
     if not (shown is None):
@@ -66,7 +66,7 @@ def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
     provider = layer.dataProvider()
     msg = 'Updating layer with provider %s' % (type(provider).__name__, )
     QgsMessageLog.logMessage(msg, 'Earth Engine')
-    
+
     provider.setDataSourceUri(url)
     provider.reloadData()
     layer.triggerRepaint()
@@ -87,119 +87,6 @@ def get_layer_by_name(name):
 
     return None
 
-def register_data_provider():
-    class EarthEngineRasterDateProvider(QgsRasterDataProvider):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-
-            # create WMS provider
-            self.wms = qgis.core.QgsProviderRegistry.instance().createProvider('wms', *args)
-
-        @classmethod
-        def description(cls):
-            return 'Google Earth Engine Raster Data Provider'
-        
-        @classmethod
-        def providerKey(cls):
-            return 'EE'
-
-        @classmethod
-        def createProvider(cls, uri, providerOptions):
-            return EarthEngineRasterDateProvider(uri, providerOptions)
-
-        def capabilities(self):
-            caps = QgsRasterInterface.Size | QgsRasterInterface.Identify | QgsRasterInterface.IdentifyHtml
-            return QgsRasterDataProvider.ProviderCapabilities(caps)
-
-        def extent(self):
-            return self.wms.extent()
-
-        def crs(self):
-            return self.wms.crs()
-
-        def clone(self):
-            return self.wms.clone()
-
-        def setDataSourceUri(self, uri):
-            return self.wms.setDataSourceUri(uri)
-
-        def reloadData(self):
-            return self.wms.reloadData()
-
-        def bandCount(self):
-            return self.wms.bandCount()
-
-        def dataType(self, band_no):
-            return self.wms.dataType(band_no)
-        
-        def identify(self, point, format, boundingBox, width, height, dpi):
-            # QGIS: THIS IS NOT A DRAWN RECT BUT A FULL SCREEN RECT?
-            # rect = geom_to_geo(boundingBox)
-            # rect = ee.Geometry.Rectangle([rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()], 'EPSG:4326', False)
-            # print(width, height, dpi)
-
-            point = geom_to_geo(point) 
-
-            point_ee = ee.Geometry.Point([point.x(), point.y()])
-
-            scale = Map.getScale()
-            value = self.ee_object.reduceRegion(ee.Reducer.first(), point_ee, scale).getInfo()
-
-            settings = QgsSettings()
-
-            color_text = settings.value("pythonConsole/defaultFontColor").name()
-            color_bg = settings.value("pythonConsole/paperBackgroundColor").name()
-
-            style = '''
-            <style>
-                .container {{ overflow: hidden; background-color: {0}; margin: -8px; padding: 0; min-height: 100px }}
-            </style>
-            '''
-
-            html = style + '''
-            <div class="container">
-                <table style="font-family: monospace; color: {1}">
-           '''
-
-            for key in value.keys():
-                row = '''
-                    <tr>
-                        <td>{0}</td>
-                        <td>{1}</td>
-                    </tr>
-                '''
-
-                row = row.format(key, str(value[key]))
-
-                html += row
-            
-            html += '</table></div>'
-            html = html.format(color_bg, color_text)
-
-            value = { 1: html }
-
-            # THIS IS INCOMPLETE
-            # html_figure = plot_values(value, color_bg, color_text)
-            # value = { 1: html, 2: html_figure }
-
-            # IdentifyFormatHtml
-            result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatHtml, value) 
-
-            return result
-
-        def isValid(self):
-            return self.wms.isValid()
-
-        def name(self):
-            return 'Google Earth Engine Raster Data Provider'
-
-    metadata = QgsProviderMetadata(
-        EarthEngineRasterDateProvider.providerKey(), 
-        EarthEngineRasterDateProvider.description(), 
-        EarthEngineRasterDateProvider.createProvider)
-    registry = qgis.core.QgsProviderRegistry.instance()
-    registry.registerProvider(metadata)
-    QgsMessageLog.logMessage('EE provider registered')
 
 def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
     image = None
@@ -221,8 +108,10 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
         if 'color' in visParams:
             color = visParams['color']
 
-        image_fill = features.style(**{'fillColor': color}).updateMask(ee.Image.constant(0.5))
-        image_outline = features.style(**{'color': color, 'fillColor': '00000000', 'width': width})
+        image_fill = features.style(
+            **{'fillColor': color}).updateMask(ee.Image.constant(0.5))
+        image_outline = features.style(
+            **{'color': color, 'fillColor': '00000000', 'width': width})
 
         image = image_fill.blend(image_outline)
 
@@ -241,6 +130,7 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
     layer = add_or_update_ee_image_layer(image, name, shown, opacity)
 
     update_ee_layer_properties(layer, eeObject, visParams, shown, opacity)
+
 
 def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
     layer = get_layer_by_name(name)
@@ -266,40 +156,20 @@ def add_ee_catalog_image(name, asset_name, visParams, collection_props):
 
     add_or_update_ee_image_layer(image, name)
 
+
 def check_version():
     # check if we have the latest version only once plugin is used, not once it is loaded
     qgis.utils.plugins['ee_plugin'].check_version()
+
 
 def geom_to_geo(geom):
     crs_src = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
     crs_dst = QgsCoordinateReferenceSystem(4326)
     proj2geo = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
-    
+
     if isinstance(geom, QgsPointXY):
         return proj2geo.transform(geom)
     elif isinstance(geom, QgsRectangle):
         return proj2geo.transformBoundingBox(geom)
-    else: 
+    else:
         return geom.transform(proj2geo)
-
-def plot_values(values, color_bg, color_text):
-    """
-        Testing plotting feature values
-    """
-    import matplotlib.pyplot as plt
-    import base64
-    from io import BytesIO
-            
-    plt.style.use('dark_background')
-    fig = plt.figure(figsize=(5,2.5))
-    ax = plt.gca()
-    ax.set_facecolor(color_bg)
-    fig.set_facecolor(color_bg)
-    plt.scatter([1, 10], [5, 9])
-    tmpfile = BytesIO()
-    fig.savefig(tmpfile, format='png', facecolor=fig.get_facecolor())
-    encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
-    html_figure = style + '<div class="container"><img src=\'data:image/png;base64,{1}\'></div>'
-    html_figure = html_figure.format(color_bg, encoded)
-
-    return html_figure

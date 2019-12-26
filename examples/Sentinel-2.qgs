@@ -18,13 +18,7 @@
     </spatialrefsys>
   </projectCrs>
   <layer-tree-group>
-    <customproperties/>
     <layer-tree-layer providerKey="Google Earth Engine Raster Data Provider" source="type=xyz&amp;url=https://earthengine.googleapis.com/map/f1ea8360f2c0aea5148211e09c4de55b/{z}/{x}/{y}?token=87c3d86e6df714b32fa90b9d50beedab" expanded="1" name="Sentinel-2 images January, 2018" id="Sentinel_2_images_January__2018_14ccdd9f_c1b6_47bb_9acf_ec43b7b92763" checked="Qt::Checked">
-      <customproperties/>
-    </layer-tree-layer>
-    <custom-order enabled="0">
-      <item>Sentinel_2_images_January__2018_14ccdd9f_c1b6_47bb_9acf_ec43b7b92763</item>
-    </custom-order>
   </layer-tree-group>
   <snapping-settings type="1" mode="2" enabled="0" tolerance="12" intersection-snapping="0" unit="1">
     <individual-layer-settings/>

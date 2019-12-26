@@ -35,12 +35,16 @@ A: Open Finder and double clicking on this file /Applications/Python 3.6/Install
 - [x] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/ - approved!
 
 #### Alpha 0.2 (Q1 2020)
-- [ ] EE layer inspector
+- [x] EE raster layer inspector
+- [~] EE vector layer inspector
+- [ ] EE raster collection layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
 ...
 
 #### Beta
-- [ ] Add support for map layers in a way similar to EE Code Editor
+- [ ] Export.* and Tasks panel (start, cancel, info)
+- [ ] ui.Chart.*
+- [ ] Faster identify tool, using local cached rasters
 - [ ] Add support for Data Catalog, allowing adding assets without the need to write scripts (select time, styling)
 - [ ] Custom EE scripts as Processing algorithms, so that users can use it within Graphical Modeller
 - [ ] Fetch (cache?) raster assets locally (EE > QGIS), for a given rectangle / CRS, as a Processing tool

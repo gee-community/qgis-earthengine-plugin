@@ -36,7 +36,7 @@ A: Open Finder and double clicking on this file /Applications/Python 3.6/Install
 
 #### Alpha 0.2 (Q1 2020)
 - [x] EE raster layer inspector
-- [~] EE vector layer inspector
+- [ ] EE vector layer inspector
 - [ ] EE raster collection layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
 ...

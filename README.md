@@ -43,6 +43,7 @@ A: Open Finder and double clicking on this file /Applications/Python 3.6/Install
 
 #### Beta
 - [ ] Export.* and Tasks panel (start, cancel, info)
+- [ ] Map.layers() for EE layers, allowing to use things like ui.Map.Layer.setEeObject()
 - [ ] ui.Chart.*
 - [ ] Faster identify tool, using local cached rasters
 - [ ] Add support for Data Catalog, allowing adding assets without the need to write scripts (select time, styling)

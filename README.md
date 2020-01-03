@@ -39,12 +39,15 @@ A: Open Finder and double clicking on this file /Applications/Python 3.6/Install
 - [ ] EE vector layer inspector
 - [ ] EE raster collection layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
+- [ ] Get Link and Open Script
+- [ ] Skip import ee and from ee_plugin import Map for EE scripts
 ...
 
 #### Beta
 - [ ] Export.* and Tasks panel (start, cancel, info)
 - [ ] Map.layers() for EE layers, allowing to use things like ui.Map.Layer.setEeObject()
 - [ ] ui.Chart.*
+- [ ] require()
 - [ ] Faster identify tool, using local cached rasters
 - [ ] Add support for Data Catalog, allowing adding assets without the need to write scripts (select time, styling)
 - [ ] Custom EE scripts as Processing algorithms, so that users can use it within Graphical Modeller

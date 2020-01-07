@@ -52,7 +52,7 @@ import ee
 from ee_plugin import Map
 ```
 
-After that, the Map.* functions can be used in a similar way to the official EE Code Editor[https://developers.google.com/earth-engine/playground]:
+After that, the Map.* functions can be used in a similar way to the official EE Code Editor [https://developers.google.com/earth-engine/playground]:
 
 #### Adding map layers
 
@@ -64,7 +64,7 @@ Map.addLayer(image, {'palette': ['blue', 'red'], 'min': 0, 'max': 1000}, 'dem', 
 
 The code above will query Earth Engine for an image and will add it as an XYZ tile layer to the QGIS Canvas. 
 
-Note that QGIS projects containing EE map layers can be also saved, in this case, the code required to connect the to EE is stored in a QGIS project and is used to re-initialize these layers when the project is loaded. Currently, this works only if ee_plugin is installed in the QGIS where these layers are loaded.
+Note that QGIS projects containing EE map layers can be also saved, in this case, the code required to connect to EE is stored in a QGIS project and is used to re-initialize these layers when the project is loaded. Currently, this works only if ee_plugin is installed in the QGIS where these layers are loaded.
 
 Check [examples](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples) directory to learn what kind of functionality is currently supported.
 

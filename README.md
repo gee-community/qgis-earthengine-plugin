@@ -15,7 +15,7 @@ A: Install the Google Earth Engine [command line client](https://developers.goog
 
 Q: I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
 
-A: Open Finder and double clicking on this file /Applications/Python 3.6/Install Certificates.command. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
+A: Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
 
 ### Roadmap
 
@@ -67,23 +67,31 @@ This section is for developers-only.
 
 The ee_plugin uses paver for packaging. If you do not have paver (https://github.com/paver/paver) installed, install it by typing the following in a console:
 
-```pip install paver```
+```
+pip install paver
+```
 
 Open a console in the folder created in the first step, and type
 
-```paver setup```
+```
+paver setup
+```
 
 This will get all the dependencies needed by the plugin.
 
 Install into QGIS by running
 
-```paver install```
+```
+paver install
+```
 
 This should create a symbolic link to the plugin directory wihin the QGIS plugins deployment directory. Check Settings > User Profiles > Open Active Profile Folder, and then go to python/plugins. To reload any changes made in the plugin into Qgis, it is recommended to use the [plugin reloader](https://plugins.qgis.org/plugins/plugin_reloader/).
 
 To generate the installable zip package
 
-```paver package``` 
+```
+paver package
+``` 
 
 ### Random Links
 

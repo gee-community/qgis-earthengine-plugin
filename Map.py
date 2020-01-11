@@ -62,6 +62,9 @@ def centerObject(feature, zoom=None):
             >>> from ee_plugin import Map
             >>> Map.centerObject(feature)
     """
+
+    feature = ee.Feature(feature)
+
     if not zoom:
         # make sure our geometry is in geo
         rect = feature.geometry().transform(ee.Projection('EPSG:4326'), 1)

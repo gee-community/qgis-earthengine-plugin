@@ -2,9 +2,16 @@
 .idea/
 
 __pycache__
-extlibs
+
+*.qgs~
 
 help/build
 ee_plugin/extlibs_darwin
 ee_plugin/extlibs_linux
 ee_plugin/extlibs_windows
+
+extlibs_darwin/
+extlibs_linux/
+extlibs_windows/
+
+media/

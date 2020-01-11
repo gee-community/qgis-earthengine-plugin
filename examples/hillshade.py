@@ -20,3 +20,6 @@ rgb = hsv.hsvToRgb()
 
 Map.setCenter(0, 28, 2.5)
 Map.addLayer(rgb, {}, 'ALOS DEM', True)
+
+# for inspection
+Map.addLayer(dem, {'min': 0, 'max': 5000}, 'ALOS DEM (raw)', False)

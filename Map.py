@@ -12,7 +12,7 @@ from qgis.utils import iface
 import ee_plugin.utils
 
 
-def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0):
+def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
     """
         Adds a given EE object to the map as a layer.
 
@@ -23,33 +23,7 @@ def addLayer(image: ee.Image, visParams=None, name=None, shown=True, opacity=1.0
             >>> Map.addLayer(.....)
     """
 
-    if not isinstance(image, ee.Image) and not isinstance(image, ee.FeatureCollection) and not isinstance(image, ee.Feature) and not isinstance(image, ee.Geometry):
-        err_str = "\n\nThe image argument in 'addLayer' function must be an instace of one of ee.Image, ee.Geometry, ee.Feature or ee.FeatureCollection."
-        raise AttributeError(err_str)
-
-    if isinstance(image, ee.Geometry) or isinstance(image, ee.Feature) or isinstance(image, ee.FeatureCollection):
-        features = ee.FeatureCollection(image)
-
-        color = '000000'
-
-        if visParams and 'color' in visParams:
-            color = visParams['color']
-
-        image = features.style(**{'color': color})
-
-    else:
-        if isinstance(image, ee.Image) and visParams:
-            image = image.visualize(**visParams)
-
-    if name is None:
-        # extract name from id
-        try:
-            name = json.loads(image.id().serialize())[
-                "scope"][0][1]["arguments"]["id"]
-        except:
-            name = "untitled"
-
-    ee_plugin.utils.add_or_update_ee_image_layer(image, name, shown, opacity)
+    ee_plugin.utils.add_or_update_ee_layer(eeObject, visParams, name, shown, opacity)
 
 
 def centerObject(feature, zoom=None):
@@ -62,6 +36,7 @@ def centerObject(feature, zoom=None):
             >>> from ee_plugin import Map
             >>> Map.centerObject(feature)
     """
+
 
     feature = ee.Feature(feature)
 
@@ -82,8 +57,8 @@ def centerObject(feature, zoom=None):
         # transform rect to a crs used by current project
         crs_src = QgsCoordinateReferenceSystem(4326)
         crs_dst = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
-        xform = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
-        rect_proj = xform.transform(rect)
+        geo2proj = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
+        rect_proj = geo2proj.transform(rect)
 
         # center geometry
         iface.mapCanvas().zoomToFeatureExtent(rect_proj)

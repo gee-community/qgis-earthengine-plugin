@@ -14,4 +14,3 @@ vis = {'bands': ['B12', 'B08', 'B04'], 'min': 0.05, 'max': 0.5}
 Map.addLayer(image, vis, 'S2')
 
 Map.setCenter(35.2, 31, 13)
-Map.addLayer(image, {}, 'Sentinel-2 images January, 2018')

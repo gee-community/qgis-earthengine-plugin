@@ -2,12 +2,21 @@
 """
 Utils functions GEE
 """
-
-from qgis.core import QgsRasterLayer, QgsProject
-from qgis.utils import iface
+import json
 import qgis
+from qgis.core import QgsProject
+from qgis.core import QgsRasterLayer
+from qgis.core import QgsMessageLog
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform
+from qgis.core import QgsPointXY, QgsRectangle
+from qgis.utils import iface
 
 import ee
+import ee_plugin
+
+# from ee_plugin.provider import EarthEngineRasterDateProvider
+from ee_plugin import Map
+
 
 def get_ee_image_url(image):
     map_id = ee.data.getMapId({'image': image})
@@ -15,37 +24,52 @@ def get_ee_image_url(image):
     return url
 
 
-def update_ee_layer_properties(layer, image, shown, opacity):
+def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     layer.setCustomProperty('ee-layer', True)
 
     if not (opacity is None):
-        layer.renderer().setOpacity(opacity)
+        renderer = layer.renderer()
+        if renderer:
+            renderer.setOpacity(opacity)
 
     # serialize EE code
-    ee_script = image.serialize()
-    layer.setCustomProperty('ee-script', ee_script)
+    ee_object = eeObject.serialize()
+    ee_object_vis = json.dumps(visParams)
+    layer.setCustomProperty('ee-plugin-version',
+                            ee_plugin.ee_plugin.__version__)
+    layer.setCustomProperty('ee-object', ee_object)
+    layer.setCustomProperty('ee-object-vis', ee_object_vis)
+
+    # update EE script in provider
+    layer.dataProvider().set_ee_object(eeObject)
 
 
 def add_ee_image_layer(image, name, shown, opacity):
     check_version()
 
     url = "type=xyz&url=" + get_ee_image_url(image)
-    layer = QgsRasterLayer(url, name, "wms")
-    update_ee_layer_properties(layer, image, shown, opacity)
+    layer = QgsRasterLayer(url, name, "EE")
+
     QgsProject.instance().addMapLayer(layer)
 
     if not (shown is None):
         QgsProject.instance().layerTreeRoot().findLayer(
             layer.id()).setItemVisibilityChecked(shown)
 
+    return layer
+
 
 def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
     check_version()
 
     url = "type=xyz&url=" + get_ee_image_url(image)
-    layer.dataProvider().setDataSourceUri(url)
-    layer.dataProvider().reloadData()
-    update_ee_layer_properties(layer, image, shown, opacity)
+
+    provider = layer.dataProvider()
+    msg = 'Updating layer with provider %s' % (type(provider).__name__, )
+    QgsMessageLog.logMessage(msg, 'Earth Engine')
+
+    provider.setDataSourceUri(url)
+    provider.reloadData()
     layer.triggerRepaint()
     layer.reload()
     iface.mapCanvas().refresh()
@@ -65,6 +89,53 @@ def get_layer_by_name(name):
     return None
 
 
+def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
+    if visParams is None:
+        visParams = {}
+
+    image = None
+
+    if not isinstance(eeObject, ee.Image) and not isinstance(eeObject, ee.FeatureCollection) and not isinstance(eeObject, ee.Feature) and not isinstance(eeObject, ee.Geometry):
+        err_str = "\n\nThe image argument in 'addLayer' function must be an instace of one of ee.Image, ee.Geometry, ee.Feature or ee.FeatureCollection."
+        raise AttributeError(err_str)
+
+    if isinstance(eeObject, ee.Geometry) or isinstance(eeObject, ee.Feature) or isinstance(eeObject, ee.FeatureCollection):
+        features = ee.FeatureCollection(eeObject)
+
+        width = 2
+
+        if 'width' in visParams:
+            width = visParams['width']
+
+        color = '000000'
+
+        if 'color' in visParams:
+            color = visParams['color']
+
+        image_fill = features.style(
+            **{'fillColor': color}).updateMask(ee.Image.constant(0.5))
+        image_outline = features.style(
+            **{'color': color, 'fillColor': '00000000', 'width': width})
+
+        image = image_fill.blend(image_outline)
+
+    else:
+        if isinstance(eeObject, ee.Image):
+            image = eeObject.visualize(**visParams)
+
+    if name is None:
+        # extract name from id
+        try:
+            name = json.loads(eeObject.id().serialize())[
+                "scope"][0][1]["arguments"]["id"]
+        except:
+            name = "untitled"
+
+    layer = add_or_update_ee_image_layer(image, name, shown, opacity)
+
+    update_ee_layer_properties(layer, eeObject, visParams, shown, opacity)
+
+
 def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
     layer = get_layer_by_name(name)
 
@@ -74,7 +145,9 @@ def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
 
         update_ee_image_layer(image, layer, shown, opacity)
     else:
-        add_ee_image_layer(image, name, shown, opacity)
+        layer = add_ee_image_layer(image, name, shown, opacity)
+
+    return layer
 
 
 def add_ee_catalog_image(name, asset_name, visParams, collection_props):
@@ -87,6 +160,20 @@ def add_ee_catalog_image(name, asset_name, visParams, collection_props):
 
     add_or_update_ee_image_layer(image, name)
 
+
 def check_version():
     # check if we have the latest version only once plugin is used, not once it is loaded
     qgis.utils.plugins['ee_plugin'].check_version()
+
+
+def geom_to_geo(geom):
+    crs_src = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
+    crs_dst = QgsCoordinateReferenceSystem(4326)
+    proj2geo = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
+
+    if isinstance(geom, QgsPointXY):
+        return proj2geo.transform(geom)
+    elif isinstance(geom, QgsRectangle):
+        return proj2geo.transformBoundingBox(geom)
+    else:
+        return geom.transform(proj2geo)

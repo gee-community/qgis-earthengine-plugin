@@ -12,7 +12,7 @@ from qgis.utils import iface
 import ee_plugin.utils
 
 
-def addLayer(eeObject, visParams={}, name=None, shown=True, opacity=1.0):
+def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
     """
         Adds a given EE object to the map as a layer.
 

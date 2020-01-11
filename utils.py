@@ -35,7 +35,8 @@ def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     # serialize EE code
     ee_object = eeObject.serialize()
     ee_object_vis = json.dumps(visParams)
-    layer.setCustomProperty('ee-plugin-version', ee_plugin.ee_plugin.__version__)
+    layer.setCustomProperty('ee-plugin-version',
+                            ee_plugin.ee_plugin.__version__)
     layer.setCustomProperty('ee-object', ee_object)
     layer.setCustomProperty('ee-object-vis', ee_object_vis)
 
@@ -89,6 +90,9 @@ def get_layer_by_name(name):
 
 
 def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
+    if visParams is None:
+        visParams = {}
+
     image = None
 
     if not isinstance(eeObject, ee.Image) and not isinstance(eeObject, ee.FeatureCollection) and not isinstance(eeObject, ee.Feature) and not isinstance(eeObject, ee.Geometry):

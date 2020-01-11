@@ -8,3 +8,6 @@ help/build
 extlibs_darwin
 extlibs_linux
 extlibs_windows
+media/
+
+*.qgs~

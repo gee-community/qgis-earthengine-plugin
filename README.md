@@ -55,12 +55,6 @@ A: Open Finder and double clicking on this file `/Applications/Python 3.6/Instal
 - [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
-## Contributors
-[![@gena](https://github.com/gena.png?size=40 "Gena")](http://github.com/gena)
-[![@XavierCLL](https://github.com/XavierCLL.png?size=40 "Xavier")](http://github.com/XavierCLL)
-[![@hcwinsemius](https://github.com/github.png?size=40 "Hessel")](http://github.com/hcwinsemius)
-[![@siggyf](https://github.com/siggyf.png?size=40 "Fedor")](http://github.com/siggyf)
-
 ### For Developers
 
 This section is for developers-only. 

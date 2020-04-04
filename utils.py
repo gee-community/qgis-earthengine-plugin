@@ -14,7 +14,7 @@ from qgis.utils import iface
 import ee
 import ee_plugin
 
-# from ee_plugin.provider import EarthEngineRasterDateProvider
+# from ee_plugin.provider import EarthEngineRasterDataProvider
 from ee_plugin import Map
 
 

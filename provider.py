@@ -27,7 +27,7 @@ BAND_TYPES = {
 }
 
 
-class EarthEngineRasterDateProvider(QgsRasterDataProvider):
+class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -46,7 +46,7 @@ class EarthEngineRasterDateProvider(QgsRasterDataProvider):
 
     @classmethod
     def createProvider(cls, uri, providerOptions):
-        return EarthEngineRasterDateProvider(uri, providerOptions)
+        return EarthEngineRasterDataProvider(uri, providerOptions)
 
     def set_ee_object(self, ee_object):
         self.ee_object = ee_object
@@ -124,9 +124,9 @@ class EarthEngineRasterDateProvider(QgsRasterDataProvider):
 
 def register_data_provider():
     metadata = QgsProviderMetadata(
-        EarthEngineRasterDateProvider.providerKey(),
-        EarthEngineRasterDateProvider.description(),
-        EarthEngineRasterDateProvider.createProvider)
+        EarthEngineRasterDataProvider.providerKey(),
+        EarthEngineRasterDataProvider.description(),
+        EarthEngineRasterDataProvider.createProvider)
     registry = qgis.core.QgsProviderRegistry.instance()
     registry.registerProvider(metadata)
     QgsMessageLog.logMessage('EE provider registered')

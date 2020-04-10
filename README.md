@@ -55,12 +55,6 @@ A: Open Finder and double clicking on this file `/Applications/Python 3.6/Instal
 - [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
-## Contributors
-[![@gena](https://github.com/gena.png?size=40 "Gena")](http://github.com/gena)
-[![@XavierCLL](https://github.com/XavierCLL.png?size=40 "Xavier")](http://github.com/XavierCLL)
-[![@hcwinsemius](https://github.com/github.png?size=40 "Hessel")](http://github.com/hcwinsemius)
-[![@siggyf](https://github.com/siggyf.png?size=40 "Fedor")](http://github.com/siggyf)
-
 ### For Developers
 
 This section is for developers-only. 
@@ -99,3 +93,9 @@ paver package
 * JetBrains - [PyCharm](https://www.jetbrains.com/pycharm/)
 
 
+### Donate
+
+Consider supporting this project:
+
+[![Donate](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=P2RU23F4ETP4L&item_name=QGIS+Plugin+Development&currency_code=EUR&source=url) or just <a href="https://www.buymeacoffee.com/Eq378D1"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" width="150"></a>
+                       

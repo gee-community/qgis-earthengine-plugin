@@ -57,9 +57,9 @@ After that, the Map.* functions can be used in a similar way to the official EE 
 #### Adding map layers
 
 ```python
-image = ee.Image('USGS/SRTMGL1_003').unitScale(0, 5000)
+image = ee.Image('USGS/SRTMGL1_003')
     
-Map.addLayer(image, {'palette': ['blue', 'red'], 'min': 0, 'max': 1000}, 'dem', True)
+Map.addLayer(image, {'palette': ['blue', 'red'], 'min': 0, 'max': 5000}, 'dem', True)
 ```
 
 The code above will query Earth Engine for an image and will add it as an XYZ tile layer to the QGIS Canvas. 
@@ -67,4 +67,11 @@ The code above will query Earth Engine for an image and will add it as an XYZ ti
 Note that QGIS projects containing EE map layers can be also saved, in this case, the code required to connect to EE is stored in a QGIS project and is used to re-initialize these layers when the project is loaded. Currently, this works only if ee_plugin is installed in the QGIS where these layers are loaded.
 
 Check [examples](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples) directory to learn what kind of functionality is currently supported.
+
+
+### Donate
+
+Consider supporting this project:
+
+[![Donate](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=P2RU23F4ETP4L&item_name=QGIS+Plugin+Development&currency_code=EUR&source=url) or just <a href="https://www.buymeacoffee.com/Eq378D1"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" width="150"></a>
 

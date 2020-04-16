@@ -1,3 +1,6 @@
+[![Donate](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=P2RU23F4ETP4L&item_name=QGIS+Plugin+Development&currency_code=EUR&source=url) or just <a href="https://www.buymeacoffee.com/Eq378D1"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" width="150"></a>
+                       
+
 # Google Earth Engine plugin for QGIS
 
 Integrates Google Earth Engine with QGIS using Python API. 
@@ -16,6 +19,10 @@ A: Install the Google Earth Engine [command line client](https://developers.goog
 Q: I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
 
 A: Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
+
+Q: Plugin crashes after authentication with a stack trace showing 404, what should I do?
+
+A: Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
 
 ### Roadmap
 
@@ -92,10 +99,3 @@ paver package
 * [Ujaval Gandhi](https://twitter.com/spatialthoughts) - [QGIS Plugin Builder](http://g-sherman.github.io/Qgis-Plugin-Builder/)
 * JetBrains - [PyCharm](https://www.jetbrains.com/pycharm/)
 
-
-### Donate
-
-Consider supporting this project:
-
-[![Donate](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=P2RU23F4ETP4L&item_name=QGIS+Plugin+Development&currency_code=EUR&source=url) or just <a href="https://www.buymeacoffee.com/Eq378D1"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" width="150"></a>
-                       

@@ -39,10 +39,11 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [x] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/ - approved!
 
 #### Alpha 0.2 (Q3 2020)
+- [x] EE raster layer inspector
+- [x] Show some useful EE properties (bands, value types) in QGIS layer properties dialog
 - [ ] Upgrade EE library to 0.1.224 (Windows, Linux, maxOS)
 
 #### Alpha 0.3 (Q4 2020)
-- [x] EE raster layer inspector
 - [ ] EE vector layer inspector
 - [ ] EE raster collection layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async

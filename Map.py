@@ -3,10 +3,9 @@
 functions to use GEE within Qgis python script
 """
 import math
-import json
 import ee
 
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, Qgis, QgsProject, QgsPointXY, QgsRectangle
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsPointXY, QgsRectangle
 from qgis.utils import iface
 
 import ee_plugin.utils

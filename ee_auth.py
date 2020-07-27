@@ -20,8 +20,8 @@ def init():
     try:
         ee.Initialize()
     except ee.ee_exception.EEException:
-        authenticate()
-        ee.Initialize()  # retry initialization once the user logs in
+        if authenticate():
+            ee.Initialize()  # retry initialization once the user logs in
 
 
 def tiny_url(url):
@@ -53,3 +53,6 @@ def authenticate():
 
     if ok and token:
         ee.oauth._obtain_and_write_token(token.strip())
+        return True
+    else:
+        return False

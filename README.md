@@ -41,9 +41,13 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 #### Alpha 0.2 (Q3 2020)
 - [x] Upgrade EE library to 0.1.224 (Windows, Linux, maxOS)
 
-#### Alpha 0.3 (Q4 2020)
+#### Alpha 0.3 (Q3 2020)
 - [x] EE raster layer inspector
 - [x] Show some useful EE properties (bands, value types) in QGIS layer properties dialog
+- [x] Fix GEE url authentication function if the credentials is not exists #63
+- [x] Fix crash if the authentication dialog is cancelled or not filled by the user
+
+#### Alpha 0.4 (Q4 2020)
 - [ ] EE vector layer inspector
 - [ ] EE raster collection layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async

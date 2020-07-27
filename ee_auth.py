@@ -2,6 +2,8 @@
 """
 Init and user authentication in Earth Engine
 """
+import os
+import hashlib
 import urllib.request
 import webbrowser
 from qgis.PyQt.QtWidgets import QInputDialog
@@ -29,7 +31,12 @@ def tiny_url(url):
 
 
 def authenticate():
-    auth_url = ee.oauth.get_authorization_url()
+    # PKCE.  Generates a challenge that the server will use to ensure that the
+    # auth_code only works with our verifier.  https://tools.ietf.org/html/rfc7636
+    code_verifier = ee.oauth._base64param(os.urandom(32))
+    code_challenge = ee.oauth._base64param(hashlib.sha256(code_verifier).digest())
+    auth_url = ee.oauth.get_authorization_url(code_challenge)
+
     webbrowser.open_new(auth_url)
 
     print('\nGoogle Earth Engine Authorization:\n'

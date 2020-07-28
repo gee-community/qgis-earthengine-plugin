@@ -46,6 +46,7 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [x] Show some useful EE properties (bands, value types) in QGIS layer properties dialog
 - [x] Fix GEE url authentication function if the credentials is not exists #63
 - [x] Fix crash if the authentication dialog is cancelled or not filled by the user
+- [x] Init the Google Earth Engine user authorization system only when the user is going to use the plugin
 
 #### Alpha 0.4 (Q4 2020)
 - [ ] EE vector layer inspector

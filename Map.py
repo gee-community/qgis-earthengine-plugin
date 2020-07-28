@@ -9,6 +9,10 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsP
 from qgis.utils import iface
 
 import ee_plugin.utils
+import ee_plugin.ee_auth
+
+# init the Google Earth Engine user authorization system
+ee_plugin.ee_auth.init()
 
 
 def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):

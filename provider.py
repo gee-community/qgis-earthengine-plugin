@@ -8,7 +8,7 @@ from qgis.core import Qgis, QgsRaster, QgsRasterInterface, QgsSettings
 
 import ee
 
-from ee_plugin import Map, utils
+from ee_plugin import utils
 
 BAND_TYPES = {
     'int8': Qgis.Int16,
@@ -100,6 +100,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def identify(self, point, format, boundingBox=None, width=None, height=None, dpi=None):
         # TODO: speed-up, extend this to maintain cache of visible image, update cache on-the-fly when needed
+        from ee_plugin import Map
 
         point = utils.geom_to_geo(point)
 

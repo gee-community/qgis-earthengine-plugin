@@ -21,13 +21,11 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProject
 
 import ee
-import ee_plugin.ee_auth
 from ee_plugin import utils
 from ee_plugin import provider
 
-ee_plugin.ee_auth.init()
-
 version_checked = False
+
 
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""

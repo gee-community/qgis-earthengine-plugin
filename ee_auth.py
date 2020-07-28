@@ -22,6 +22,8 @@ def init():
     except ee.ee_exception.EEException:
         if authenticate():
             ee.Initialize()  # retry initialization once the user logs in
+        else:
+            print('\nGoogle Earth Engine authorization failed!\n')
 
 
 def tiny_url(url):

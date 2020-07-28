@@ -54,7 +54,7 @@ def authenticate():
                                      'URL: ' + tiny_url(auth_url))
 
     if ok and token:
-        ee.oauth._obtain_and_write_token(token.strip())
+        ee.oauth._obtain_and_write_token(token.strip(), code_verifier)
         return True
     else:
         return False

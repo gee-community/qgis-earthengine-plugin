@@ -27,9 +27,12 @@ def init():
 
 
 def tiny_url(url):
-    apiurl = "http://tinyurl.com/api-create.php?url="
-    tinyurl = urllib.request.urlopen(apiurl + url).read()
-    return tinyurl.decode("utf-8")
+    try:
+        apiurl = "http://tinyurl.com/api-create.php?url="
+        tinyurl = urllib.request.urlopen(apiurl + url).read()
+        return True, tinyurl.decode("utf-8")
+    except:
+        return False, url
 
 
 def authenticate():
@@ -38,6 +41,7 @@ def authenticate():
     code_verifier = ee.oauth._base64param(os.urandom(32))
     code_challenge = ee.oauth._base64param(hashlib.sha256(code_verifier).digest())
     auth_url = ee.oauth.get_authorization_url(code_challenge)
+    tiny_url_ok, auth_url = tiny_url(auth_url)
 
     webbrowser.open_new(auth_url)
 
@@ -47,11 +51,12 @@ def authenticate():
 
     token, ok = QInputDialog.getText(None, 'Authorization',
                                      'Google Earth Engine Python is not detected on this machine.\n'
-                                     'This plugin uses Google Earth Engine Python API and requires users \n'
-                                     'to be authorized, please follow the instructions in the opened web page\n'
-                                     'and paste the resulting auth token here.\n\n'
-                                     'If the web page does not open automatically, visit the following link manually:\n'
-                                     'URL: ' + tiny_url(auth_url))
+                                     'This plugin uses Google Earth Engine Python API and requires\n'
+                                     'users to be authorized, please follow the instructions in the\n'
+                                     'opened web page and paste the resulting auth token here.\n\n'
+                                     'If the web page does not open automatically,\n'
+                                     + ('visit the following link manually:\nURL: {}'.format(auth_url)
+                                     if tiny_url_ok else 'visit the link that appears in the python console'))
 
     if ok and token:
         ee.oauth._obtain_and_write_token(token.strip(), code_verifier)

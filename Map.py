@@ -3,13 +3,16 @@
 functions to use GEE within Qgis python script
 """
 import math
-import json
 import ee
 
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, Qgis, QgsProject, QgsPointXY, QgsRectangle
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsPointXY, QgsRectangle
 from qgis.utils import iface
 
 import ee_plugin.utils
+import ee_plugin.ee_auth
+
+# init the Google Earth Engine user authorization system
+ee_plugin.ee_auth.init()
 
 
 def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):

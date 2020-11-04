@@ -36,7 +36,7 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 
 ### Roadmap
 
-#### Alpha 0.1 (Q4 2019)
+#### Alpha 0.0.1 (Q4 2019)
 - [x] Create a new QGIS plugin skeleton
 - [x] Migrate to QGIS3
 - [x] Embed GEE Python library
@@ -51,10 +51,10 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [x] Implement Map.setZoom()
 - [x] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/ - approved!
 
-#### Alpha 0.2 (Q3 2020)
+#### Alpha 0.0.2 (Q3 2020)
 - [x] Upgrade EE library to 0.1.224 (Windows, Linux, maxOS)
 
-#### Alpha 0.3 (Q3 2020)
+#### Alpha 0.0.3 (Q4 2020)
 - [x] EE raster layer inspector
 - [x] Show some useful EE properties (bands, value types) in QGIS layer properties dialog
 - [x] Fix GEE url authentication function if the credentials is not exists #63
@@ -63,7 +63,7 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [x] Fixed the authentication dialog when the url shortener doesn't work by any reason #66
 - [x] Fix loading extra python dependencies to the plugin, fix #62
 
-#### Alpha 0.4 (Q4 2020)
+#### 1.0.0 (Q2 2021)
 - [ ] EE vector layer inspector
 - [ ] EE raster collection layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
@@ -71,7 +71,7 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [ ] Skip import ee and from ee_plugin import Map for EE scripts
 ...
 
-#### Beta
+#### 1.1.0
 - [ ] Export.* and Tasks panel (start, cancel, info)
 - [ ] Map.layers() for EE layers, allowing to use things like ui.Map.Layer.setEeObject()
 - [ ] ui.Chart.*

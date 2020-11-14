@@ -19,7 +19,7 @@ def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
     """
         Adds a given EE object to the map as a layer.
 
-        https://developers.google.com/earth-engine/api_docs#map.addlayer
+        https://developers.google.com/earth-engine/api_docs#mapaddlayer
 
         Uses:
             >>> from ee_plugin import Map
@@ -33,7 +33,7 @@ def centerObject(feature, zoom=None):
     """
         Centers the map view on a given object.
 
-        https://developers.google.com/earth-engine/api_docs#map.centerobject
+        https://developers.google.com/earth-engine/api_docs#mapcenterobject
 
         Uses:
             >>> from ee_plugin import Map
@@ -75,7 +75,7 @@ def getBounds(asGeoJSON=False):
     """
         Returns the bounds of the current map view, as a list in the format [west, south, east, north] in degrees.
 
-        https://developers.google.com/earth-engine/api_docs#map.getbounds
+        https://developers.google.com/earth-engine/api_docs#mapgetbounds
 
         Uses:
             >>> from ee_plugin import Map
@@ -103,7 +103,7 @@ def getCenter():
     """
         Returns the coordinates at the center of the map.
 
-        https://developers.google.com/earth-engine/api_docs#map.getcenter
+        https://developers.google.com/earth-engine/api_docs#mapgetcenter
 
         Uses:
             >>> from ee_plugin import Map
@@ -121,7 +121,7 @@ def setCenter(lon, lat, zoom=None):
     """
         Centers the map view at the given coordinates with the given zoom level. If no zoom level is provided, it uses the most recent zoom level on the map.
 
-        https://developers.google.com/earth-engine/api_docs#map.setcenter
+        https://developers.google.com/earth-engine/api_docs#mapsetcenter
 
         Uses:
             >>> from ee_plugin import Map
@@ -149,7 +149,7 @@ def getScale():
     """
         Returns the approximate pixel scale of the current map view, in meters.
 
-        https://developers.google.com/earth-engine/api_docs#map.getscale
+        https://developers.google.com/earth-engine/api_docs#mapgetscale
 
         Uses:
             >>> from ee_plugin import Map
@@ -163,7 +163,9 @@ def getZoom():
     """
         Returns the current zoom level of the map.
 
-        https://developers.google.com/earth-engine/api_docs#map.getzoom, note that in QGIS zoom is a floating point number
+        https://developers.google.com/earth-engine/api_docs#mapgetzoom
+
+        Note that in QGIS zoom is a floating point number
 
         Uses:
             >>> from ee_plugin import Map
@@ -184,7 +186,7 @@ def setZoom(zoom):
     """
         Sets the zoom level of the map.
 
-        https://developers.google.com/earth-engine/api_docs#map.setzoom
+        https://developers.google.com/earth-engine/api_docs#mapsetzoom
 
         Uses:
             >>> from ee_plugin import Map

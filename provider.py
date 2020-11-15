@@ -6,7 +6,8 @@ import json
 
 from qgis.core import (
     QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry,
-    QgsProviderMetadata, QgsMessageLog, Qgis, QgsRaster, QgsRasterInterface
+    QgsProviderMetadata, QgsMessageLog, Qgis, QgsRaster, QgsRasterInterface,
+    QgsVectorDataProvider
 )
 
 import ee
@@ -84,10 +85,10 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return json.dumps(self.ee_object.getInfo())
 
     def bandCount(self):
-        if not self.ee_object:
+        if self.ee_object:
+            return len(self.ee_info['bands'])
+        else:
             return 1  # fall back to default if ee_object is not set
-
-        return len(self.ee_info['bands'])
 
     def dataType(self, band_no):
         if not self.ee_object:
@@ -119,6 +120,21 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatValue, value)
 
         return result
+
+
+class EarthEngineVectorDataProvider(QgsVectorDataProvider):
+    # TODO
+    pass
+
+
+class EarthEngineRasterCollectionDataProvider(QgsRasterDataProvider):
+    # TODO
+    pass
+
+
+class EarthEngineVectorCollectionDataProvider(QgsVectorDataProvider):
+    # TODO
+    pass
 
 
 def register_data_provider():

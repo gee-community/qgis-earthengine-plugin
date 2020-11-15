@@ -38,7 +38,8 @@ def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     layer.setCustomProperty('ee-object-vis', ee_object_vis)
 
     # update EE script in provider
-    layer.dataProvider().set_ee_object(eeObject)
+    if eeObject.getInfo()['type'] == 'Image':  # TODO
+        layer.dataProvider().set_ee_object(eeObject)
 
 
 def add_ee_image_layer(image, name, shown, opacity):
@@ -53,8 +54,12 @@ def add_ee_image_layer(image, name, shown, opacity):
     if image.ee_instance in [ee.Geometry, ee.Feature]:
         # TODO
         layer = QgsRasterLayer(url, name, "wms")
-    # EE collection data provider
-    if image.ee_instance in [ee.ImageCollection, ee.FeatureCollection]:
+    # EE raster collection data provider
+    if image.ee_instance == ee.ImageCollection:
+        # TODO
+        layer = QgsRasterLayer(url, name, "wms")
+    # EE vector collection data provider
+    if image.ee_instance == ee.FeatureCollection:
         # TODO
         layer = QgsRasterLayer(url, name, "wms")
 

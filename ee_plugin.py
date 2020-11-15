@@ -60,7 +60,7 @@ class GoogleEarthEnginePlugin(object):
 
         self.menu_name_plugin = self.tr("Google Earth Engine Plugin")
 
-        # Create and register the ee data provider
+        # Create and register the EE data providers
         provider.register_data_provider()
 
     # noinspection PyMethodMayBeStatic

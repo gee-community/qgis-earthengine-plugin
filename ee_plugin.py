@@ -4,9 +4,7 @@ Main plugin file.
 """
 
 from __future__ import absolute_import
-
-__version__ = '0.0.1'
-
+import configparser
 import requests
 
 from ee_plugin.icons import resources
@@ -24,6 +22,10 @@ import ee
 from ee_plugin import utils
 from ee_plugin import provider
 
+# read the plugin version from metadata
+cfg = configparser.ConfigParser()
+cfg.read(os.path.join(os.path.dirname(__file__), 'metadata.txt'))
+VERSION = cfg.get('general', 'version')
 version_checked = False
 
 
@@ -106,8 +108,8 @@ class GoogleEarthEnginePlugin(object):
         try:
             latest_version = requests.get('https://qgis-ee-plugin.appspot.com/get_latest_version').text
 
-            if __version__ != latest_version:
-                self.iface.messageBar().pushMessage(u'Earth Engine plugin says', u'Hey there, there is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!'.format(latest_version, __version__), duration=6)
+            if VERSION != latest_version:
+                self.iface.messageBar().pushMessage(u'Earth Engine plugin says', u'Hey there, there is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!'.format(latest_version, VERSION), duration=6)
         except: 
             print('Error occurrend when checking for recent plugin version, skipping ...')
 

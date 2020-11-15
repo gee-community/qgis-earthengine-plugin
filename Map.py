@@ -40,8 +40,8 @@ def centerObject(feature, zoom=None):
             >>> Map.centerObject(feature)
     """
 
-
-    feature = ee.Feature(feature)
+    if not hasattr(feature, 'geometry'):
+        feature = ee.Feature(feature)
 
     if not zoom:
         # make sure our geometry is in geo

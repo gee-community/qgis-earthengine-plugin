@@ -83,10 +83,9 @@ def install(options):
 
 
 def read_requirements():
-    '''return a list of runtime and list of test requirements'''
-    lines = open('requirements.txt').readlines()
-    lines = [l for l in [l.strip() for l in lines] if l]
-    return [l for l in lines if l[0] != '#']
+    '''return a list of packages in requirements file'''
+    with open('requirements.txt') as f:
+        return [l.strip('\n') for l in f if l.strip('\n') and not l.startswith('#')]
 
 
 @task

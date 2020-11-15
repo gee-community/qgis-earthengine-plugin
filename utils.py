@@ -106,34 +106,31 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
     if visParams is None:
         visParams = {}
 
-    image = None
-
-    if not isinstance(eeObject, ee.Image) and not isinstance(eeObject, ee.FeatureCollection) and not isinstance(eeObject, ee.Feature) and not isinstance(eeObject, ee.Geometry):
-        err_str = "\n\nThe image argument in 'addLayer' function must be an instace of one of ee.Image, ee.Geometry, ee.Feature or ee.FeatureCollection."
-        raise AttributeError(err_str)
-
     if isinstance(eeObject, ee.Image):
         image = eeObject.visualize(**visParams)
 
     elif isinstance(eeObject, (ee.Geometry, ee.Feature, ee.ImageCollection, ee.FeatureCollection)):
         features = ee.FeatureCollection(eeObject)
 
-        width = 2
-
         if 'width' in visParams:
             width = visParams['width']
-
-        color = '000000'
+        else:
+            width = 2
 
         if 'color' in visParams:
             color = visParams['color']
+        else:
+            color = '000000'
 
-        image_fill = features.style(
-            **{'fillColor': color}).updateMask(ee.Image.constant(0.5))
-        image_outline = features.style(
-            **{'color': color, 'fillColor': '00000000', 'width': width})
+        image_fill = features.style(**{'fillColor': color}).updateMask(ee.Image.constant(0.5))
+        image_outline = features.style(**{'color': color, 'fillColor': '00000000', 'width': width})
 
         image = image_fill.blend(image_outline)
+
+    else:
+        err_str = "\n\nThe image argument in 'addLayer' function must be an instance of one of ee.Image, ee.Geometry, " \
+                  "ee.Feature, ee.ImageCollection or ee.FeatureCollection."
+        raise AttributeError(err_str)
 
     if name is None:
         # extract name from id

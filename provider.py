@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+Create and init the Earth Engine Qgis data provider
+"""
 import json
 
 from qgis.core import (
@@ -81,7 +85,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def bandCount(self):
         if not self.ee_object:
-            return 1 # fall back to default if ee_object is not set
+            return 1  # fall back to default if ee_object is not set
 
         return len(self.ee_info['bands'])
 
@@ -102,13 +106,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         from ee_plugin import Map
 
         point = utils.geom_to_geo(point)
-
         point_ee = ee.Geometry.Point([point.x(), point.y()])
-
         scale = Map.getScale()
-
-        value = self.ee_object.reduceRegion(
-            ee.Reducer.first(), point_ee, scale).getInfo()
+        value = self.ee_object.reduceRegion(ee.Reducer.first(), point_ee, scale).getInfo()
 
         band_indices = range(1, self.bandCount() + 1)
         band_names = [self.generateBandName(
@@ -116,7 +116,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         band_values = [value[band_name] for band_name in band_names]
 
         value = dict(zip(band_indices, band_values))
-
         result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatValue, value)
 
         return result

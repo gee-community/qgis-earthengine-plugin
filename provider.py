@@ -1,10 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+Create and init the Earth Engine Qgis data provider
+"""
 import json
 
-import qgis
-from qgis.core import QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry
-from qgis.core import QgsRasterLayer, QgsProviderRegistry, QgsProviderMetadata
-from qgis.core import QgsMessageLog
-from qgis.core import Qgis, QgsRaster, QgsRasterInterface, QgsSettings
+from qgis.core import (
+    QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry,
+    QgsProviderMetadata, QgsMessageLog, Qgis, QgsRaster, QgsRasterInterface,
+    QgsVectorDataProvider, QgsDataProvider
+)
 
 import ee
 
@@ -32,7 +36,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         super().__init__(*args, **kwargs)
 
         # create WMS provider
-        self.wms = qgis.core.QgsProviderRegistry.instance().createProvider('wms', *args)
+        self.wms = QgsProviderRegistry.instance().createProvider('wms', *args, **kwargs)
 
         self.ee_object = None
 
@@ -45,8 +49,8 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return 'EE'
 
     @classmethod
-    def createProvider(cls, uri, providerOptions):
-        return EarthEngineRasterDataProvider(uri, providerOptions)
+    def createProvider(cls, uri, providerOptions, flags=QgsDataProvider.ReadFlags()):
+        return EarthEngineRasterDataProvider(uri, providerOptions, flags)
 
     def set_ee_object(self, ee_object):
         self.ee_object = ee_object
@@ -81,10 +85,10 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return json.dumps(self.ee_object.getInfo())
 
     def bandCount(self):
-        if not self.ee_object:
-            return 1 # fall back to default if ee_object is not set
-
-        return len(self.ee_info['bands'])
+        if self.ee_object:
+            return len(self.ee_info['bands'])
+        else:
+            return 1  # fall back to default if ee_object is not set
 
     def dataType(self, band_no):
         if not self.ee_object:
@@ -103,13 +107,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         from ee_plugin import Map
 
         point = utils.geom_to_geo(point)
-
         point_ee = ee.Geometry.Point([point.x(), point.y()])
-
         scale = Map.getScale()
-
-        value = self.ee_object.reduceRegion(
-            ee.Reducer.first(), point_ee, scale).getInfo()
+        value = self.ee_object.reduceRegion(ee.Reducer.first(), point_ee, scale).getInfo()
 
         band_indices = range(1, self.bandCount() + 1)
         band_names = [self.generateBandName(
@@ -117,10 +117,24 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         band_values = [value[band_name] for band_name in band_names]
 
         value = dict(zip(band_indices, band_values))
-
         result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatValue, value)
 
         return result
+
+
+class EarthEngineVectorDataProvider(QgsVectorDataProvider):
+    # TODO
+    pass
+
+
+class EarthEngineRasterCollectionDataProvider(QgsRasterDataProvider):
+    # TODO
+    pass
+
+
+class EarthEngineVectorCollectionDataProvider(QgsVectorDataProvider):
+    # TODO
+    pass
 
 
 def register_data_provider():
@@ -128,6 +142,6 @@ def register_data_provider():
         EarthEngineRasterDataProvider.providerKey(),
         EarthEngineRasterDataProvider.description(),
         EarthEngineRasterDataProvider.createProvider)
-    registry = qgis.core.QgsProviderRegistry.instance()
+    registry = QgsProviderRegistry.instance()
     registry.registerProvider(metadata)
     QgsMessageLog.logMessage('EE provider registered')

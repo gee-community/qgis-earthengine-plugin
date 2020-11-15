@@ -38,14 +38,30 @@ def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     layer.setCustomProperty('ee-object-vis', ee_object_vis)
 
     # update EE script in provider
-    layer.dataProvider().set_ee_object(eeObject)
+    if eeObject.getInfo()['type'] == 'Image':  # TODO
+        layer.dataProvider().set_ee_object(eeObject)
 
 
 def add_ee_image_layer(image, name, shown, opacity):
     check_version()
 
     url = "type=xyz&url=" + get_ee_image_url(image)
-    layer = QgsRasterLayer(url, name, "EE")
+
+    # EE raster data provider
+    if image.ee_type == ee.Image:
+        layer = QgsRasterLayer(url, name, "EE")
+    # EE vector data provider
+    if image.ee_type in [ee.Geometry, ee.Feature]:
+        # TODO
+        layer = QgsRasterLayer(url, name, "wms")
+    # EE raster collection data provider
+    if image.ee_type == ee.ImageCollection:
+        # TODO
+        layer = QgsRasterLayer(url, name, "wms")
+    # EE vector collection data provider
+    if image.ee_type == ee.FeatureCollection:
+        # TODO
+        layer = QgsRasterLayer(url, name, "wms")
 
     QgsProject.instance().addMapLayer(layer)
 
@@ -90,35 +106,31 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
     if visParams is None:
         visParams = {}
 
-    image = None
+    if isinstance(eeObject, ee.Image):
+        image = eeObject.visualize(**visParams)
 
-    if not isinstance(eeObject, ee.Image) and not isinstance(eeObject, ee.FeatureCollection) and not isinstance(eeObject, ee.Feature) and not isinstance(eeObject, ee.Geometry):
-        err_str = "\n\nThe image argument in 'addLayer' function must be an instace of one of ee.Image, ee.Geometry, ee.Feature or ee.FeatureCollection."
-        raise AttributeError(err_str)
-
-    if isinstance(eeObject, ee.Geometry) or isinstance(eeObject, ee.Feature) or isinstance(eeObject, ee.FeatureCollection):
+    elif isinstance(eeObject, (ee.Geometry, ee.Feature, ee.ImageCollection, ee.FeatureCollection)):
         features = ee.FeatureCollection(eeObject)
-
-        width = 2
 
         if 'width' in visParams:
             width = visParams['width']
-
-        color = '000000'
+        else:
+            width = 2
 
         if 'color' in visParams:
             color = visParams['color']
+        else:
+            color = '000000'
 
-        image_fill = features.style(
-            **{'fillColor': color}).updateMask(ee.Image.constant(0.5))
-        image_outline = features.style(
-            **{'color': color, 'fillColor': '00000000', 'width': width})
+        image_fill = features.style(**{'fillColor': color}).updateMask(ee.Image.constant(0.5))
+        image_outline = features.style(**{'color': color, 'fillColor': '00000000', 'width': width})
 
         image = image_fill.blend(image_outline)
 
     else:
-        if isinstance(eeObject, ee.Image):
-            image = eeObject.visualize(**visParams)
+        err_str = "\n\nThe image argument in 'addLayer' function must be an instance of one of ee.Image, ee.Geometry, " \
+                  "ee.Feature, ee.ImageCollection or ee.FeatureCollection."
+        raise AttributeError(err_str)
 
     if name is None:
         # extract name from id
@@ -128,8 +140,9 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
         except:
             name = "untitled"
 
-    layer = add_or_update_ee_image_layer(image, name, shown, opacity)
+    image.ee_type = type(eeObject)
 
+    layer = add_or_update_ee_image_layer(image, name, shown, opacity)
     update_ee_layer_properties(layer, eeObject, visParams, shown, opacity)
 
 

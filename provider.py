@@ -7,7 +7,7 @@ import json
 from qgis.core import (
     QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry,
     QgsProviderMetadata, QgsMessageLog, Qgis, QgsRaster, QgsRasterInterface,
-    QgsVectorDataProvider
+    QgsVectorDataProvider, QgsDataProvider
 )
 
 import ee
@@ -49,8 +49,8 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return 'EE'
 
     @classmethod
-    def createProvider(cls, uri, *args, **kwargs):
-        return EarthEngineRasterDataProvider(uri, *args, **kwargs)
+    def createProvider(cls, uri, providerOptions, flags=QgsDataProvider.ReadFlags()):
+        return EarthEngineRasterDataProvider(uri, providerOptions, flags)
 
     def set_ee_object(self, ee_object):
         self.ee_object = ee_object

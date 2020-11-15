@@ -32,7 +32,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         super().__init__(*args, **kwargs)
 
         # create WMS provider
-        self.wms = qgis.core.QgsProviderRegistry.instance().createProvider('wms', *args)
+        self.wms = qgis.core.QgsProviderRegistry.instance().createProvider('wms', *args, **kwargs)
 
         self.ee_object = None
 
@@ -45,8 +45,8 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return 'EE'
 
     @classmethod
-    def createProvider(cls, uri, providerOptions):
-        return EarthEngineRasterDataProvider(uri, providerOptions)
+    def createProvider(cls, uri, *args, **kwargs):
+        return EarthEngineRasterDataProvider(uri, *args, **kwargs)
 
     def set_ee_object(self, ee_object):
         self.ee_object = ee_object

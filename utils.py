@@ -48,18 +48,18 @@ def add_ee_image_layer(image, name, shown, opacity):
     url = "type=xyz&url=" + get_ee_image_url(image)
 
     # EE raster data provider
-    if image.ee_instance == ee.Image:
+    if image.ee_type == ee.Image:
         layer = QgsRasterLayer(url, name, "EE")
     # EE vector data provider
-    if image.ee_instance in [ee.Geometry, ee.Feature]:
+    if image.ee_type in [ee.Geometry, ee.Feature]:
         # TODO
         layer = QgsRasterLayer(url, name, "wms")
     # EE raster collection data provider
-    if image.ee_instance == ee.ImageCollection:
+    if image.ee_type == ee.ImageCollection:
         # TODO
         layer = QgsRasterLayer(url, name, "wms")
     # EE vector collection data provider
-    if image.ee_instance == ee.FeatureCollection:
+    if image.ee_type == ee.FeatureCollection:
         # TODO
         layer = QgsRasterLayer(url, name, "wms")
 
@@ -140,8 +140,7 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
         except:
             name = "untitled"
 
-    image.ee_instance = type(eeObject)
-    image.ee_type = eeObject.getInfo()['type']
+    image.ee_type = type(eeObject)
 
     layer = add_or_update_ee_image_layer(image, name, shown, opacity)
     update_ee_layer_properties(layer, eeObject, visParams, shown, opacity)

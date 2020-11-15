@@ -1,10 +1,9 @@
 import json
 
-import qgis
-from qgis.core import QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry
-from qgis.core import QgsRasterLayer, QgsProviderRegistry, QgsProviderMetadata
-from qgis.core import QgsMessageLog
-from qgis.core import Qgis, QgsRaster, QgsRasterInterface, QgsSettings
+from qgis.core import (
+    QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry,
+    QgsProviderMetadata, QgsMessageLog, Qgis, QgsRaster, QgsRasterInterface
+)
 
 import ee
 
@@ -32,7 +31,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         super().__init__(*args, **kwargs)
 
         # create WMS provider
-        self.wms = qgis.core.QgsProviderRegistry.instance().createProvider('wms', *args, **kwargs)
+        self.wms = QgsProviderRegistry.instance().createProvider('wms', *args, **kwargs)
 
         self.ee_object = None
 
@@ -128,6 +127,6 @@ def register_data_provider():
         EarthEngineRasterDataProvider.providerKey(),
         EarthEngineRasterDataProvider.description(),
         EarthEngineRasterDataProvider.createProvider)
-    registry = qgis.core.QgsProviderRegistry.instance()
+    registry = QgsProviderRegistry.instance()
     registry.registerProvider(metadata)
     QgsMessageLog.logMessage('EE provider registered')

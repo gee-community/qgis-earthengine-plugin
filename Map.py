@@ -58,7 +58,7 @@ def centerObject(feature, zoom=None):
         rect = QgsRectangle(xmin, ymin, xmax, ymax)
 
         # transform rect to a crs used by current project
-        crs_src = QgsCoordinateReferenceSystem(4326)
+        crs_src = QgsCoordinateReferenceSystem('EPSG:4326')
         crs_dst = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
         geo2proj = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
         rect_proj = geo2proj.transform(rect)
@@ -131,7 +131,7 @@ def setCenter(lon, lat, zoom=None):
     ### center
     center_point_in = QgsPointXY(lon, lat)
     # convert coordinates
-    crsSrc = QgsCoordinateReferenceSystem(4326)  # WGS84
+    crsSrc = QgsCoordinateReferenceSystem('EPSG:4326')
     crsDest = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
     xform = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
     # forward transformation: src -> dest

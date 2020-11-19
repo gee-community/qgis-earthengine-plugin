@@ -177,7 +177,7 @@ def check_version():
 
 def geom_to_geo(geom):
     crs_src = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
-    crs_dst = QgsCoordinateReferenceSystem(4326)
+    crs_dst = QgsCoordinateReferenceSystem('EPSG:4326')
     proj2geo = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
 
     if isinstance(geom, QgsPointXY):

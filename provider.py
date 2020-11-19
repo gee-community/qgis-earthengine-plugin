@@ -49,7 +49,10 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return 'EE'
 
     @classmethod
-    def createProvider(cls, uri, providerOptions, flags=QgsDataProvider.ReadFlags()):
+    def createProvider(cls, uri, providerOptions, flags=None):
+        # compatibility with Qgis < 3.16, ReadFlags only available since 3.16
+        if Qgis.QGIS_VERSION_INT >= 31600:
+            flags = QgsDataProvider.ReadFlags()
         return EarthEngineRasterDataProvider(uri, providerOptions, flags)
 
     def set_ee_object(self, ee_object):

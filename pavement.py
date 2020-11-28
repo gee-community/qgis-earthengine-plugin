@@ -50,16 +50,9 @@ def setup():
     os.environ['PYTHONPATH'] = ext_libs.abspath()
     for req in reqs:
         if platform.system() == "Windows":
-            sh('pip install -U -t %(ext_libs)s %(dep)s' % {
-                'ext_libs': ext_libs.abspath(),
-                'dep': req
-            })
+            sh('pip install -U -t "{ext_libs}" "{dep}"'.format(ext_libs=ext_libs.abspath(), dep=req))
         else:
-            sh('pip3 install -U -t %(ext_libs)s %(dep)s' % {
-                'ext_libs': ext_libs.abspath(),
-                'dep': req
-            })
-
+            sh('pip3 install -U -t "{ext_libs}" "{dep}"'.format(ext_libs=ext_libs.abspath(), dep=req))
 
 @task
 def install(options):
@@ -83,10 +76,9 @@ def install(options):
 
 
 def read_requirements():
-    '''return a list of runtime and list of test requirements'''
-    lines = open('requirements.txt').readlines()
-    lines = [l for l in [l.strip() for l in lines] if l]
-    return [l for l in lines if l[0] != '#']
+    '''return a list of packages in requirements file'''
+    with open('requirements.txt') as f:
+        return [l.strip('\n') for l in f if l.strip('\n') and not l.startswith('#')]
 
 
 @task

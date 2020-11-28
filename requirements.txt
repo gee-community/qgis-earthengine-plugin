@@ -1,3 +1,4 @@
 ratelim
 pyCrypto
 earthengine-api
+six>=1.13

@@ -53,7 +53,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         # compatibility with Qgis < 3.16, ReadFlags only available since 3.16
         if Qgis.QGIS_VERSION_INT >= 31600:
             flags = QgsDataProvider.ReadFlags()
-        return EarthEngineRasterDataProvider(uri, providerOptions, flags)
+            return EarthEngineRasterDataProvider(uri, providerOptions, flags)
+        else:
+            return EarthEngineRasterDataProvider(uri, providerOptions)
 
     def set_ee_object(self, ee_object):
         self.ee_object = ee_object

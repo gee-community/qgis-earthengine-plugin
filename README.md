@@ -57,11 +57,11 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 #### Alpha 0.0.3 (Q4 2020)
 - [x] EE raster layer inspector
 - [x] Show some useful EE properties (bands, value types) in QGIS layer properties dialog
-- [x] Fix GEE url authentication function if the credentials is not exists #63
+- [x] Fix GEE url authentication function if the credentials is not exists [#63](https://github.com/gee-community/qgis-earthengine-plugin/issues/63)
 - [x] Fix crash if the authentication dialog is cancelled or not filled by the user
 - [x] Init the Google Earth Engine user authorization system only when the user is going to use the plugin
-- [x] Fixed the authentication dialog when the url shortener doesn't work by any reason #66
-- [x] Fix loading extra python dependencies to the plugin, fix #62
+- [x] Fixed the authentication dialog when the url shortener doesn't work by any reason [#66](https://github.com/gee-community/qgis-earthengine-plugin/issues/66)
+- [x] Fix loading extra python dependencies to the plugin, fix [#62](https://github.com/gee-community/qgis-earthengine-plugin/issues/62)
 
 #### 1.0.0 (Q2 2021)
 - [ ] EE vector layer inspector

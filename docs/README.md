@@ -1,6 +1,6 @@
-**Current Version: 0.0.1 alpha**
+**Current Version: 0.0.3 alpha**
 
-[![Gitter](https://badges.gitter.im/gee-community/qgis-earthengine-plugin.svg)](https://gitter.im/gee-community/qgis-earthengine-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+Use [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions) to leave a comment about the plugin or [Issues](https://github.com/gee-community/qgis-earthengine-plugin/issues) page to report bugs or new feature requests.
 
 The QGIS Earth Engine plugin integrates [Google Earth Engine](http://earthengine.google.com) and [QGIS](https://qgis.org/) using [EE Python API](https://github.com/google/earthengine-api/tree/master/python). Currently, the plugin implements only a subset of Map API typically used within the [Google Earth Engine Code Editor](https://developers.google.com/earth-engine/getstarted). To get started - please make sure you're familiar with the EE first by visiting: https://developers.google.com/earth-engine/getstarted. 
 

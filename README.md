@@ -81,44 +81,6 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
-### For Developers
-
-This section is for developers-only. 
-
-The ee_plugin uses paver for packaging. If you do not have paver (https://github.com/paver/paver) installed, install it by typing the following in a console:
-
-```
-pip install paver
-```
-
-Open a console in the folder created in the first step, and type
-
-```
-paver setup
-```
-
-This will get all the dependencies needed by the plugin.
-
-Install into QGIS by running
-
-```
-paver install
-```
-
-This should create a symbolic link to the plugin directory wihin the QGIS plugins deployment directory. Check Settings > User Profiles > Open Active Profile Folder, and then go to python/plugins. To reload any changes made in the plugin into Qgis, it is recommended to use the [plugin reloader](https://plugins.qgis.org/plugins/plugin_reloader/).
-
-To generate the installable zip package
-
-```
-paver package
-``` 
-
-### Random Links
-
-* [Ujaval Gandhi](https://twitter.com/spatialthoughts) - [QGIS Plugin Builder](http://g-sherman.github.io/Qgis-Plugin-Builder/)
-* JetBrains - [PyCharm](https://www.jetbrains.com/pycharm/)
-
-
 ### Support this project
 
 [![Donate](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=P2RU23F4ETP4L&item_name=QGIS+Plugin+Development&currency_code=EUR&source=url) or just <a href="https://www.buymeacoffee.com/Eq378D1"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" width="150"></a>

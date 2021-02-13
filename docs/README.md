@@ -73,19 +73,6 @@ Q: I am getting authentication errors, what can I do?
 
 A: Try installing the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
 
-Q: Are you through a proxy?
-
-A: In your scripts, configure proxy settings on top of them:
-
-```python
-import os
-os.environ['HTTP_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
-os.environ['HTTPS_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
-
-import ee
-from ee_plugin import Map
-```
-
 Q: I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
 
 A: Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 

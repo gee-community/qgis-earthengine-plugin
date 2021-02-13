@@ -68,6 +68,32 @@ Note that QGIS projects containing EE map layers can be also saved, in this case
 
 Check [examples](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples) directory to learn what kind of functionality is currently supported.
 
+### FAQ
+Q: I am getting authentication errors, what can I do? 
+
+A: Try installing the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
+
+Q: Are you through a proxy?
+
+A: In your scripts, configure proxy settings on top of them:
+
+```python
+import os
+os.environ['HTTP_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
+os.environ['HTTPS_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
+
+import ee
+from ee_plugin import Map
+```
+
+Q: I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
+
+A: Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
+
+Q: Plugin crashes after authentication with a stack trace showing 404, what should I do?
+
+A: Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
+
 
 ### Donate
 

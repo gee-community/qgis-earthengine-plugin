@@ -7,7 +7,6 @@ from __future__ import absolute_import
 import configparser
 import requests
 
-from ee_plugin.icons import resources
 import webbrowser
 from builtins import object
 import os.path
@@ -18,9 +17,8 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProject
 
-import ee
-from ee_plugin import utils
 from ee_plugin import provider
+from ee_plugin.icons import resources
 
 # read the plugin version from metadata
 cfg = configparser.ConfigParser()
@@ -124,6 +122,8 @@ class GoogleEarthEnginePlugin(object):
             self.menu_name_plugin, self.dockable_action)
 
     def updateLayers(self):
+        import ee
+        from ee_plugin.utils import add_or_update_ee_layer
         layers = QgsProject.instance().mapLayers().values()
 
         for l in filter(lambda layer: layer.customProperty('ee-layer'), layers):
@@ -141,4 +141,4 @@ class GoogleEarthEnginePlugin(object):
             shown = QgsProject.instance().layerTreeRoot().findLayer(l.id()).itemVisibilityChecked()
             opacity = l.renderer().opacity()
 
-            utils.add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)
+            add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)

@@ -8,12 +8,6 @@ import ee
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsPointXY, QgsRectangle
 from qgis.utils import iface
 
-import ee_plugin.utils
-import ee_plugin.ee_auth
-
-# init the Google Earth Engine user authorization system
-ee_plugin.ee_auth.init()
-
 
 def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
     """
@@ -25,8 +19,9 @@ def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
             >>> from ee_plugin import Map
             >>> Map.addLayer(.....)
     """
+    from ee_plugin.utils import add_or_update_ee_layer
 
-    ee_plugin.utils.add_or_update_ee_layer(eeObject, visParams, name, shown, opacity)
+    add_or_update_ee_layer(eeObject, visParams, name, shown, opacity)
 
 
 def centerObject(feature, zoom=None):

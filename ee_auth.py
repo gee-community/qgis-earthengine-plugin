@@ -8,22 +8,11 @@ import urllib.request
 import webbrowser
 from qgis.PyQt.QtWidgets import QInputDialog
 
-import ee
 import logging
 
 # fix the warnings/errors messages from 'file_cache is unavailable when using oauth2client'
 # https://github.com/googleapis/google-api-python-client/issues/299
 logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
-
-
-def init():
-    try:
-        ee.Initialize()
-    except ee.ee_exception.EEException:
-        if authenticate():
-            ee.Initialize()  # retry initialization once the user logs in
-        else:
-            print('\nGoogle Earth Engine authorization failed!\n')
 
 
 def tiny_url(url):
@@ -35,7 +24,10 @@ def tiny_url(url):
         return False, url
 
 
-def authenticate():
+def authenticate(ee=None):
+    if ee is None:
+        import ee
+
     # PKCE.  Generates a challenge that the server will use to ensure that the
     # auth_code only works with our verifier.  https://tools.ietf.org/html/rfc7636
     code_verifier = ee.oauth._base64param(os.urandom(32))

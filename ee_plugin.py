@@ -106,7 +106,7 @@ class GoogleEarthEnginePlugin(object):
         try:
             latest_version = requests.get('https://qgis-ee-plugin.appspot.com/get_latest_version').text
 
-            if VERSION != latest_version:
+            if VERSION < latest_version:
                 self.iface.messageBar().pushMessage('Earth Engine plugin:',
                     'There is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!'.format(latest_version, VERSION), duration=15)
         except: 

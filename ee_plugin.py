@@ -133,7 +133,7 @@ class GoogleEarthEnginePlugin(object):
             # check for backward-compatibility, older file formats (before 0.0.3) store ee-objects in ee-script property an no ee-object-vis is stored
             # also, it seems that JSON representation of persistent object has been changed, making it difficult to read older EE JSON
             if ee_object is None:
-                QgsMessageLog.logMessage('Map layer saved with older version of EE plugin is detected, backward-compatibility for versions before 0.0.3 is not supported due to changes in EE library, please re-create EE layer by re-running the Python script')
+                print('\nWARNING:\n Map layer saved with older version of EE plugin is detected, backward-compatibility for versions before 0.0.3 is not supported due to changes in EE library, please re-create EE layer by re-running the Python script\n')
                 return
 
             ee_object = ee.deserializer.fromJSON(ee_object)

@@ -10,7 +10,7 @@
 name=Google Earth Engine
 qgisMinimumVersion=3.8
 description=Integrates QGIS with Google Earth Engine
-version=0.0.3
+version=0.0.4
 author=Gennadii Donchyts
 email=gennadiy.donchyts@gmail.com
 

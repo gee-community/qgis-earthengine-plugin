@@ -61,6 +61,9 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [x] Fixed the authentication dialog when the url shortener doesn't work by any reason [#66](https://github.com/gee-community/qgis-earthengine-plugin/issues/66)
 - [x] Fix loading extra python dependencies to the plugin, fix [#62](https://github.com/gee-community/qgis-earthengine-plugin/issues/62)
 
+#### Alpha 0.0.4 (Q1 2021) :heavy_check_mark:
+- [x] Minor bugfix release (EE authentication)
+
 #### 1.0.0 (Q2 2021) :hourglass:
 - [ ] EE vector layer inspector
 - [ ] EE raster collection layer inspector

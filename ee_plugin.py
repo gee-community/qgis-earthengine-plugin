@@ -130,8 +130,16 @@ class GoogleEarthEnginePlugin(object):
             ee_object = l.customProperty('ee-object')
             ee_object_vis = l.customProperty('ee-object-vis')
 
+            # check for backward-compatibility, older file formats (before 0.0.3) store ee-objects in ee-script property an no ee-object-vis is stored
+            # also, it seems that JSON representation of persistent object has been changed, making it difficult to read older EE JSON
+            if ee_object is None:
+                QgsMessageLog.logMessage('Map layer saved with older version of EE plugin is detected, backward-compatibility for versions before 0.0.3 is not supported due to changes in EE library, please re-create EE layer by re-running the Python script')
+                return
+
             ee_object = ee.deserializer.fromJSON(ee_object)
-            ee_object_vis = json.loads(ee_object_vis)
+
+            if ee_object_vis is not None:
+                ee_object_vis = json.loads(ee_object_vis)
             
             # update loaded EE layer
 

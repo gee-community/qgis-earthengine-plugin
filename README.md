@@ -64,7 +64,8 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 #### Alpha 0.0.4 (Q1 2021) :heavy_check_mark:
 - [x] Minor bugfix release (EE authentication)
 
-#### 1.0.0 (Q2 2021) :hourglass:
+#### 1.0.0 (Q4 2021) :hourglass:
+- [ ] Add layer as a child layer to the group layer [#101](https://github.com/gee-community/qgis-earthengine-plugin/issues/101)
 - [ ] EE vector layer inspector
 - [ ] EE raster collection layer inspector
 - [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async

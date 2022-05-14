@@ -87,6 +87,12 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
+
+### Support Ukraine
+
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
+
+
 ### Support this project
 
 [![Donate](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=P2RU23F4ETP4L&item_name=QGIS+Plugin+Development&currency_code=EUR&source=url) or just <a href="https://www.buymeacoffee.com/Eq378D1"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" width="150"></a>

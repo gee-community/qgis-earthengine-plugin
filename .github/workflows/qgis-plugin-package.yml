@@ -37,5 +37,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ee_plugin-{{ matrix.os }}.zip
+        name: ee_plugin-${{ matrix.os }}.zip
         path: ee_plugin.zip

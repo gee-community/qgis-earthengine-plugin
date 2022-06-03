@@ -32,6 +32,7 @@ jobs:
     - name: Package QGIS Plugin
       run: |
         paver setup
+        paver package
    
     - name: Upload artifact
       uses: actions/upload-artifact@v3

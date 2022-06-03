@@ -32,3 +32,8 @@ jobs:
     - name: Package QGIS Plugin
       run: |
         paver setup
+   
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      name: ee_plugin-{{ matrix.os }}.zip
+      path: ee_plugin.zip

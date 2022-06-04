@@ -4,6 +4,7 @@ import platform
 import site
 import pkg_resources
 import builtins
+import httplib2
 
 
 def pre_init_plugin():
@@ -33,7 +34,7 @@ def import_ee():
         if name == 'ee':
             if not _module_.data._credentials:
                 try:
-                    _module_.Initialize()
+                    _module_.Initialize(http_transport=httplib2.Http())
                 except _module_.ee_exception.EEException:
                     if authenticate(ee=_module_):
                         _module_.Initialize()  # retry initialization once the user logs in

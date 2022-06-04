@@ -27,7 +27,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        /opt/hostedtoolcache/Python/3.9.5/x64/bin/python -m pip install --upgrade pip
         python -m pip install paver
     - name: Package QGIS Plugin
       run: |

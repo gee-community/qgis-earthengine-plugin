@@ -28,11 +28,9 @@ def authenticate(ee=None):
     if ee is None:
         import ee
 
-    # PKCE.  Generates a challenge that the server will use to ensure that the
-    # auth_code only works with our verifier.  https://tools.ietf.org/html/rfc7636
-    code_verifier = ee.oauth._base64param(os.urandom(32))
-    code_challenge = ee.oauth._base64param(hashlib.sha256(code_verifier).digest())
-    auth_url = ee.oauth.get_authorization_url(code_challenge)
+    pkce = ee.oauth._nonce_table('code_verifier')
+    code_verifier = pkce['code_verifier']
+    auth_url = ee.oauth.get_authorization_url(pkce['code_challenge'], None)
     tiny_url_ok, auth_url = tiny_url(auth_url)
 
     webbrowser.open_new(auth_url)

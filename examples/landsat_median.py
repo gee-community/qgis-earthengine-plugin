@@ -8,5 +8,5 @@ collection = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')\
 
 median = collection.median()
 
-Map.setCenter(-122.3578, 37.7726, 12)
 Map.addLayer(median, {"bands": ['B4', 'B3', 'B2'], "max": 0.3}, 'median')
+Map.setCenter(-122.3578, 37.7726, 12)

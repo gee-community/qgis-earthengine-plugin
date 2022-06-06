@@ -3,8 +3,6 @@ import ee
 from ee_plugin import Map
 from ee_plugin.contrib import utils, palettes
 
-Map.setCenter(4.408241, 52.177595, 18)
-
 dem = ee.Image("AHN/AHN2_05M_RUW") \
   .resample('bicubic') \
   .convolve(ee.Kernel.gaussian(0.5, 0.25, 'meters'))
@@ -33,4 +31,6 @@ castShadows = True
 rgb = utils.hillshadeRGB(demRGB, dem, weight, exaggeration, azimuth, zenith, contrast, brightness, saturation, castShadows)
 Map.addLayer(rgb, {}, 'DEM')
 
-Map.addLayer(dem, {}, 'DEM (raw)', false)
+Map.addLayer(dem, {}, 'DEM (raw)', False)
+
+Map.setCenter(4.408241, 52.177595, 18)

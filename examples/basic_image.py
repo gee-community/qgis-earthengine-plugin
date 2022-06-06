@@ -6,5 +6,5 @@ image = ee.Image.pixelLonLat() \
 
 # image = image.multiply(50).sin()
 
-Map.setCenter(0, 28, 2.5)
 Map.addLayer(image, {}, 'coords', True)
+Map.setCenter(0, 28, 2.5)

@@ -38,5 +38,4 @@ rgb = utils.hillshadeRGB(demRGB, dem, weight, exaggeration,
     azimuth, zenith, contrast, brightness, saturation, castShadows)
 Map.addLayer(rgb, {}, 'DEM (hillshade, shadows)', False)
 
-
 Map.setCenter(4.407, 52.177, 18)

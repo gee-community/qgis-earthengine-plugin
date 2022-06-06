@@ -7,6 +7,7 @@ import ee
 
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsPointXY, QgsRectangle
 from qgis.utils import iface
+from qgis.PyQt.QtCore import QEventLoop, QTimer
 
 
 def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
@@ -122,7 +123,10 @@ def setCenter(lon, lat, zoom=None):
             >>> from ee_plugin import Map
             >>> Map.setCenter(lon, lat, zoom)
     """
-
+    # wait 100 milliseconds while load the ee image
+    loop = QEventLoop()
+    QTimer.singleShot(100, loop.quit)
+    loop.exec_()
     ### center
     center_point_in = QgsPointXY(lon, lat)
     # convert coordinates

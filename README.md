@@ -64,6 +64,9 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 #### Alpha 0.0.4 (Q1 2021) :heavy_check_mark:
 - [x] Minor bugfix release (EE authentication)
 
+#### Alpha 0.0.5 (Q1 2022) :heavy_check_mark:
+- [x] Minor bugfix release (EE library upgrade)
+
 #### 1.0.0 (Q1 2022) :hourglass:
 - [ ] Improve authentication (UI and error handling)
 - [ ] Simplify interpoerability of features/geometry between EE and QGIS

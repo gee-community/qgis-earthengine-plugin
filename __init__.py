@@ -42,9 +42,8 @@ def import_ee():
                     _module_.Initialize(http_transport=httplib2.Http())
                 except _module_.ee_exception.EEException:
                     if authenticate(ee=_module_):
-                        _module_.Initialize(
-                            http_transport=httplib2.Http()
-                        )  # retry initialization once the user logs in
+                        # retry initialization once the user logs in
+                        _module_.Initialize(http_transport=httplib2.Http())  
                     else:
                         print("\nGoogle Earth Engine authorization failed!\n")
 

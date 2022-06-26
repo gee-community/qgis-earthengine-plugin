@@ -8,10 +8,12 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import webbrowser
 import logging
+from qgis.PyQt.QtWidgets import QMessageBox
 
 # fix the warnings/errors messages from 'file_cache is unavailable when using oauth2client'
 # https://github.com/googleapis/google-api-python-client/issues/299
 logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
+
 
 class MyHandler(BaseHTTPRequestHandler):
     """
@@ -25,6 +27,7 @@ class MyHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(bytes("QGIS Google Earth Engine plugin authentication finished successfully.", 'utf-8'))
 
+
 def authenticate(ee=None):
     """
     Authenticates Google Earth Engine
@@ -32,49 +35,61 @@ def authenticate(ee=None):
     if ee is None:
         import ee
 
-    SCOPES = [
-        "https://www.googleapis.com/auth/earthengine",
-        "https://www.googleapis.com/auth/devstorage.full_control",
-        "https://www.googleapis.com/auth/accounts.reauth"
-    ]
+    msg = 'This plugin uses Google Earth Engine API and it requires'\
+          'users to be authorized, you must have a Google account for that.\n\n'\
+          'Click OK and follow the instructions on the web page.'
+    reply = QMessageBox.question(None, 'Google Earth Engine plugin',
+                                 msg, QMessageBox.Ok, QMessageBox.Cancel)
 
-    # get user login & consent
-    request_args = {
-      'response_type': 'code',
-      'client_id': ee.oauth.CLIENT_ID,
-      'redirect_uri': "http://localhost:8085/",
-      'scope': ' '.join(SCOPES),
-      'access_type': 'offline'
-    }
-    auth_url = 'https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?' + urllib.parse.urlencode(request_args)
-    webbrowser.open_new(auth_url)
-    print('Starting Google Earth Engine Authorization ...')
+    if reply == QMessageBox.Ok:
+        # start the authentication process with Google Earth Engine
 
-    server = HTTPServer(('localhost', 8085), MyHandler)
-    server.handle_request()
+        SCOPES = [
+            "https://www.googleapis.com/auth/earthengine",
+            "https://www.googleapis.com/auth/devstorage.full_control",
+            "https://www.googleapis.com/auth/accounts.reauth"
+        ]
 
-    if not MyHandler.auth_code:
-        print('QGIS EE Plugin authentication failed, can not get authentication code')
+        # get user login & consent
+        request_args = {
+            'response_type': 'code',
+            'client_id': ee.oauth.CLIENT_ID,
+            'redirect_uri': "http://localhost:8085/",
+            'scope': ' '.join(SCOPES),
+            'access_type': 'offline'
+        }
+        auth_url = 'https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?' + urllib.parse.urlencode(
+            request_args)
+        webbrowser.open_new(auth_url)
+        print('Starting Google Earth Engine Authorization ...')
+
+        server = HTTPServer(('localhost', 8085), MyHandler)
+        server.handle_request()
+
+        if not MyHandler.auth_code:
+            print('QGIS EE Plugin authentication failed, can not get authentication code')
+            return False
+
+        # get refresh token
+        request_args = {
+            'code': MyHandler.auth_code,
+            'client_id': ee.oauth.CLIENT_ID,
+            'client_secret': ee.oauth.CLIENT_SECRET,
+            'redirect_uri': "http://localhost:8085/",
+            'grant_type': 'authorization_code',
+        }
+
+        data = urllib.parse.urlencode(request_args).encode()
+        response = urllib.request.urlopen(ee.oauth.TOKEN_URI, data).read().decode()
+        refresh_token = json.loads(response)['refresh_token']
+
+        # write refresh token
+        client_info = {}
+        client_info['refresh_token'] = refresh_token
+        client_info['scopes'] = SCOPES
+        ee.oauth.write_private_json(ee.oauth.get_credentials_path(), client_info)
+        print('QGIS EE Plugin authenticated successfully')
+        return True
+    else:
         return False
 
-    # get refresh token
-    request_args = {
-        'code': MyHandler.auth_code,
-        'client_id': ee.oauth.CLIENT_ID,
-        'client_secret': ee.oauth.CLIENT_SECRET,
-        'redirect_uri': "http://localhost:8085/",
-        'grant_type': 'authorization_code',
-    }
-
-    data = urllib.parse.urlencode(request_args).encode()
-    response = urllib.request.urlopen(ee.oauth.TOKEN_URI, data).read().decode()
-    refresh_token = json.loads(response)['refresh_token']
-
-    # write refresh token
-    client_info = {}
-    client_info['refresh_token'] = refresh_token
-    client_info['scopes'] = SCOPES
-    ee.oauth.write_private_json(ee.oauth.get_credentials_path(), client_info)
-    print('QGIS EE Plugin authenticated successfully')
-
-    return True

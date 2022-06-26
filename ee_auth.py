@@ -1,21 +1,34 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Init and user authentication in Earth Engine
 """
-from http.client import HTTPException
 import json
 import urllib.request
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import webbrowser
-
 import logging
 
 # fix the warnings/errors messages from 'file_cache is unavailable when using oauth2client'
 # https://github.com/googleapis/google-api-python-client/issues/299
 logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
+class MyHandler(BaseHTTPRequestHandler):
+    """
+    Listens to localhost:8085 to get the authentication code
+    """
+    def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        MyHandler.auth_code = urllib.parse.parse_qs(parsed.query)['code'][0]
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(bytes("QGIS Google Earth Engine plugin authentication finished successfully.", 'utf-8'))
+
 def authenticate(ee=None):
+    """
+    Authenticates Google Earth Engine
+    """
     if ee is None:
         import ee
 
@@ -36,16 +49,6 @@ def authenticate(ee=None):
     auth_url = 'https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?' + urllib.parse.urlencode(request_args)
     webbrowser.open_new(auth_url)
     print('Starting Google Earth Engine Authorization ...')
-
-    # listen to localhost:8085 to get the authentication code
-    class MyHandler(BaseHTTPRequestHandler):
-        def do_GET(self):
-            parsed = urllib.parse.urlparse(self.path)
-            MyHandler.auth_code = urllib.parse.parse_qs(parsed.query)['code'][0]
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(bytes("QGIS Google Earth Engine plugin authentication finished successfully.", 'utf-8'))
 
     server = HTTPServer(('localhost', 8085), MyHandler)
     server.handle_request()

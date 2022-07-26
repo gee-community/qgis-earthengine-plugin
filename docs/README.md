@@ -1,4 +1,9 @@
-**Current Version: 0.0.3 alpha**
+### Support Ukraine
+
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
+
+
+**Current Version: 0.0.5 alpha**
 
 Use [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions) to leave a comment about the plugin or [Issues](https://github.com/gee-community/qgis-earthengine-plugin/issues) page to report bugs or new feature requests.
 

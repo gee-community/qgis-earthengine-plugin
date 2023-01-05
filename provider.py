@@ -330,6 +330,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def clone(self):
         provider = EarthEngineRasterDataProvider(*self._args, **self._kwargs)
         provider.wms.setDataSourceUri(self.wms.dataSourceUri())
+        provider.set_ee_object(self.ee_object)
         provider.setParent(EarthEngineRasterDataProvider.PARENT)
 
         return provider
@@ -345,29 +346,14 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return self.wms.sourceDataType(band_no)
 
     def bandCount(self):
-        return self.wms.bandCount()
+        if self.ee_object:
+            return len(self.ee_info['bands'])
+        else:
+            return 1  # fall back to default if ee_object is not set
 
-    # def dataType(self, band_no):
-    #     if not self.ee_object:
-    #         return self.wms.dataType(band_no)
+    def generateBandName(self, band_no):
+        return self.ee_info['bands'][band_no - 1]['id']
 
-    #     return self.sourceDataType(band_no)
-
-    # def sourceDataType(self, band_no):
-    #     if self.ee_object:
-    #         print(f'sourceDataType: {BAND_TYPES[self.ee_info["bands"][band_no - 1]["data_type"]["precision"]]}')
-    #         return BAND_TYPES[self.ee_info['bands'][band_no - 1]['data_type']['precision']]
-    #     else:
-    #         print(f'sourceDataType2: {self.wms.sourceDataType(band_no)}')
-    #         return self.wms.sourceDataType(band_no)
-
-    # def bandCount(self):
-    #     if self.ee_object:
-    #         print(f'bandCount: {len(self.ee_info["bands"])}')
-    #         return len(self.ee_info['bands'])
-    #     else:
-    #         return 1  # fall back to default if ee_object is not set
-    
     def xBlockSize(self):
         return self.wms.xBlockSize()
 

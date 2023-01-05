@@ -23,6 +23,8 @@ def get_ee_image_url(image):
 
 
 def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
+    layer.dataProvider().set_ee_object(eeObject)
+
     layer.setCustomProperty('ee-layer', True)
 
     if not (opacity is None):

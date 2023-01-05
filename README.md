@@ -67,7 +67,10 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 #### Alpha 0.0.5 (Q1 2022) :heavy_check_mark:
 - [x] Minor bugfix release (EE library upgrade)
 
-#### 1.0.0 (Q1 2022) :hourglass:
+#### Alpha 0.0.6 (Q1 2023) :heavy_check_mark:
+- [x] Added support for QGIS 3.22+ (fix identify tool)
+
+#### 1.0.0 (Q4 2023) :hourglass:
 - [ ] Improve authentication (UI and error handling)
 - [ ] Simplify interpoerability of features/geometry between EE and QGIS
 - [ ] Add layer as a child layer to the group layer [#101](https://github.com/gee-community/qgis-earthengine-plugin/issues/101)

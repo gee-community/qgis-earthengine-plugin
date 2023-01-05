@@ -9,6 +9,7 @@ from qgis.core import QgsRasterLayer
 from qgis.core import QgsMessageLog
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform
 from qgis.core import QgsPointXY, QgsRectangle
+from qgis.core import QgsDataProvider
 from qgis.utils import iface
 
 import ee
@@ -76,19 +77,29 @@ def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
 
     url = "type=xyz&url=" + get_ee_image_url(image)
 
-    provider = layer.dataProvider()
-    msg = 'Updating layer with provider %s' % (type(provider).__name__, )
-    QgsMessageLog.logMessage(msg, 'Earth Engine')
+    root = QgsProject.instance().layerTreeRoot()
+    layer_node = root.findLayer(layer)  # layer is a QgsMapLayer
+    parent_group = layer_node.parent()
 
-    provider.setDataSourceUri(url)
-    provider.reloadData()
-    layer.triggerRepaint()
-    layer.reload()
-    iface.mapCanvas().refresh()
+    # Get layer index
+    idx = parent_group.children().index(layer_node)
+
+    # new layer
+    layer_new = QgsRasterLayer(url, layer.name(), "EE")
+
+    # Remove old layer
+    QgsProject.instance().removeMapLayers([layer.id()])
+
+    QgsProject.instance().addMapLayer(layer_new, False)
+    root.insertLayer(idx, layer_new)
+
+    layer = layer_new
 
     item = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
     if not (shown is None):
         item.setItemVisibilityChecked(shown)
+
+    return layer
 
 
 def get_layer_by_name(name):
@@ -152,7 +163,7 @@ def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
         if not layer.customProperty('ee-layer'):
             raise Exception('Layer is not an EE layer: ' + name)
 
-        update_ee_image_layer(image, layer, shown, opacity)
+        layer = update_ee_image_layer(image, layer, shown, opacity)
     else:
         layer = add_ee_image_layer(image, name, shown, opacity)
 

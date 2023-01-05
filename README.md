@@ -1,3 +1,7 @@
+### Support Ukraine
+
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
+
 # Google Earth Engine plugin for QGIS
 
 Integrates Google Earth Engine with QGIS using Python API. 
@@ -94,9 +98,6 @@ A: Go to http://code.earthengine.google.com and make sure you can access code ed
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
 
-### Support Ukraine
-
-[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
 
 
 ### Support this project

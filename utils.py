@@ -18,7 +18,7 @@ import ee_plugin
 
 def get_ee_image_url(image):
     map_id = ee.data.getMapId({'image': image})
-    url = map_id['tile_fetcher'].url_format
+    url = map_id['tile_fetcher'].url_format + "&zmax=25"
     return url
 
 

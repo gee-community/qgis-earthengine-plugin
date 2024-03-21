@@ -10,11 +10,11 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
-### FAQ
+### Troubleshooting
 
-Q: How to reset your authentication settings (and also fix some authentication errors)? 
+#### How to reset your authentication settings (and also fix some authentication errors)? 
 
-A: Delete the credentials file and re-authenticate. The credentials file is located at:
+Delete the credentials file and re-authenticate. The credentials file is located at:
 
 ```
 Windows: C:\Users\USER\.config\earthengine\credentials 
@@ -22,13 +22,15 @@ Linux: /home/USER/.config/earthengine/credentials
 MacOS: /Users/USER/.config/earthengine/credentials
 ```
 
-Q: I am still getting authentication errors, what should I do?
+#### I am still getting authentication errors, what should I do?
 
-A: Try installing the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
+Try installing the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
 
-Q: Are you through a proxy?
+More about GEE authentication guide and troubleshooting [here](https://developers.google.com/earth-engine/guides/auth).
 
-A: In your scripts, configure proxy settings on top of them:
+#### Are you through a proxy?
+
+In your scripts, configure proxy settings on top of them:
 
 ```python
 import os
@@ -39,13 +41,13 @@ import ee
 from ee_plugin import Map
 ```
 
-Q: I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
+#### I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
 
-A: Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
+Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
 
-Q: Plugin crashes after authentication with a stack trace showing 404, what should I do?
+#### Plugin crashes after authentication with a stack trace showing 404, what should I do?
 
-A: Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
+Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
 
 ### Roadmap
 

@@ -16,9 +16,11 @@ Q: How to reset your authentication settings (and also fix some authentication e
 
 A: Delete the credentials file and re-authenticate. The credentials file is located at:
 
-> Windows: C:\Users\USER\.config\earthengine\credentials 
-> Linux: /home/USER/.config/earthengine/credentials 
-> MacOS: /Users/USER/.config/earthengine/credentials
+```
+Windows: C:\Users\USER\.config\earthengine\credentials 
+Linux: /home/USER/.config/earthengine/credentials 
+MacOS: /Users/USER/.config/earthengine/credentials
+```
 
 Q: I am still getting authentication errors, what should I do?
 

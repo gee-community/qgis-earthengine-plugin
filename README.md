@@ -11,7 +11,16 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
 ### FAQ
-Q: I am getting authentication errors, what can I do? 
+
+Q: How to reset your authentication settings (and also fix some authentication errors)? 
+
+A: Delete the credentials file and re-authenticate. The credentials file is located at:
+
+> Windows: C:\Users\USER\.config\earthengine\credentials 
+> Linux: /home/USER/.config/earthengine/credentials 
+> MacOS: /Users/USER/.config/earthengine/credentials
+
+Q: I am still getting authentication errors, what should I do?
 
 A: Try installing the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
 

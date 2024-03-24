@@ -1,6 +1,4 @@
-### QGIS Google Earth Engine plugin
-
-**Current Version: 0.0.5 alpha**
+**Current Version: 0.0.6 alpha**
 
 Use [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions) to leave a comment about the plugin or [Issues](https://github.com/gee-community/qgis-earthengine-plugin/issues) page to report bugs or new feature requests.
 
@@ -70,27 +68,39 @@ Note that QGIS projects containing EE map layers can be also saved, in this case
 
 Check [examples](https://github.com/gee-community/qgis-earthengine-plugin/tree/master/examples) directory to learn what kind of functionality is currently supported.
 
-### FAQ
-Q: I am getting authentication errors, what can I do? 
+### Troubleshooting
 
-A: Try installing the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
+#### How to reset your authentication settings?
 
-Q: I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
+Install the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
 
-A: Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
+More about GEE authentication guide and troubleshooting [here](https://developers.google.com/earth-engine/guides/auth).
 
-Q: Plugin crashes after authentication with a stack trace showing 404, what should I do?
+#### Are you through a proxy?
 
-A: Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
+In your scripts, configure proxy settings on top of them:
 
-### Support Ukraine
+```python
+import os
+os.environ['HTTP_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
+os.environ['HTTPS_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
 
-[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
+import ee
+from ee_plugin import Map
+```
 
-### Donate
+#### I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
 
-Consider supporting this project:
+Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
 
-[![Donate](https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=P2RU23F4ETP4L&item_name=QGIS+Plugin+Development&currency_code=EUR&source=url) or just <a href="https://www.buymeacoffee.com/Eq378D1"><img src="https://cdn.buymeacoffee.com/buttons/default-white.png" width="150"></a>
+#### Plugin crashes after authentication with a stack trace showing 404, what should I do?
 
+Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
 
+### Contrubution
+
+The project welcomes any contributions and is greateful to all existing contributors small or large listed on the GitHub Contributors page. 
+
+If you'd like to contribute code to the project - please make sure it's related to one of the reported project issues or discussion topics and feel free to submit a Pull Request and it will be considered for addition.
+
+For any questions or disputes feel free to contact the original author of the project: gennadiy.donchyts@gmail.com

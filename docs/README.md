@@ -74,7 +74,17 @@ Check [examples](https://github.com/gee-community/qgis-earthengine-plugin/tree/m
 
 Install the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
 
-More about GEE authentication guide and troubleshooting [here](https://developers.google.com/earth-engine/guides/auth).
+An alternative is to delete the credentials file and re-authenticate the plugin by restarting the QGIS. 
+
+The credentials file is located in:
+
+```
+Windows: C:\Users\<USER>\.config\earthengine\credentials 
+Linux: /home/<USER>/.config/earthengine/credentials 
+MacOS: /Users/<USER>/.config/earthengine/credentials
+```
+
+More about EE authentication guide and troubleshooting [here](https://developers.google.com/earth-engine/guides/auth).
 
 #### Are you through a proxy?
 

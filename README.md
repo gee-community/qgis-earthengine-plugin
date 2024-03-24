@@ -16,7 +16,17 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 
 Install the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
 
-More about GEE authentication guide and troubleshooting [here](https://developers.google.com/earth-engine/guides/auth).
+An alternative is to delete the credentials file and re-authenticate the plugin by restarting the QGIS. 
+
+The credentials file is located in:
+
+```
+Windows: C:\Users\<USER>\.config\earthengine\credentials 
+Linux: /home/<USER>/.config/earthengine/credentials 
+MacOS: /Users/<USER>/.config/earthengine/credentials
+```
+
+More about EE authentication guide and troubleshooting [here](https://developers.google.com/earth-engine/guides/auth).
 
 #### Are you through a proxy?
 
@@ -44,7 +54,7 @@ Go to http://code.earthengine.google.com and make sure you can access code edito
 #### Alpha 0.0.1 (Q4 2019) :heavy_check_mark:
 - [x] Create a new QGIS plugin skeleton
 - [x] Migrate to QGIS3
-- [x] Embed GEE Python library
+- [x] Embed EE Python library
 - [x] Implement Map.addLayer() for ee.Image
 - [x] Implement Map.addLayer() for ee.Geometry, ee.Feature and ee.FeatureCollection
 - [x] Implement Map.centerObject()
@@ -62,7 +72,7 @@ Go to http://code.earthengine.google.com and make sure you can access code edito
 #### Alpha 0.0.3 (Q4 2020) :heavy_check_mark:
 - [x] EE raster layer inspector
 - [x] Show some useful EE properties (bands, value types) in QGIS layer properties dialog
-- [x] Fix GEE url authentication function if the credentials is not exists [#63](https://github.com/gee-community/qgis-earthengine-plugin/issues/63)
+- [x] Fix EE url authentication function if the credentials is not exists [#63](https://github.com/gee-community/qgis-earthengine-plugin/issues/63)
 - [x] Fix crash if the authentication dialog is cancelled or not filled by the user
 - [x] Init the Google Earth Engine user authorization system only when the user is going to use the plugin
 - [x] Fixed the authentication dialog when the url shortener doesn't work by any reason [#66](https://github.com/gee-community/qgis-earthengine-plugin/issues/66)

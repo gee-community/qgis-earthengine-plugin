@@ -10,6 +10,35 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
+### Troubleshooting
+
+#### How to reset your authentication settings?
+
+Install the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
+
+More about GEE authentication guide and troubleshooting [here](https://developers.google.com/earth-engine/guides/auth).
+
+#### Are you through a proxy?
+
+In your scripts, configure proxy settings on top of them:
+
+```python
+import os
+os.environ['HTTP_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
+os.environ['HTTPS_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
+
+import ee
+from ee_plugin import Map
+```
+
+#### I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
+
+Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
+
+#### Plugin crashes after authentication with a stack trace showing 404, what should I do?
+
+Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
+
 ### Roadmap
 
 #### Alpha 0.0.1 (Q4 2019) :heavy_check_mark:

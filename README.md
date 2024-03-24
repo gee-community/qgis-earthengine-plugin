@@ -100,7 +100,7 @@ Go to http://code.earthengine.google.com and make sure you can access code edito
 - [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
 - [ ] Use QGIS vector/raster style editors to edit EE layer styles
 
-### Contrubution
+### Contributing
 
 The project welcomes any contributions and is greateful to all existing contributors small or large listed on the GitHub Contributors page. 
 

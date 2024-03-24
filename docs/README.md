@@ -97,7 +97,7 @@ Open Finder and double clicking on this file `/Applications/Python 3.6/Install C
 
 Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
 
-### Contrubution
+### Contributing
 
 The project welcomes any contributions and is greateful to all existing contributors small or large listed on the GitHub Contributors page. 
 

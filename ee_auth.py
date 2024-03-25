@@ -30,7 +30,8 @@ class MyHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
-        self.wfile.write(bytes("QGIS Google Earth Engine plugin authentication finished successfully.", 'utf-8'))
+        self.wfile.write(bytes("Authentication for the QGIS Google Earth Engine plugin has been successfully completed. "
+                               "You may now close this page.", 'utf-8'))
 
 def authenticate(ee=None):
     """

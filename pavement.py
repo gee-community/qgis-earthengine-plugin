@@ -18,10 +18,14 @@ options(
         excludes=[
             "*.pyc",
             ".git",
+            ".github",
             ".idea",
             ".gitignore",
             ".travis.yml",
             "__pycache__",
+            "docs",
+            "help",
+            "test",
             "media",
             "ee_plugin.zip"
         ]

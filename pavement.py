@@ -3,24 +3,15 @@
 import os
 import platform
 import fnmatch
+import shutil
 import zipfile
 
 from paver.easy import *
 
-
-def get_extlibs():
-    if platform.system() == "Windows":
-        return 'extlibs_windows'
-    if platform.system() == "Darwin":
-        return 'extlibs_macos'
-    if platform.system() == "Linux":
-        return 'extlibs_linux'
-
-
 options(
     plugin=Bunch(
         name='ee_plugin',
-        ext_libs=path(get_extlibs()),
+        ext_libs=path('extlibs'),
         source_dir=path('.'),
         package_dir=path('.'),
         tests=['test', 'tests'],
@@ -38,6 +29,19 @@ options(
 )
 
 
+def clean_extlibs():
+    # delete the binary files in the extlibs directory
+    for root, dirs, files in os.walk(options.plugin.ext_libs):
+        for f in files:
+            if f.endswith(".so") or f.endswith(".pyd") or f.endswith(".dylib"):
+                os.remove(os.path.join(root, f))
+    # delete all __pycache__ directories
+    for root, dirs, files in os.walk(options.plugin.ext_libs):
+        for d in dirs:
+            if d == "__pycache__":
+                shutil.rmtree(os.path.join(root, d), ignore_errors=True)
+
+
 @task
 @cmdopts([('clean', 'c', 'clean out dependencies first')])
 def setup():
@@ -53,6 +57,7 @@ def setup():
             sh('pip install -U -t "{ext_libs}" "{dep}"'.format(ext_libs=ext_libs.abspath(), dep=req))
         else:
             sh('pip3 install -U -t "{ext_libs}" "{dep}"'.format(ext_libs=ext_libs.abspath(), dep=req))
+    clean_extlibs()
 
 @task
 def install(options):

@@ -303,11 +303,11 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def setMaxOversampling(self, factor):
         return self.wms.setMaxOversampling(factor)
 
-    def writeNativeAttributeTable(self, errorMessage):
-        return self.wms.writeNativeAttributeTable(errorMessage)
+    def writeNativeAttributeTable(self):
+        return self.wms.writeNativeAttributeTable()
 
-    def readNativeAttributeTable(self, errorMessage):
-        return self.wms.readNativeAttributeTable(errorMessage)
+    def readNativeAttributeTable(self):
+        return self.wms.readNativeAttributeTable()
 
     # readBlock()
 

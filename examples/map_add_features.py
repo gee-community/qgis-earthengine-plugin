@@ -1,5 +1,6 @@
 import ee
 from ee_plugin import Map
+ee.Initialize()
 
 # get a single feature
 countries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")

@@ -1,5 +1,6 @@
 import ee
 from ee_plugin import Map
+ee.Initialize()
 
 # add some data to the Map
 dem = ee.Image("AHN/AHN2_05M_RUW")

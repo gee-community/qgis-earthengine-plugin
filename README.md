@@ -10,6 +10,29 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
+### Run first
+
+Run the Google Earth Engine authentication flow in the QGIS Python console:
+
+```python
+import ee
+ee.Authenticate()
+```
+
+### How to use with a simple example
+
+```python
+import ee
+from ee_plugin import Map
+ee.Initialize()
+
+# Add Earth Engine dataset
+image = ee.Image('USGS/SRTMGL1_003')
+vis_params = {'min': 0, 'max': 4000, 'palette': ['006633', 'E5FFCC', '662A00', 'D8D8D8', 'F5F5F5']}
+Map.addLayer(image, vis_params, 'DEM')
+Map.setCenter(-121.753, 46.855, 9)
+```
+
 ### Troubleshooting
 
 #### How to reset your authentication settings?
@@ -39,6 +62,7 @@ os.environ['HTTPS_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<
 
 import ee
 from ee_plugin import Map
+ee.Initialize()
 ```
 
 #### I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:

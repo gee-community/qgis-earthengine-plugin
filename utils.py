@@ -38,6 +38,12 @@ def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     layer.setCustomProperty('ee-plugin-version', ee_plugin.ee_plugin.VERSION)
     layer.setCustomProperty('ee-object', ee_object)
     layer.setCustomProperty('ee-object-vis', ee_object_vis)
+    # store project id for google cloud projects
+    try:
+        ee_project_id = ee.data.getProjectConfig()["name"].split("/")[1]
+    except ee.EEException:
+        ee_project_id = None
+    layer.setCustomProperty('ee-project-id', ee_project_id)
 
     # update EE script in provider
     if eeObject.getInfo()['type'] == 'Image':  # TODO

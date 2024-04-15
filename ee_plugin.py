@@ -126,15 +126,22 @@ class GoogleEarthEnginePlugin(object):
         from ee_plugin.utils import add_or_update_ee_layer
         layers = QgsProject.instance().mapLayers().values()
 
-        for l in filter(lambda layer: layer.customProperty('ee-layer'), layers):
-            ee_object = l.customProperty('ee-object')
-            ee_object_vis = l.customProperty('ee-object-vis')
+        for ee_layer in filter(lambda layer: layer.customProperty('ee-layer'), layers):
+            ee_object = ee_layer.customProperty('ee-object')
+            ee_object_vis = ee_layer.customProperty('ee-object-vis')
+            ee_project_id = ee_layer.customProperty('ee-project-id')
 
-            # check for backward-compatibility, older file formats (before 0.0.3) store ee-objects in ee-script property an no ee-object-vis is stored
-            # also, it seems that JSON representation of persistent object has been changed, making it difficult to read older EE JSON
+            # check for backward-compatibility, older file formats (before 0.0.3) store ee-objects in ee-script property
+            # an no ee-object-vis is stored also, it seems that JSON representation of persistent object has been
+            # changed, making it difficult to read older EE JSON
             if ee_object is None:
-                print('\nWARNING:\n Map layer saved with older version of EE plugin is detected, backward-compatibility for versions before 0.0.3 is not supported due to changes in EE library, please re-create EE layer by re-running the Python script\n')
+                print('\nWARNING:\n Map layer saved with older version of EE plugin is detected, backward-compatibility '
+                      'for versions before 0.0.3 is not supported due to changes in EE library, please re-create EE '
+                      'layer by re-running the Python script\n')
                 return
+
+            if not ee.data.is_initialized():
+                ee.Initialize(project=ee_project_id)
 
             ee_object = ee.deserializer.fromJSON(ee_object)
 
@@ -145,8 +152,8 @@ class GoogleEarthEnginePlugin(object):
 
             # get existing values for name, visibility, and opacity 
             # TODO: this should not be needed, refactor add_or_update_ee_layer to update_ee_layer
-            name = l.name()
-            shown = QgsProject.instance().layerTreeRoot().findLayer(l.id()).itemVisibilityChecked()
-            opacity = l.renderer().opacity()
+            name = ee_layer.name()
+            shown = QgsProject.instance().layerTreeRoot().findLayer(ee_layer.id()).itemVisibilityChecked()
+            opacity = ee_layer.renderer().opacity()
 
             add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)

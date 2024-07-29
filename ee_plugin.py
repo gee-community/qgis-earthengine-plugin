@@ -136,6 +136,11 @@ class GoogleEarthEnginePlugin(object):
                 print('\nWARNING:\n Map layer saved with older version of EE plugin is detected, backward-compatibility for versions before 0.0.3 is not supported due to changes in EE library, please re-create EE layer by re-running the Python script\n')
                 return
 
+            # needed to load EE objects saved in QGIS projects
+            # TODO: it does not work for init EE in a Google Cloud Project, see #150
+            if not ee.data.is_initialized():
+                ee.Initialize()
+
             ee_object = ee.deserializer.fromJSON(ee_object)
 
             if ee_object_vis is not None:

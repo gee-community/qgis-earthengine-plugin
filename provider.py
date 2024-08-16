@@ -337,7 +337,11 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def capabilities(self):
         caps = QgsRasterInterface.Size | QgsRasterInterface.Identify | QgsRasterInterface.IdentifyValue
-        return QgsRasterDataProvider.ProviderCapabilities(caps)
+
+        if Qgis.versionInt() >= 33800:
+            return Qgis.RasterInterfaceCapabilities(caps)
+        else:
+            return QgsRasterDataProvider.ProviderCapabilities(caps)
 
     def dataType(self, band_no):
         return self.wms.dataType(band_no)

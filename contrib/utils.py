@@ -206,7 +206,7 @@ def collection_to_atlas(collection: ee.ImageCollection,
 
     for i in list(range(n)):
         image = ee.Image(image_list.get(i))
-        name = image.get(index).getInfo()
+        name = str(image.get(index).getInfo())
 
         feat = QgsFeature(polyLayer.fields())
         feat.setGeometry(QgsGeometry.fromPolygonXY([points]))

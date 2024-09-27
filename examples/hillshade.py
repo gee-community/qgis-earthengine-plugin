@@ -1,7 +1,6 @@
 import ee
 from ee_plugin import Map
 from ee_plugin.contrib import palettes
-ee.Initialize()
 
 dem = ee.Image("JAXA/ALOS/AW3D30_V1_1").select('MED')
 dem = dem.updateMask(dem.gt(0))

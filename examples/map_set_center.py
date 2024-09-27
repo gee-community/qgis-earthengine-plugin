@@ -1,6 +1,5 @@
 import ee
 from ee_plugin import Map
-ee.Initialize()
 
 # Add some data to the Map
 dem = ee.Image("JAXA/ALOS/AW3D30_V1_1").select('MED')

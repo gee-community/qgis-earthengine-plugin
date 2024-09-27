@@ -1,7 +1,7 @@
 import json
 import ee
 from ee_plugin import Map
-ee.Initialize()
+from ee_plugin.contrib import palettes
 
 dem = ee.Image('JAXA/ALOS/AW3D30/V2_2').select('AVE_DSM')
 Map.addLayer(dem, { 'min': 0, 'max': 3000 }, 'DEM', True)

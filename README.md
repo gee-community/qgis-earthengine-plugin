@@ -62,7 +62,6 @@ os.environ['HTTPS_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<
 
 import ee
 from ee_plugin import Map
-ee.Initialize()
 ```
 
 #### I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:

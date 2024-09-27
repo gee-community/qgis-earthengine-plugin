@@ -1,6 +1,5 @@
 import ee
 from ee_plugin import Map
-ee.Initialize()
 
 collection = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')\
     .filter(ee.Filter.eq('WRS_PATH', 44))\

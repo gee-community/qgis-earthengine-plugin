@@ -33,6 +33,10 @@ def classFactory(iface):  # pylint: disable=invalid-name
     # load extra python dependencies
     pre_init_plugin()
 
+    # Initialize the Earth Engine Python API
+    import ee
+    ee.Initialize()
+
     # start
     from .ee_plugin import GoogleEarthEnginePlugin
 

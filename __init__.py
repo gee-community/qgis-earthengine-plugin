@@ -3,7 +3,6 @@ import os
 import platform
 import site
 import pkg_resources
-import builtins
 
 
 def pre_init_plugin():
@@ -23,36 +22,6 @@ def pre_init_plugin():
     pkg_resources.working_set.add_entry(extra_libs_path)
 
 
-def import_ee():
-    """This is a wrapper of the Google Earth engine library for the
-    purpose of initializing or starting ee authentication when the
-    user or the plugin import ee library.
-    """
-    # we can now import the libraries
-    # Work around bug https://github.com/google/earthengine-api/issues/181
-    import httplib2
-
-    from ee_plugin.ee_auth import authenticate
-
-    def __wrapping_ee_import__(name, *args, **kwargs):
-        _module_ = __builtin_import__(name, *args, **kwargs)
-        if name == "ee":
-            if not _module_.data._credentials:
-                try:
-                    _module_.Initialize(http_transport=httplib2.Http())
-                except _module_.ee_exception.EEException:
-                    if authenticate(ee=_module_):
-                        # retry initialization once the user logs in
-                        _module_.Initialize(http_transport=httplib2.Http())  
-                    else:
-                        print("\nGoogle Earth Engine authorization failed!\n")
-
-        return _module_
-
-    __builtin_import__ = builtins.__import__
-    builtins.__import__ = __wrapping_ee_import__
-
-
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Instantiates Google Earth Engine Plugin.
@@ -64,8 +33,9 @@ def classFactory(iface):  # pylint: disable=invalid-name
     # load extra python dependencies
     pre_init_plugin()
 
-    # wrap the ee library import
-    import_ee()
+    # Initialize the Earth Engine Python API
+    import ee
+    ee.Initialize()
 
     # start
     from .ee_plugin import GoogleEarthEnginePlugin

@@ -58,7 +58,7 @@ class GoogleEarthEnginePlugin(object):
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
-        self.menu_name_plugin = self.tr("Google Earth Engine Plugin")
+        self.menu_name_plugin = self.tr("Google Earth Engine")
 
         # Create and register the EE data providers
         provider.register_data_provider()
@@ -81,21 +81,45 @@ class GoogleEarthEnginePlugin(object):
     def initGui(self):
         ### Main dockwidget menu
         # Create action that will start plugin configuration
-        icon_path = ':/plugins/ee_plugin/icons/earth_engine.svg'
-        self.dockable_action = QAction(
-            QIcon(icon_path), "User Guide", self.iface.mainWindow())
-        # connect the action to the run method
-        self.dockable_action.triggered.connect(self.run)
+        ee_icon_path = ':/plugins/ee_plugin/icons/earth-engine.svg'
+        self.cmd_ee_user_guide = QAction(QIcon(ee_icon_path), "User Guide", self.iface.mainWindow())
+        self.cmd_ee_user_guide.triggered.connect(self.run_cmd_ee_user_guide)
+
+        gcp_icon_path = ':/plugins/ee_plugin/icons/google-cloud.svg'
+        self.cmd_sign_in = QAction(QIcon(gcp_icon_path), "Sign-in", self.iface.mainWindow())
+        self.cmd_sign_in.triggered.connect(self.run_cmd_sign_in)
+
+        gcp_project_icon_path = ':/plugins/ee_plugin/icons/google-cloud-project.svg'
+        self.cmd_set_cloud_project = QAction(QIcon(gcp_project_icon_path), "Set Project", self.iface.mainWindow())
+        self.cmd_set_cloud_project.triggered.connect(self.run_cmd_set_cloud_project)
+
         # Add menu item
-        self.iface.addPluginToMenu(self.menu_name_plugin, self.dockable_action)
+        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_ee_user_guide)
+        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_sign_in)
+        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_set_cloud_project)
+
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self.updateLayers)
          
 
-    def run(self):
+    def run_cmd_ee_user_guide(self):
         # open user guide in external web browser
-        webbrowser.open_new(
-            "http://qgis-ee-plugin.appspot.com/user-guide")
+        webbrowser.open_new("http://qgis-ee-plugin.appspot.com/user-guide")
+
+    def run_cmd_sign_in(self):
+        import ee
+        from . import ee_auth
+
+        # reset authentication by forcing sign in
+        ee.Authenticate(auth_mode='localhost', force=True)
+
+        # after resetting authentication, select Google Cloud project again
+        ee_auth.select_project()
+
+    def run_cmd_set_cloud_project(self):
+        from . import ee_auth
+
+        ee_auth.select_project()
 
     def check_version(self):
         global version_checked
@@ -118,8 +142,10 @@ class GoogleEarthEnginePlugin(object):
 
     def unload(self):
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(
-            self.menu_name_plugin, self.dockable_action)
+        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_ee_user_guide)
+        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_sign_in)
+        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_set_cloud_project)
+
 
     def updateLayers(self):
         import ee

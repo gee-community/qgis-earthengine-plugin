@@ -3,9 +3,7 @@ import os
 import site
 import pkg_resources
 
-
-def pre_init_plugin():
-
+def add_ee_dependencies():
     extra_libs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'extlibs'))
 
     if os.path.isdir(extra_libs_path):
@@ -23,12 +21,12 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
 
-    # load extra python dependencies
-    pre_init_plugin()
+    # load EE python dependencies
+    add_ee_dependencies()
 
-    # Initialize the Earth Engine Python API
-    import ee
-    ee.Initialize()
+    # authenticate and initialize EE
+    from . import ee_auth
+    ee_auth.authenticate_and_set_project()
 
     # start
     from .ee_plugin import GoogleEarthEnginePlugin

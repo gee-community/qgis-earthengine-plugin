@@ -85,6 +85,10 @@ def ee_initialize_with_project(project, force=False):
     if not ok:
         return # no project is configured and cancelled, you're on your own
 
+    # sanity check
+    if len(project) == 0:
+        return
+
     ee.Initialize(project=project)
     save_project_to_config(project)
 

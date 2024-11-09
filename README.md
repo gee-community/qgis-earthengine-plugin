@@ -100,7 +100,11 @@ Go to http://code.earthengine.google.com and make sure you can access code edito
 #### Alpha 0.0.6 (Q1 2023) :heavy_check_mark:
 - [x] Added support for QGIS 3.22+ (fix identify tool)
 
-#### 1.0.0 (Q4 2023) :hourglass:
+### Beta 0.0.7 (Q4 2024) :heavy_check_mark:
+- [x] Added support for Google Cloud Projects 
+- [x] Added UI to change Google Cloud Project and re-login
+
+#### 1.0.0 (Q4 2025) :hourglass:
 - [ ] Improve authentication (UI and error handling)
 - [ ] Simplify interpoerability of features/geometry between EE and QGIS
 - [ ] Add layer as a child layer to the group layer [#101](https://github.com/gee-community/qgis-earthengine-plugin/issues/101)

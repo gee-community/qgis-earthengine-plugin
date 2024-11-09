@@ -24,7 +24,7 @@ ee.Authenticate()
 ```python
 import ee
 from ee_plugin import Map
-ee.Initialize()
+ee.Initialize(project="<your google cloud project name with EE registered>")
 
 # Add Earth Engine dataset
 image = ee.Image('USGS/SRTMGL1_003')

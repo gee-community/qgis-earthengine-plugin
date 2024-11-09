@@ -10,21 +10,11 @@ Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to 
 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
-### Run first
-
-Run the Google Earth Engine authentication flow in the QGIS Python console:
-
-```python
-import ee
-ee.Authenticate()
-```
-
 ### How to use with a simple example
 
 ```python
 import ee
 from ee_plugin import Map
-ee.Initialize(project="<your google cloud project name with EE registered>")
 
 # Add Earth Engine dataset
 image = ee.Image('USGS/SRTMGL1_003')

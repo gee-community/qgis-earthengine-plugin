@@ -129,8 +129,12 @@ Go to http://code.earthengine.google.com and make sure you can access code edito
 
 ### Contributing
 
-The project welcomes any contributions and is greateful to all existing contributors small or large listed on the GitHub Contributors page. 
+We warmly welcome contributions of any kind and deeply appreciate all our contributors, large and small, who are listed on the [GitHub Contributors page](https://github.com/gee-community/qgis-earthengine-plugin/graphs/contributors).
 
-If you'd like to contribute code to the project - please make sure it's related to one of the reported project issues or discussion topics and feel free to submit a Pull Request and it will be considered for addition.
+If you'd like to contribute, please:
+1. Check out the [CONTRIBUTING.md](CONTRIBUTING.md) file for detailed instructions on setting up your local environment.
+2. Ensure your contribution relates to an existing issue or discussion topic in the repository. If you're unsure, feel free to open an issue to discuss your idea before starting.
 
-For any questions or disputes feel free to contact the original author of the project: gennadiy.donchyts@gmail.com
+For any questions or concerns, please don't hesitate to contact the original author: [gennadiy.donchyts@gmail.com](mailto:gennadiy.donchyts@gmail.com).
+
+Thank you for helping improve the QGIS Earth Engine Plugin!

@@ -12,3 +12,5 @@ media/
 ee_plugin.zip
 
 temp
+venv
+.DS_Store

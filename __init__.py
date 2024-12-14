@@ -33,7 +33,7 @@ def classFactory(iface):  # pylint: disable=invalid-name
         ee.data.setUserAgent(user_agent)
 
 
-# authenticate and initialize EE
+    # authenticate and initialize EE
     from . import ee_auth
     ee_auth.authenticate_and_set_project()
 

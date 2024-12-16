@@ -1,7 +1,12 @@
 import pathlib
 import json
+
 import ee
-from qgis.PyQt.QtWidgets import QMessageBox, QInputDialog, QLineEdit
+from ee.oauth import get_credentials_arguments
+from qgis.PyQt.QtWidgets import QMessageBox
+from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 
 CREDENTIALS_PATH = pathlib.Path('~/.config/earthengine/credentials').expanduser()
 
@@ -50,6 +55,75 @@ def ee_authenticate():
         if config is not None:
             return True
 
+def get_gcp_projects():
+    """
+    Fetch a list of Google Cloud projects available to the user using ee.oauth.
+    """
+    try:
+        credentials_args = get_credentials_arguments()
+
+        refresh_token = credentials_args.get("refresh_token")
+        token_uri = credentials_args.get("token_uri")
+        client_id = credentials_args.get("client_id")
+        client_secret = credentials_args.get("client_secret")
+
+        if not refresh_token:
+            raise ValueError("Refresh token not found in credentials.")
+
+        credentials = Credentials(
+            token=None,  # No access token yet
+            refresh_token=refresh_token,
+            token_uri=token_uri,
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+
+        credentials.refresh(Request())
+
+        service = build('cloudresourcemanager', 'v1', credentials=credentials)
+
+        request = service.projects().list()
+        response = request.execute()
+
+        # Parse the response and return active projects
+        projects = response.get('projects', [])
+        return [project['projectId'] for project in projects if project['lifecycleState'] == 'ACTIVE']
+
+    # TODO: 
+    #   The Earth Engine OAuth client is tied to its own Google Cloud project (ID: 517222506229), 
+    #   which is used for managing authentication workflows.
+    #   However, this project does not inherently have the required permissions or APIs enabled 
+    #   (such as the Cloud Resource Manager API) to fetch the list of projects associated with your Google account.
+    except Exception as e:
+        # Display a warning dialog for any errors
+        QMessageBox.warning(None, 'Error', f'Failed to fetch GCP projects: {e}')
+        return []
+    
+def select_gcp_project(projects):
+    """Create a dropdown dialog for selecting a GCP project."""
+    dialog = QDialog()
+    dialog.setWindowTitle("Select Google Cloud Project")
+    
+    # Set up the layout
+    layout = QVBoxLayout()
+
+    # Add dropdown with projects
+    dropdown = QComboBox()
+    dropdown.addItems(projects)
+    layout.addWidget(dropdown)
+
+    # Add OK and Cancel buttons
+    button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+    button_box.accepted.connect(dialog.accept)
+    button_box.rejected.connect(dialog.reject)
+    layout.addWidget(button_box)
+
+    dialog.setLayout(layout)
+
+    # Show the dialog and get the result
+    if dialog.exec() == QDialog.Accepted:
+        return dropdown.currentText()  # Return selected project
+    return None  # Return None if user cancels
 
 def ee_initialize_with_project(project, force=False):
     """Initializes EE with a project or ask user to specify project if there is no project set"""
@@ -71,24 +145,21 @@ def ee_initialize_with_project(project, force=False):
     <br>
     Google Cloud Project:"""
 
-    if project is None:
-        msg = msg_no_project
-    elif force:
-        msg = msg_with_project
-    else:
-        # project is set and no force - initialize and return
-        ee.Initialize(project=project)
-        return
+    if project is None or force:
+        projects = get_gcp_projects()  # Fetch the list of available GCP projects
+        
+        if not projects:
+            QMessageBox.warning(None, 'No Projects Found', 'No Google Cloud projects are available. Please ensure your account has access to active projects.')
+            return
+        
+        # Show dropdown to select a project
+        selected_project = select_gcp_project(projects)
+        if not selected_project:  # User cancelled
+            return
+        
+        project = selected_project  # Update the project with the user's selection
 
-    (project, ok) = QInputDialog.getText(None, "Select Earth Engine project", msg, QLineEdit.Normal, project)
-
-    if not ok:
-        return # no project is configured and cancelled, you're on your own
-
-    # sanity check
-    if len(project) == 0:
-        return
-
+    # Initialize Earth Engine with the selected project
     ee.Initialize(project=project)
     save_project_to_config(project)
 

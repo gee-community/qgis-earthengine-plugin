@@ -10,8 +10,8 @@
 name=Google Earth Engine
 qgisMinimumVersion=3.22
 description=Integrates QGIS with Google Earth Engine
-version=0.0.7
-author=Gennadii Donchyts
+version=0.0.8
+author=Gennadii Donchyts, Xavier C. Llano, Fedor Baart
 email=gennadiy.donchyts@gmail.com
 
 about=Integrates Google Earth Engine (GEE) by wrapping GEE Python API.
@@ -30,7 +30,7 @@ tags=cloud, analysis, dem, geojson, geometry, google, landsat, land cover, proce
 
 homepage=https://qgis-ee-plugin.appspot.com/
 category=Plugins
-icon=icons/earth_engine.svg
+icon=icons/earth-engine.svg
 # experimental flag
 experimental=False
 

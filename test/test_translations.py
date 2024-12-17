@@ -27,6 +27,8 @@ class SafeTranslationsTest(unittest.TestCase):
 
     def setUp(self):
         """Runs before each test."""
+        self.app = QCoreApplication.instance() or QCoreApplication([])
+
         if 'LANG' in iter(os.environ.keys()):
             os.environ.__delitem__('LANG')
 
@@ -34,6 +36,7 @@ class SafeTranslationsTest(unittest.TestCase):
         """Runs after each test."""
         if 'LANG' in iter(os.environ.keys()):
             os.environ.__delitem__('LANG')
+        self.app.quit()
 
     def test_qgis_translations(self):
         """Test that translations work."""

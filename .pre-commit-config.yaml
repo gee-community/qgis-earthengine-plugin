@@ -1,15 +1,16 @@
 repos:
-  - repo: https://github.com/pre-commit/mirrors-ruff
-    rev: v0.0.241
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
     hooks:
       - id: ruff
+      - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.9.3
+    rev: v5.10.1
     hooks:
       - id: isort
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.910
+    rev: v1.4.0 
     hooks:
       - id: mypy

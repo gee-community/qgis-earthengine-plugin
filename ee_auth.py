@@ -3,7 +3,8 @@ import json
 import ee
 from qgis.PyQt.QtWidgets import QMessageBox, QInputDialog, QLineEdit
 
-CREDENTIALS_PATH = pathlib.Path('~/.config/earthengine/credentials').expanduser()
+CREDENTIALS_PATH = pathlib.Path("~/.config/earthengine/credentials").expanduser()
+
 
 def ee_read_config():
     """Reads project name, return None if there is no EE config file detected"""
@@ -16,14 +17,16 @@ def ee_read_config():
 
     return config
 
+
 def save_project_to_config(project):
     """Write new project name into the EE config file"""
     config = ee_read_config()
-    config['project'] = project
+    config["project"] = project
     ee.oauth.write_private_json(CREDENTIALS_PATH, config)
 
+
 def ee_authenticate():
-    """ show a dialog to allow users to start or cancel the authentication process """
+    """show a dialog to allow users to start or cancel the authentication process"""
 
     msg = """This plugin uses Google Earth Engine API and it looks like it is not yet authenticated on this machine.<br>
     <br>
@@ -36,14 +39,18 @@ def ee_authenticate():
     After validating that you can access Earth Engine, click OK to open a web browser
     and follow the authentication process or click Cancel to skip"""
 
-    reply = QMessageBox.warning(None, 'Authenticate Google Earth Engine',
-                                msg, QMessageBox.Cancel | QMessageBox.Ok)
+    reply = QMessageBox.warning(
+        None,
+        "Authenticate Google Earth Engine",
+        msg,
+        QMessageBox.Cancel | QMessageBox.Ok,
+    )
 
     if reply == QMessageBox.Cancel:
-        print('Cancel')
+        print("Cancel")
         return False
     else:
-        ee.Authenticate(auth_mode='localhost', force=True)
+        ee.Authenticate(auth_mode="localhost", force=True)
 
         # bug: ee.Authenticate(force=True) returns None, check the auth status manually
         config = ee_read_config()
@@ -80,10 +87,12 @@ def ee_initialize_with_project(project, force=False):
         ee.Initialize(project=project)
         return
 
-    (project, ok) = QInputDialog.getText(None, "Select Earth Engine project", msg, QLineEdit.Normal, project)
+    (project, ok) = QInputDialog.getText(
+        None, "Select Earth Engine project", msg, QLineEdit.Normal, project
+    )
 
     if not ok:
-        return # no project is configured and cancelled, you're on your own
+        return  # no project is configured and cancelled, you're on your own
 
     # sanity check
     if len(project) == 0:
@@ -91,6 +100,7 @@ def ee_initialize_with_project(project, force=False):
 
     ee.Initialize(project=project)
     save_project_to_config(project)
+
 
 def authenticate_and_set_project():
     config = ee_read_config()
@@ -100,18 +110,21 @@ def authenticate_and_set_project():
     if config is not None:
         is_authenticated = True
 
-    if not is_authenticated: # not authenticated > start authentication process
+    if not is_authenticated:  # not authenticated > start authentication process
         is_authenticated = ee_authenticate()
 
     # authentication failed
     if not is_authenticated:
-        raise ee.EEException("Can not initialize Google Earth Engine. Please make sure you can access Earth Engine, restart QGIS, and re-enable EE plugin.")
+        raise ee.EEException(
+            "Can not initialize Google Earth Engine. Please make sure you can access Earth Engine, restart QGIS, and re-enable EE plugin."
+        )
 
     # initialize EE with existing project or select a new one if there is no project
     project = None
     if config is not None:
-        project = config.get('project')
+        project = config.get("project")
     ee_initialize_with_project(project)
+
 
 def select_project():
     # read existing project
@@ -119,7 +132,6 @@ def select_project():
 
     project = None
     if config is not None:
-        project = config.get('project')
+        project = config.get("project")
 
     ee_initialize_with_project(project, force=True)
-

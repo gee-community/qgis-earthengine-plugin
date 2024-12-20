@@ -8,20 +8,19 @@
      (at your option) any later version.
 
 """
+
 from __future__ import absolute_import
-__author__ = 'tim@linfiniti.com'
-__date__ = '20/01/2011'
-__copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
-                 'Disaster Reduction')
+
+__author__ = "tim@linfiniti.com"
+__date__ = "20/01/2011"
+__copyright__ = "Copyright 2012, Australia Indonesia Facility for " "Disaster Reduction"
 
 import os
 import unittest
-from qgis.core import (
-    QgsProviderRegistry,
-    QgsCoordinateReferenceSystem,
-    QgsRasterLayer)
+from qgis.core import QgsProviderRegistry, QgsCoordinateReferenceSystem, QgsRasterLayer
 
 from .utilities import get_qgis_app
+
 QGIS_APP = get_qgis_app()
 
 
@@ -32,29 +31,30 @@ class QGISTest(unittest.TestCase):
         """QGIS environment has the expected providers"""
 
         r = QgsProviderRegistry.instance()
-        self.assertIn('gdal', r.providerList())
-        self.assertIn('ogr', r.providerList())
+        self.assertIn("gdal", r.providerList())
+        self.assertIn("ogr", r.providerList())
 
     def test_projection(self):
-        """Test that QGIS properly parses a wkt string.
-        """
+        """Test that QGIS properly parses a wkt string."""
         crs = QgsCoordinateReferenceSystem()
         wkt = (
             'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",'
             'SPHEROID["WGS_1984",6378137.0,298.257223563]],'
             'PRIMEM["Greenwich",0.0],UNIT["Degree",'
-            '0.0174532925199433]]')
+            "0.0174532925199433]]"
+        )
         crs.createFromWkt(wkt)
         auth_id = crs.authid()
-        expected_auth_id = ['EPSG:4326', 'OGC:CRS84']
+        expected_auth_id = ["EPSG:4326", "OGC:CRS84"]
         self.assertIn(auth_id, expected_auth_id)
 
         # now test for a loaded layer
-        path = os.path.join(os.path.dirname(__file__), 'data/tenbytenraster.asc')
-        title = 'TestRaster'
+        path = os.path.join(os.path.dirname(__file__), "data/tenbytenraster.asc")
+        title = "TestRaster"
         layer = QgsRasterLayer(path, title)
         auth_id = layer.crs().authid()
         self.assertIn(auth_id, expected_auth_id)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

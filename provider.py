@@ -5,11 +5,19 @@ Create and init the Earth Engine Qgis data provider
 
 import json
 
-from qgis.core import (Qgis, QgsCoordinateReferenceSystem, QgsDataProvider,
-                       QgsMessageLog, QgsProviderMetadata, QgsProviderRegistry,
-                       QgsRaster, QgsRasterDataProvider,
-                       QgsRasterIdentifyResult, QgsRasterInterface,
-                       QgsVectorDataProvider)
+from qgis.core import (
+    Qgis,
+    QgsCoordinateReferenceSystem,
+    QgsDataProvider,
+    QgsMessageLog,
+    QgsProviderMetadata,
+    QgsProviderRegistry,
+    QgsRaster,
+    QgsRasterDataProvider,
+    QgsRasterIdentifyResult,
+    QgsRasterInterface,
+    QgsVectorDataProvider,
+)
 from qgis.PyQt.QtCore import QObject
 
 BAND_TYPES = {

@@ -6,8 +6,13 @@ functions to use GEE within Qgis python script
 import math
 
 import ee
-from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform,
-                       QgsPointXY, QgsProject, QgsRectangle)
+from qgis.core import (
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+    QgsPointXY,
+    QgsProject,
+    QgsRectangle,
+)
 from qgis.PyQt.QtCore import QEventLoop, QTimer
 from qgis.utils import iface
 

@@ -7,8 +7,14 @@ import json
 
 import ee
 import qgis
-from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform,
-                       QgsPointXY, QgsProject, QgsRasterLayer, QgsRectangle)
+from qgis.core import (
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+    QgsPointXY,
+    QgsProject,
+    QgsRasterLayer,
+    QgsRectangle,
+)
 
 import ee_plugin
 

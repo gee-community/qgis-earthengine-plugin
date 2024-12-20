@@ -25,5 +25,10 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: pre-commit
+        run: |
+          pip install pre-commit
+          pre-commit run --all-files
+
       - name: Run tests
         run: python -m pytest test/

@@ -1,7 +1,7 @@
-import ee
+import ee  # type: ignore
 
-from ee_plugin import Map
-from ee_plugin.contrib import utils, palettes
+from ee_plugin import Map  # type: ignore
+from ee_plugin.contrib import utils, palettes  # type: ignore
 
 dem = (
     ee.Image("AHN/AHN2_05M_RUW")

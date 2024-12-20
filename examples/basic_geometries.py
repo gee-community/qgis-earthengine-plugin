@@ -1,4 +1,5 @@
 import ee
+
 from ee_plugin import Map
 
 point = ee.Geometry.Point([1.5, 1.5])

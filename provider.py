@@ -5,21 +5,12 @@ Create and init the Earth Engine Qgis data provider
 
 import json
 
+from qgis.core import (Qgis, QgsCoordinateReferenceSystem, QgsDataProvider,
+                       QgsMessageLog, QgsProviderMetadata, QgsProviderRegistry,
+                       QgsRaster, QgsRasterDataProvider,
+                       QgsRasterIdentifyResult, QgsRasterInterface,
+                       QgsVectorDataProvider)
 from qgis.PyQt.QtCore import QObject
-
-from qgis.core import (
-    QgsRasterDataProvider,
-    QgsRasterIdentifyResult,
-    QgsProviderRegistry,
-    QgsProviderMetadata,
-    QgsMessageLog,
-    Qgis,
-    QgsRaster,
-    QgsRasterInterface,
-    QgsVectorDataProvider,
-    QgsDataProvider,
-    QgsCoordinateReferenceSystem,
-)
 
 BAND_TYPES = {
     "int8": Qgis.Int16,
@@ -241,8 +232,8 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     ):
         # TODO: speed-up, extend this to maintain cache of visible image, update cache on-the-fly when needed
         import ee
-        from ee_plugin import Map
-        from ee_plugin import utils
+
+        from ee_plugin import Map, utils
 
         point = utils.geom_to_geo(point)
         point_ee = ee.Geometry.Point([point.x(), point.y()])

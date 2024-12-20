@@ -4,18 +4,18 @@ Main plugin file.
 """
 
 from __future__ import absolute_import
-import configparser
-import requests
 
+import configparser
+import json
+import os.path
 import webbrowser
 from builtins import object
-import os.path
-import json
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from qgis.PyQt.QtWidgets import QAction
-from qgis.PyQt.QtGui import QIcon
+import requests  # type: ignore
 from qgis.core import QgsProject
+from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QAction
 
 from ee_plugin import provider
 
@@ -111,7 +111,8 @@ class GoogleEarthEnginePlugin(object):
 
     def run_cmd_sign_in(self):
         import ee
-        from . import ee_auth
+
+        from ee_plugin import ee_auth  # type: ignore
 
         # reset authentication by forcing sign in
         ee.Authenticate(auth_mode="localhost", force=True)
@@ -120,7 +121,7 @@ class GoogleEarthEnginePlugin(object):
         ee_auth.select_project()
 
     def run_cmd_set_cloud_project(self):
-        from . import ee_auth
+        from ee_plugin import ee_auth  # type: ignore
 
         ee_auth.select_project()
 
@@ -161,6 +162,7 @@ class GoogleEarthEnginePlugin(object):
 
     def updateLayers(self):
         import ee
+
         from ee_plugin.utils import add_or_update_ee_layer
 
         layers = QgsProject.instance().mapLayers().values()

@@ -1,7 +1,8 @@
-import pathlib
 import json
+import pathlib
+
 import ee
-from qgis.PyQt.QtWidgets import QMessageBox, QInputDialog, QLineEdit
+from qgis.PyQt.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
 CREDENTIALS_PATH = pathlib.Path("~/.config/earthengine/credentials").expanduser()
 

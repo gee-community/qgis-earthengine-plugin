@@ -4,17 +4,12 @@ functions to use GEE within Qgis python script
 """
 
 import math
-import ee
 
-from qgis.core import (
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
-    QgsProject,
-    QgsPointXY,
-    QgsRectangle,
-)
-from qgis.utils import iface
+import ee
+from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform,
+                       QgsPointXY, QgsProject, QgsRectangle)
 from qgis.PyQt.QtCore import QEventLoop, QTimer
+from qgis.utils import iface
 
 
 def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):

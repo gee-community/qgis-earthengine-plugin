@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import fnmatch
 import os
 import platform
-import fnmatch
 import shutil
 import zipfile
 
-from paver.easy import options, task, path, Bunch, cmdopts, sh
+from paver.easy import Bunch, cmdopts, options, path, sh, task
 
 options(
     plugin=Bunch(

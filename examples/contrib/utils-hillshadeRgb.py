@@ -1,7 +1,7 @@
 import ee
 
 from ee_plugin import Map
-from ee_plugin.contrib import utils, palettes
+from ee_plugin.contrib import palettes, utils
 
 dem = (
     ee.Image("AHN/AHN2_05M_RUW")

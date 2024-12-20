@@ -1,4 +1,5 @@
 import ee
+
 from ee_plugin import Map
 
 # Add some data to the Map

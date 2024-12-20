@@ -1,4 +1,5 @@
 import ee
+
 from ee_plugin import Map
 from ee_plugin.contrib import palettes
 

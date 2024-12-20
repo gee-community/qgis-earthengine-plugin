@@ -4,13 +4,12 @@ Utils functions GEE
 """
 
 import json
-import qgis
-from qgis.core import QgsProject
-from qgis.core import QgsRasterLayer
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform
-from qgis.core import QgsPointXY, QgsRectangle
 
 import ee
+import qgis
+from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform,
+                       QgsPointXY, QgsProject, QgsRasterLayer, QgsRectangle)
+
 import ee_plugin
 
 

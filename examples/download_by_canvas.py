@@ -1,5 +1,7 @@
 import json
+
 import ee
+
 from ee_plugin import Map
 
 dem = ee.Image("JAXA/ALOS/AW3D30/V2_2").select("AVE_DSM")

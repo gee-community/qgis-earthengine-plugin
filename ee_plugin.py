@@ -163,7 +163,7 @@ class GoogleEarthEnginePlugin(object):
     def updateLayers(self):
         import ee
 
-        from ee_plugin.utils import add_or_update_ee_layer
+        from .utils import add_or_update_ee_layer
 
         layers = QgsProject.instance().mapLayers().values()
 

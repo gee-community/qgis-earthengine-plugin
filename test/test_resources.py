@@ -11,16 +11,6 @@ from qgis.PyQt.QtGui import QIcon
 
 
 class GoogleEarthEngineResourcesTest(unittest.TestCase):
-    """Test rerources work."""
-
-    def setUp(self):
-        """Runs before each test."""
-        pass
-
-    def tearDown(self):
-        """Runs after each test."""
-        pass
-
     def test_icon_png(self):
         """Test image paths exist"""
         paths = (

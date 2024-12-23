@@ -28,7 +28,7 @@ Follow these steps to set up the plugin locally for development:
 
 The plugin can be debugged within [Visual Studio Code](https://code.visualstudio.com/) with the help of the [debugvs QGIS plugin](https://plugins.qgis.org/plugins/debug_vs).
 
-> !NOTE
+> [!NOTE]
 > At time of writing, an [outstanding PR](https://github.com/lmotta/debug_vs_plugin/pull/18) is required to successfully debug QGIS. This fix can manually be applied by copying the `__init__.py` file to your local installation of the `debugvs` plugin.
 >
 > Example MacOSX:

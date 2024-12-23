@@ -24,7 +24,28 @@ Follow these steps to set up the plugin locally for development:
 
 4. Open QGIS and enable the plugin via the plugin manager. Verify that the custom `about` message is displayed.
 
-5. Follow along the README example!
+## Debugging within VSCode
+
+The plugin can be debugged within [Visual Studio Code](https://code.visualstudio.com/) with the help of the [debugvs QGIS plugin](https://plugins.qgis.org/plugins/debug_vs).
+
+> [!NOTE]
+> At time of writing, an [outstanding PR](https://github.com/lmotta/debug_vs_plugin/pull/18) is required to successfully debug QGIS. This fix can manually be applied by copying the `__init__.py` file to your local installation of the `debugvs` plugin.
+>
+> Example MacOSX:
+>
+> ```
+> curl https://raw.githubusercontent.com/lmotta/debug_vs_plugin/f1f28d72eb0221581b51c7dd1e4d0435db991eb8/__init__.py >> ~/Library/Application\ Support/QGIS/QGIS3/profiles/default/python/plugins/debug_vs/__init__.py
+> ```
+
+### Workflow
+
+1. Within QGIS:
+   - Start “Enable Debug for Visual Studio Code” plugin.
+2. Within the `qgis-earthengine-plugin` codebase opened within VSCode:
+   - In Debug tools, launch the Run and Debug for “Python: Remote Attach”
+   - In the codebase, add breakpoints where desired.
+3. Within QGIS:
+   - Run EarthEngine QGIS plugin to trigger code at desired breakpoints.
 
 ## Code Contribution Process
 

@@ -22,10 +22,15 @@ class GoogleEarthEngineResourcesTest(unittest.TestCase):
         pass
 
     def test_icon_png(self):
-        """Test we can click OK."""
-        path = "./icons/earth-engine.svg"
-        icon = QIcon(path)
-        self.assertFalse(icon.isNull())
+        """Test image paths exist"""
+        paths = (
+            "icons/google-cloud-project.svg",
+            "icons/google-cloud.svg",
+            "./icons/earth-engine.svg",
+        )
+        for path in paths:
+            icon = QIcon(path)
+            self.assertFalse(icon.isNull())
 
 
 if __name__ == "__main__":

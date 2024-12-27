@@ -2,36 +2,44 @@
 """
 Create and init the Earth Engine Qgis data provider
 """
+
 import json
 
+from qgis.core import (
+    Qgis,
+    QgsCoordinateReferenceSystem,
+    QgsDataProvider,
+    QgsMessageLog,
+    QgsProviderMetadata,
+    QgsProviderRegistry,
+    QgsRaster,
+    QgsRasterDataProvider,
+    QgsRasterIdentifyResult,
+    QgsRasterInterface,
+    QgsVectorDataProvider,
+)
 from qgis.PyQt.QtCore import QObject
 
-from qgis.core import (
-    QgsRasterDataProvider, QgsRasterIdentifyResult, QgsProviderRegistry,
-    QgsProviderMetadata, QgsMessageLog, Qgis, QgsRaster, QgsRasterInterface,
-    QgsVectorDataProvider, QgsDataProvider, QgsCoordinateReferenceSystem
-)
-
 BAND_TYPES = {
-    'int8': Qgis.Int16,
-    'int16': Qgis.Int16,
-    'int32': Qgis.Int32,
-    'int64': Qgis.Int32,
-    'uint8': Qgis.UInt16,
-    'uint16': Qgis.UInt16,
-    'uint32': Qgis.UInt32,
-    'byte': Qgis.Byte,
-    'short': Qgis.Int16,
-    'int': Qgis.Int16,
-    'long': Qgis.Int32,
-    'float': Qgis.Float32,
-    'double': Qgis.Float64
+    "int8": Qgis.Int16,
+    "int16": Qgis.Int16,
+    "int32": Qgis.Int32,
+    "int64": Qgis.Int32,
+    "uint8": Qgis.UInt16,
+    "uint16": Qgis.UInt16,
+    "uint32": Qgis.UInt32,
+    "byte": Qgis.Byte,
+    "short": Qgis.Int16,
+    "int": Qgis.Int16,
+    "long": Qgis.Int32,
+    "float": Qgis.Float32,
+    "double": Qgis.Float64,
 }
 
 
 class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     PARENT = QObject()
-    
+
     # def __getattribute__(self, attr):
     #     method = object.__getattribute__(self, attr)
     #     # if not method:
@@ -49,16 +57,15 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         self._kwargs = kwargs
 
         # create WMS provider
-        self.wms = QgsProviderRegistry.instance().createProvider('wms', *args, **kwargs)
-
+        self.wms = QgsProviderRegistry.instance().createProvider("wms", *args, **kwargs)
 
     @classmethod
     def description(cls):
-        return 'Google Earth Engine Raster Data Provider'
+        return "Google Earth Engine Raster Data Provider"
 
     @classmethod
     def providerKey(cls):
-        return 'EE'
+        return "EE"
 
     @classmethod
     def createProvider(cls, uri, providerOptions, flags=None):
@@ -73,12 +80,12 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     # QgsDataProvider methods
 
     def crs(self):
-        return QgsCoordinateReferenceSystem('EPSG:3857')
+        return QgsCoordinateReferenceSystem("EPSG:3857")
 
     def setDataSourceUri(self, uri):
         self.wms.setDataSourceUri(uri)
 
-    def dataSourceUri(self, expandAuthConfig = None):
+    def dataSourceUri(self, expandAuthConfig=None):
         return self.wms.dataSourceUri(expandAuthConfig)
 
     def dataComment(self):
@@ -99,7 +106,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def updateExtents(self):
         return self.wms.updateExtents()
 
-    def setSubsetString(self, subset, updateFeatureCount = True):
+    def setSubsetString(self, subset, updateFeatureCount=True):
         return self.wms.setSubsetString(subset, updateFeatureCount)
 
     def supportsSubsetString(self):
@@ -116,7 +123,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def subLayerCount(self):
         return self.wms.subLayerCount()
-    
+
     def setLayerOrder(self, layers):
         return self.wms.setLayerOrder(layers)
 
@@ -124,7 +131,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return self.wms.setSubLayerVisibility(name, vis)
 
     def name(self):
-        return 'EE'
+        return "EE"
 
     def fileVectorFilter(self):
         return self.wms.fileVectorFilters()
@@ -228,16 +235,20 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def htmlMetadata(self):
         return json.dumps(self.ee_object.getInfo())
 
-    def identify(self, point, format, boundingBox=None, width=None, height=None, dpi=None):
+    def identify(
+        self, point, format, boundingBox=None, width=None, height=None, dpi=None
+    ):
         # TODO: speed-up, extend this to maintain cache of visible image, update cache on-the-fly when needed
         import ee
-        from ee_plugin import Map
-        from ee_plugin import utils
+
+        from ee_plugin import Map, utils
 
         point = utils.geom_to_geo(point)
         point_ee = ee.Geometry.Point([point.x(), point.y()])
         scale = Map.getScale()
-        value = self.ee_object.reduceRegion(ee.Reducer.first(), point_ee, scale).getInfo()
+        value = self.ee_object.reduceRegion(
+            ee.Reducer.first(), point_ee, scale
+        ).getInfo()
 
         band_indices = range(1, self.bandCount() + 1)
         band_names = [self.generateBandName(band_no) for band_no in band_indices]
@@ -318,7 +329,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def getFeatureInfoUrl(self):
         return self.wms.getFeatureInfoUrl()
-    
+
     def getTileUrl(self):
         return self.wms.getTileUrl()
 
@@ -336,7 +347,11 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return provider
 
     def capabilities(self):
-        caps = QgsRasterInterface.Size | QgsRasterInterface.Identify | QgsRasterInterface.IdentifyValue
+        caps = (
+            QgsRasterInterface.Size
+            | QgsRasterInterface.Identify
+            | QgsRasterInterface.IdentifyValue
+        )
 
         if Qgis.versionInt() >= 33800:
             return Qgis.RasterInterfaceCapabilities(caps)
@@ -351,12 +366,12 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def bandCount(self):
         if self.ee_object:
-            return len(self.ee_info['bands'])
+            return len(self.ee_info["bands"])
         else:
             return 1  # fall back to default if ee_object is not set
 
     def generateBandName(self, band_no):
-        return self.ee_info['bands'][band_no - 1]['id']
+        return self.ee_info["bands"][band_no - 1]["id"]
 
     def xBlockSize(self):
         return self.wms.xBlockSize()
@@ -369,9 +384,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def ySize(self):
         return self.wms.ySize()
-
-    def generateBandName(self, band_no):
-        return self.ee_info['bands'][band_no - 1]['id']
 
     def colorInterpretationName(self, bandNumber):
         return self.wms.colorInterpretationName(bandNumber)
@@ -432,7 +444,8 @@ def register_data_provider():
     metadata = QgsProviderMetadata(
         EarthEngineRasterDataProvider.providerKey(),
         EarthEngineRasterDataProvider.description(),
-        EarthEngineRasterDataProvider.createProvider)
+        EarthEngineRasterDataProvider.createProvider,
+    )
     registry = QgsProviderRegistry.instance()
     registry.registerProvider(metadata)
-    QgsMessageLog.logMessage('EE provider registered')
+    QgsMessageLog.logMessage("EE provider registered")

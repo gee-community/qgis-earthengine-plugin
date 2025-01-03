@@ -17,8 +17,6 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
-from ee_plugin import provider
-
 # read the plugin version from metadata
 cfg = configparser.ConfigParser()
 cfg.read(os.path.join(os.path.dirname(__file__), "metadata.txt"))
@@ -37,6 +35,8 @@ class GoogleEarthEnginePlugin(object):
             application at run time.
         :type iface: QgsInterface
         """
+        from ee_plugin import provider
+
         # Save reference to the QGIS interface
         self.iface = iface
 

@@ -25,16 +25,16 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
-      - name: pre-commit
+      - name: Run pre-commit checks
         run: |
           pre-commit run --all-files
 
       - name: Run tests with coverage
         run: |
-          python -m pytest --cov=. --cov-report=xml --cov-report=term-missing test/
+          python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage.xml
+          path: htmlcov/

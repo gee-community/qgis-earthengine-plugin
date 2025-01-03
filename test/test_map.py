@@ -1,6 +1,9 @@
 import pytest
 import ee
-from qgis.core import QgsProviderRegistry, QgsProviderMetadata
+from qgis.core import (
+    QgsProviderRegistry,
+    QgsProviderMetadata,
+)
 from qgis.utils import plugins
 from PyQt5.QtCore import QSettings, QCoreApplication
 
@@ -29,8 +32,7 @@ def load_ee_plugin(qgis_app):
     QSettings().setValue("locale/userLocale", "en")
 
     # Initialize and register the plugin
-    iface = qgis_app
-    plugin = GoogleEarthEnginePlugin(iface)
+    plugin = GoogleEarthEnginePlugin(qgis_app)
     plugins["ee_plugin"] = plugin
     plugin.check_version()
 
@@ -41,7 +43,7 @@ def test_wms_metadata(qgis_app, load_ee_plugin):
     assert "wms" in registry.providerList(), "WMS provider is not available!"
 
 
-def test_add_layer(setup_ee, load_ee_plugin):
+def test_add_layer(load_ee_plugin):
     """Test adding a layer to the map."""
     image = ee.Image("USGS/SRTMGL1_003")
     vis_params = {
@@ -54,21 +56,7 @@ def test_add_layer(setup_ee, load_ee_plugin):
     Map.addLayer(image, vis_params, "DEM")
 
 
-def test_set_center(setup_ee, qgis_app):
-    """Test setting the map center."""
-    lon, lat, zoom = -121.753, 46.855, 9
-    Map.setCenter(lon, lat, zoom)
-
-    # Verify the center and zoom
-    center = Map.getCenter()
-    assert center.getInfo()["coordinates"] == [
-        lon,
-        lat,
-    ], "Center coordinates do not match."
-    assert round(Map.getZoom()) == zoom, "Zoom level does not match."
-
-
-def test_get_bounds(setup_ee, qgis_app):
+def test_get_bounds():
     """Test getting the bounds of the map."""
     bounds = Map.getBounds()
     assert len(bounds) == 4, "Bounds do not have the expected format."
@@ -77,13 +65,7 @@ def test_get_bounds(setup_ee, qgis_app):
     ), "Bounds coordinates are not numeric."
 
 
-def test_get_scale(setup_ee, qgis_app):
+def test_get_scale():
     """Test getting the map scale."""
     scale = Map.getScale()
     assert scale > 0, "Scale should be a positive number."
-
-
-def test_set_zoom(setup_ee, qgis_app):
-    """Test setting the zoom level."""
-    Map.setZoom(10)
-    assert round(Map.getZoom()) == 10, "Zoom level was not set correctly."

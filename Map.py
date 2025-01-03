@@ -27,7 +27,7 @@ def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
         >>> from ee_plugin import Map
         >>> Map.addLayer(.....)
     """
-    from .utils import add_or_update_ee_layer
+    from utils import add_or_update_ee_layer
 
     add_or_update_ee_layer(eeObject, visParams, name, shown, opacity)
 

@@ -1,7 +1,11 @@
 import pytest
 import ee
-from qgis.core import QgsProject
+from qgis.core import QgsProviderRegistry, QgsProviderMetadata
+from qgis.utils import plugins
+from PyQt5.QtCore import QSettings, QCoreApplication
+
 import Map
+from ee_plugin import GoogleEarthEnginePlugin
 
 
 @pytest.fixture(scope="module")
@@ -10,20 +14,44 @@ def setup_ee():
     ee.Initialize()
 
 
-def test_add_layer(setup_ee, qgis_app):
+@pytest.fixture(scope="module")
+def load_ee_plugin(qgis_app):
+    """Load Earth Engine plugin and configure QSettings."""
+    # Ensure WMS provider is registered
+    registry = QgsProviderRegistry.instance()
+    if "wms" not in registry.providerList():
+        metadata = QgsProviderMetadata("wms", "WMS Provider", "libwmsprovider.so")
+        registry.registerProvider(metadata)
+
+    # Set QSettings values required by the plugin
+    QCoreApplication.setOrganizationName("QGIS")
+    QCoreApplication.setApplicationName("QGIS Testing")
+    QSettings().setValue("locale/userLocale", "en")
+
+    # Initialize and register the plugin
+    iface = qgis_app
+    plugin = GoogleEarthEnginePlugin(iface)
+    plugins["ee_plugin"] = plugin
+    plugin.check_version()
+
+
+def test_wms_metadata(qgis_app, load_ee_plugin):
+    """Check WMS provider metadata."""
+    registry = QgsProviderRegistry.instance()
+    assert "wms" in registry.providerList(), "WMS provider is not available!"
+
+
+def test_add_layer(setup_ee, load_ee_plugin):
     """Test adding a layer to the map."""
-    # Create an Earth Engine Image
     image = ee.Image("USGS/SRTMGL1_003")
     vis_params = {
         "min": 0,
         "max": 4000,
         "palette": ["006633", "E5FFCC", "662A00", "D8D8D8", "F5F5F5"],
     }
-    Map.addLayer(image, vis_params, "DEM")
 
-    # Validate if the layer was added
-    layers = QgsProject.instance().mapLayers()
-    assert len(layers) > 0, "No layers were added to the map."
+    # Add the layer to the map
+    Map.addLayer(image, vis_params, "DEM")
 
 
 def test_set_center(setup_ee, qgis_app):

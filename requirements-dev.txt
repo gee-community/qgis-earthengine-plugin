@@ -1,0 +1,7 @@
+# base dependencies
+-r requirements.txt  # Include all main requirements
+
+# Development dependencies
+pytest
+pytest-cov
+pre-commit

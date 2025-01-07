@@ -58,6 +58,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
         # create WMS provider
         self.wms = QgsProviderRegistry.instance().createProvider("wms", *args, **kwargs)
+        assert self.wms, f"Failed to create WMS provider: {args}, {kwargs}"
 
     @classmethod
     def description(cls):

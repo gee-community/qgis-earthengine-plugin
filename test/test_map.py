@@ -12,6 +12,7 @@ def setup_ee():
     import ee
 
     ee.Initialize()
+    ee.Authenticate(auth_mode="localhost", quiet=True)
 
 
 @pytest.fixture(scope="module", autouse=True)

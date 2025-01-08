@@ -19,6 +19,20 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y qgis python3-qgis python3-pyqt5 python3-pytest
+      
+      - name: Set Environment Variables
+        run: |
+          echo "QGIS_HOME=/usr" >> $GITHUB_ENV
+          echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Start Virtual Display
+        run: Xvfb :99 -screen 0 1024x768x24 &
+
+      - name: Configure Earth Engine Credentials
+        run: |
+          mkdir -p ~/.config/earthengine  # Create the directory if it doesn't exist
+          echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials
 
       - name: Install dependencies
         run: |

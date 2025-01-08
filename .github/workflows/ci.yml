@@ -36,7 +36,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
       - name: Run pre-commit checks
@@ -45,7 +44,8 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
+          cd qgis_earthengine_plugin  # Enter package directory
+          PYTHONPATH=$(pwd) python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

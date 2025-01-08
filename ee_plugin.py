@@ -35,7 +35,7 @@ class GoogleEarthEnginePlugin(object):
             application at run time.
         :type iface: QgsInterface
         """
-        import provider
+        from . import provider
 
         # Save reference to the QGIS interface
         self.iface = iface

@@ -16,7 +16,7 @@ from qgis.core import (
     QgsRectangle,
 )
 
-import ee_plugin
+from .ee_plugin import VERSION as ee_plugin_version
 
 
 def get_ee_image_url(image):
@@ -38,7 +38,7 @@ def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     # serialize EE code
     ee_object = eeObject.serialize()
     ee_object_vis = json.dumps(visParams)
-    layer.setCustomProperty("ee-plugin-version", ee_plugin.ee_plugin.VERSION)
+    layer.setCustomProperty("ee-plugin-version", ee_plugin_version)
     layer.setCustomProperty("ee-object", ee_object)
     layer.setCustomProperty("ee-object-vis", ee_object_vis)
 

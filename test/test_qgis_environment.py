@@ -34,6 +34,7 @@ class QGISTest(unittest.TestCase):
         r = QgsProviderRegistry.instance()
         self.assertIn("gdal", r.providerList())
         self.assertIn("ogr", r.providerList())
+        self.assertIn("wms", r.providerList())  # needed for our EE provider
 
     def test_projection(self):
         """Test that QGIS properly parses a wkt string."""

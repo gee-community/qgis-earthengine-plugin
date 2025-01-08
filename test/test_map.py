@@ -1,9 +1,4 @@
 import pytest
-import ee
-from qgis.core import (
-    QgsProviderRegistry,
-    QgsProviderMetadata,
-)
 from qgis.utils import plugins
 from PyQt5.QtCore import QSettings, QCoreApplication
 
@@ -14,18 +9,14 @@ from ..ee_plugin import GoogleEarthEnginePlugin
 @pytest.fixture(scope="module", autouse=True)
 def setup_ee():
     """Initialize the Earth Engine API."""
+    import ee
+
     ee.Initialize()
 
 
 @pytest.fixture(scope="module", autouse=True)
 def load_ee_plugin(qgis_app):
     """Load Earth Engine plugin and configure QSettings."""
-    # Ensure WMS provider is registered
-    registry = QgsProviderRegistry.instance()
-    if "wms" not in registry.providerList():
-        registry.createProvider("wms", "libwmsprovider.so")
-        metadata = QgsProviderMetadata("wms", "WMS Provider", "libwmsprovider.so")
-        registry.registerProvider(metadata)
 
     # Set QSettings values required by the plugin
     QCoreApplication.setOrganizationName("QGIS")
@@ -38,14 +29,10 @@ def load_ee_plugin(qgis_app):
     plugin.check_version()
 
 
-# def test_wms_metadata():
-#     """Check WMS provider metadata."""
-#     registry = QgsProviderRegistry.instance()
-#     assert "wms" in registry.providerList(), "WMS provider is not available!"
-
-
 def test_add_layer():
     """Test adding a layer to the map."""
+    import ee
+
     image = ee.Image("USGS/SRTMGL1_003")
     vis_params = {
         "min": 0,

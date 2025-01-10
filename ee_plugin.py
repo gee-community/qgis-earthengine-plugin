@@ -134,7 +134,9 @@ class GoogleEarthEnginePlugin(object):
         try:
             # Attempt to get the latest version from the server
             latest_version = requests.get(
-                "https://qgis-ee-plugin.appspot.com/get_latest_version"
+                "https://qgis-ee-plugin.appspot.com/get_latest_version",
+                # requires requests > 2.4, can through requests.exceptions.Timeout (which is a RequestException, so already handled)
+                timeout=10,
             ).text
 
             if VERSION < latest_version:

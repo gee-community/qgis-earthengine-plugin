@@ -31,7 +31,7 @@ jobs:
 
       - name: Configure Earth Engine Credentials
         run: |
-          mkdir -p ~/.config/earthengine  # Create the directory if it doesn't exist
+          mkdir -p ~/.config/earthengine  
           echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials
 
       - name: Install dependencies
@@ -44,9 +44,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          echo $(pwd)
-          echo $(ls .)
-          PYTHONPATH=$(pwd)/qgis_earthengine_plugin python -m pytest --import-mode=importlib --cov=. --cov-report=html --cov-report=term-missing test/
+          python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

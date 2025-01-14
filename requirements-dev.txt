@@ -7,3 +7,4 @@ pytest-cov
 pytest-qgis==2.1.0
 pre-commit
 pyqt5
+future

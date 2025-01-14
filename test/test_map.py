@@ -2,7 +2,7 @@ import pytest
 from qgis.utils import plugins
 from PyQt5.QtCore import QSettings, QCoreApplication
 
-from .. import Map
+import Map
 from ..ee_plugin import GoogleEarthEnginePlugin
 
 

@@ -25,6 +25,8 @@ jobs:
       - name: Set Environment Variables
         run: |
           echo "QGIS_HOME=/usr" >> $GITHUB_ENV
+          echo "PYTHONPATH=$QGIS_HOME/share/qgis/python" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$QGIS_HOME/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
           echo "DISPLAY=:99" >> $GITHUB_ENV
 
@@ -38,6 +40,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m venv venv --system-site-packages
+          source venv/bin/activate
           pip install -r requirements-dev.txt
 
       - name: Run pre-commit checks

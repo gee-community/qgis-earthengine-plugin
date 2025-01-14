@@ -11,14 +11,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container:
+      image: osgeo/gdal:ubuntu-full-3.6.3
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up QGIS environment
-        run: |
-          sudo apt update
-          sudo apt install -y qgis python3-qgis python3-pyqt5 python3-pytest
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip' # caching pip dependencies
       
       - name: Set Environment Variables
         run: |
@@ -29,7 +31,7 @@ jobs:
       - name: Start Virtual Display
         run: Xvfb :99 -screen 0 1024x768x24 &
 
-      - name: Configure Earth Engine Credentials
+      - name: Configure Earth Engine Credentials # TODO: add secret to github
         run: |
           mkdir -p ~/.config/earthengine  
           echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials

@@ -14,9 +14,9 @@ class GoogleEarthEngineResourcesTest(unittest.TestCase):
     def test_icon_png(self):
         """Test image paths exist"""
         paths = (
-            "icons/google-cloud-project.svg",
-            "icons/google-cloud.svg",
-            "./icons/earth-engine.svg",
+            "ee_plugin/icons/google-cloud-project.svg",
+            "ee_plugin/icons/google-cloud.svg",
+            "ee_plugin/icons/earth-engine.svg",
         )
         for path in paths:
             icon = QIcon(path)

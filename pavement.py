@@ -11,9 +11,9 @@ from paver.easy import Bunch, cmdopts, options, path, sh, task
 options(
     plugin=Bunch(
         name="ee_plugin",
-        ext_libs=path("extlibs"),
-        source_dir=path("."),
-        package_dir=path("."),
+        ext_libs=path(os.path.join("ee_plugin", "extlibs")),
+        source_dir=path("ee_plugin"),
+        package_dir=path("ee_plugin"),
         tests=["test", "tests"],
         excludes=[
             "*.pyc",
@@ -76,7 +76,7 @@ def setup():
 def install(options):
     """install plugin to qgis"""
     plugin_name = options.plugin.name
-    src = path(__file__).dirname()
+    src = options.plugin.source_dir
     if platform.system() == "Windows":
         dst = (
             path(

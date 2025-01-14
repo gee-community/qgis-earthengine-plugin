@@ -2,8 +2,8 @@ import pytest
 from qgis.utils import plugins
 from PyQt5.QtCore import QSettings, QCoreApplication
 
-from qgis_earthengine_plugin import Map
-from qgis_earthengine_plugin.ee_plugin import GoogleEarthEnginePlugin
+from ee_plugin import Map
+from ee_plugin.ee_plugin import GoogleEarthEnginePlugin
 
 
 @pytest.fixture(scope="module", autouse=True)

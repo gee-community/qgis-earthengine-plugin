@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: kartoza/qgis-desktop:LTR
+      image: qgis/qgis:ltr
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

@@ -13,7 +13,7 @@ options(
         name="ee_plugin",
         ext_libs=path(os.path.join("ee_plugin", "extlibs")),
         source_dir=path("ee_plugin"),
-        package_dir=path("ee_plugin"),
+        package_dir=path("."),
         tests=["test", "tests"],
         excludes=[
             "*.pyc",
@@ -149,5 +149,5 @@ def make_zip(zipFile, options):
     for root, dirs, files in os.walk(src_dir):
         for f in filter_excludes(files):
             relpath = os.path.relpath(root, ".")
-            zipFile.write(path(root) / f, path("ee_plugin") / path(relpath) / f)
+            zipFile.write(path(root) / f, path(relpath) / f)
         filter_excludes(dirs)

@@ -50,7 +50,7 @@ class TestInit(unittest.TestCase):
             os.path.join(
                 os.path.dirname(__file__),
                 os.pardir,
-                "qgis_earthengine_plugin",
+                "ee_plugin",
                 "metadata.txt",
             )
         )

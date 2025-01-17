@@ -1,0 +1,10 @@
+{
+  "python.envFile": "${workspaceFolder}/.python.env",
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${PYTHONPATH}:./extlibs:/Applications/QGIS-LTR.app/Contents/MacOS/lib/python3.9"
+  },
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "test"
+  ],
+}

@@ -16,7 +16,7 @@ from qgis.core import (
     QgsRectangle,
 )
 
-import ee_plugin
+from .ee_plugin import VERSION as ee_plugin_version
 
 
 def get_ee_image_url(image):
@@ -27,7 +27,6 @@ def get_ee_image_url(image):
 
 def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     layer.dataProvider().set_ee_object(eeObject)
-
     layer.setCustomProperty("ee-layer", True)
 
     if opacity is not None:
@@ -38,7 +37,7 @@ def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     # serialize EE code
     ee_object = eeObject.serialize()
     ee_object_vis = json.dumps(visParams)
-    layer.setCustomProperty("ee-plugin-version", ee_plugin.ee_plugin.VERSION)
+    layer.setCustomProperty("ee-plugin-version", ee_plugin_version)
     layer.setCustomProperty("ee-object", ee_object)
     layer.setCustomProperty("ee-object-vis", ee_object_vis)
 
@@ -51,23 +50,7 @@ def add_ee_image_layer(image, name, shown, opacity):
     check_version()
 
     url = "type=xyz&url=" + get_ee_image_url(image)
-
-    # EE raster data provider
-    if image.ee_type == ee.Image:
-        layer = QgsRasterLayer(url, name, "EE")
-    # EE vector data provider
-    if image.ee_type in [ee.Geometry, ee.Feature]:
-        # TODO
-        layer = QgsRasterLayer(url, name, "wms")
-    # EE raster collection data provider
-    if image.ee_type == ee.ImageCollection:
-        # TODO
-        layer = QgsRasterLayer(url, name, "wms")
-    # EE vector collection data provider
-    if image.ee_type == ee.FeatureCollection:
-        # TODO
-        layer = QgsRasterLayer(url, name, "wms")
-
+    layer = QgsRasterLayer(url, name, "EE")
     QgsProject.instance().addMapLayer(layer)
 
     if shown is not None:

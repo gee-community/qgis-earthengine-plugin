@@ -2,6 +2,10 @@
 -r requirements.txt  # Include all main requirements
 
 # Development dependencies
-pytest
+pytest==7.4.3 # pytest-qgis does not support pytest>=8
 pytest-cov
+pytest-qgis==2.1.0
 pre-commit
+pyqt5
+future
+paver

@@ -27,7 +27,6 @@ def get_ee_image_url(image):
 
 def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
     layer.dataProvider().set_ee_object(eeObject)
-
     layer.setCustomProperty("ee-layer", True)
 
     if opacity is not None:
@@ -51,22 +50,17 @@ def add_ee_image_layer(image, name, shown, opacity):
     check_version()
 
     url = "type=xyz&url=" + get_ee_image_url(image)
-
     # EE raster data provider
     if image.ee_type == ee.Image:
         layer = QgsRasterLayer(url, name, "EE")
     # EE vector data provider
     if image.ee_type in [ee.Geometry, ee.Feature]:
-        # TODO
-        layer = QgsRasterLayer(url, name, "wms")
-    # EE raster collection data provider
+        layer = QgsRasterLayer(url, name, "EE")
     if image.ee_type == ee.ImageCollection:
-        # TODO
-        layer = QgsRasterLayer(url, name, "wms")
+        layer = QgsRasterLayer(url, name, "EE")
     # EE vector collection data provider
     if image.ee_type == ee.FeatureCollection:
-        # TODO
-        layer = QgsRasterLayer(url, name, "wms")
+        layer = QgsRasterLayer(url, name, "EE")
 
     QgsProject.instance().addMapLayer(layer)
 

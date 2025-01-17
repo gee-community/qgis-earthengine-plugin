@@ -6,8 +6,16 @@ from PyQt5.QtCore import QSettings, QCoreApplication
 from ee_plugin.ee_plugin import GoogleEarthEnginePlugin
 
 
-@fixture(scope="module", autouse=True)
-def load_ee_plugin(qgis_app):
+@fixture(scope="session", autouse=True)
+def setup_ee():
+    """Initialize the Earth Engine API."""
+    print("Initializing Earth Engine API...")
+    ee.Initialize()
+    ee.Authenticate(auth_mode="localhost", quiet=True)
+
+
+@fixture(scope="session", autouse=True)
+def load_ee_plugin(qgis_app, setup_ee):
     """Load Earth Engine plugin and configure QSettings."""
 
     # Set QSettings values required by the plugin
@@ -20,10 +28,3 @@ def load_ee_plugin(qgis_app):
     plugins["ee_plugin"] = plugin
     plugin.check_version()
     yield qgis_app
-
-
-@fixture(scope="module", autouse=True)
-def setup_ee():
-    """Initialize the Earth Engine API."""
-    ee.Initialize()
-    ee.Authenticate(auth_mode="localhost", quiet=True)

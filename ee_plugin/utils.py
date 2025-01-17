@@ -50,18 +50,7 @@ def add_ee_image_layer(image, name, shown, opacity):
     check_version()
 
     url = "type=xyz&url=" + get_ee_image_url(image)
-    # EE raster data provider
-    if image.ee_type == ee.Image:
-        layer = QgsRasterLayer(url, name, "EE")
-    # EE vector data provider
-    if image.ee_type in [ee.Geometry, ee.Feature]:
-        layer = QgsRasterLayer(url, name, "EE")
-    if image.ee_type == ee.ImageCollection:
-        layer = QgsRasterLayer(url, name, "EE")
-    # EE vector collection data provider
-    if image.ee_type == ee.FeatureCollection:
-        layer = QgsRasterLayer(url, name, "EE")
-
+    layer = QgsRasterLayer(url, name, "EE")
     QgsProject.instance().addMapLayer(layer)
 
     if shown is not None:

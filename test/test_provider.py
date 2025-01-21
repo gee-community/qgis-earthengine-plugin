@@ -1,27 +1,50 @@
+from unittest.mock import patch
+
 import ee
 from qgis.core import QgsProject, QgsPointXY
 
 from ee_plugin import Map
 
 
-def test_point_identify():
-    point = ee.Geometry.Point([1.5, 1.5])
-    Map.addLayer(point, {"color": "1eff05"}, "point_layer")
+def test_raster_identify():
+    # Add an image layer to QGIS
+    image = ee.Image("USGS/SRTMGL1_003")
+    vis_params = {
+        "min": 0,
+        "max": 4000,
+        "palette": ["006633", "E5FFCC", "662A00", "D8D8D8", "F5F5F5"],
+    }
 
-    layer = QgsProject.instance().mapLayersByName("point_layer")[0]
-    assert layer is not None, "Layer 'point_layer' was not added to the project"
+    # mocking Map.getScale() was necessary for ee to reproject point correctly
+    # simpler than configuring iface and other QGIS objects
+    mock_get_scale = patch("ee_plugin.Map.getScale", return_value=625.7583)
+    mock_get_scale.start()
+
+    Map.addLayer(image, vis_params, "DEM")
+
+    qgis_instance = QgsProject.instance()
+    layer = qgis_instance.mapLayersByName("DEM")[0]
+    assert layer is not None, "Layer 'DEM' was not added to the project"
+    assert layer.crs().authid() == "EPSG:3857", "Layer CRS does not match project CRS"
 
     provider = layer.dataProvider()
-    result = provider.identify(QgsPointXY(1.5, 1.5), QgsProject.instance().crs(), 0.1)
-    assert result, "Identify operation returned no results"
+    qgis_point = QgsPointXY(-13551778.88787266425788403, 5917193.28679858986288309)
+    raster_identify_result = provider.identify(
+        qgis_point, format=1, height=1, width=1, dpi=96
+    )
 
-    assert len(result) > 0, "Identify operation returned an empty result set"
-    geometry = result[0].geometry()
-    assert geometry is not None, "Geometry of identified feature is None"
-    assert not geometry.asPoint().isNull(), "Identified point is invalid (0, 0)"
+    assert raster_identify_result, "Identify operation returned no results"
+    assert (
+        raster_identify_result.results()
+    ), "Identify operation returned an empty result set"
+    assert (
+        raster_identify_result.results()[1] > 0
+    ), "Identified elevation is not positive"
 
 
-def test_raster_identify():
+def test_reduce_region():
+    ee.Initialize()
+
     image = ee.Image("USGS/SRTMGL1_003")
     vis_params = {
         "min": 0,
@@ -29,20 +52,14 @@ def test_raster_identify():
         "palette": ["006633", "E5FFCC", "662A00", "D8D8D8", "F5F5F5"],
     }
     Map.addLayer(image, vis_params, "DEM")
+    Map.setCenter(-121.753, 46.855, 9)
 
-    layer = QgsProject.instance().mapLayersByName("DEM")[0]
-    assert layer is not None, "Layer 'DEM' was not added to the project"
+    test_point = ee.Geometry.Point([-121.753, 46.855], "EPSG:4326")
+    scale = 30  # Scale in meters
+    reducer = ee.Reducer.first()
+    result = image.reduceRegion(
+        reducer=reducer, geometry=test_point, scale=scale
+    ).getInfo()
 
-    provider = layer.dataProvider()
-    assert provider is not None, "Provider for the layer could not be retrieved"
-
-    point = QgsPointXY(
-        -13553481.96255343593657017, 5907008.49828365817666054
-    )  # Example point in WGS84
-
-    result = provider.identify(
-        point, format=None, boundingBox=None, width=None, height=None
-    )
-    print("Identify result:", result.results())
-    assert result, "Identify operation returned no results"
-    assert len(result.results()) > 0, "Identify operation returned an empty result set"
+    assert "elevation" in result, {"message": "Elevation not found in result"}
+    assert result["elevation"] > 0, {"message": "Elevation is not positive"}

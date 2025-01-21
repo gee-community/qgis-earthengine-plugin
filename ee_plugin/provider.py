@@ -21,7 +21,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import QObject
 
-from ee_plugin import Map, utils
+from ee_plugin import Map
 
 BAND_TYPES = {
     "int8": Qgis.Int16,
@@ -245,8 +245,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def identify(
         self, point, format, boundingBox=None, width=None, height=None, dpi=None
     ):
-        # TODO: do need this conversion? is it actually doing the expected behaviour
-        point = utils.geom_to_geo(point)
         # TODO: is the input point always in 3857
         dataset_projection = self.ee_info["bands"][0]["crs"]
         point_ee = ee.Geometry.Point(
@@ -256,7 +254,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         reducer = ee.Reducer.first()
         scale = Map.getScale()
         value = self.ee_object.reduceRegion(reducer, point_ee, scale).getInfo()
-
         band_indices = range(1, self.bandCount() + 1)
         band_names = [self.generateBandName(band_no) for band_no in band_indices]
         band_values = [value[band_name] for band_name in band_names]

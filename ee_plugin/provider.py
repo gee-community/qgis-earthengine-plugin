@@ -5,6 +5,7 @@ Create and init the Earth Engine Qgis data provider
 
 import json
 
+import ee
 from qgis.core import (
     Qgis,
     QgsCoordinateReferenceSystem,
@@ -19,6 +20,8 @@ from qgis.core import (
     QgsVectorDataProvider,
 )
 from qgis.PyQt.QtCore import QObject
+
+from ee_plugin import Map, utils
 
 BAND_TYPES = {
     "int8": Qgis.Int16,
@@ -81,6 +84,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     # QgsDataProvider methods
 
     def crs(self):
+        # TODO: should this be more elaborate? Example:
+        # self.ee_object.getInfo()["bands"][0]["crs"]
+        # used on initialization of layer by default within QGIS
         return QgsCoordinateReferenceSystem("EPSG:3857")
 
     def setDataSourceUri(self, uri):
@@ -239,17 +245,17 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def identify(
         self, point, format, boundingBox=None, width=None, height=None, dpi=None
     ):
-        # TODO: speed-up, extend this to maintain cache of visible image, update cache on-the-fly when needed
-        import ee
-
-        from ee_plugin import Map, utils
-
+        # TODO: do need this conversion? is it actually doing the expected behaviour
         point = utils.geom_to_geo(point)
-        point_ee = ee.Geometry.Point([point.x(), point.y()])
+        # TODO: is the input point always in 3857
+        dataset_projection = self.ee_info["bands"][0]["crs"]
+        point_ee = ee.Geometry.Point(
+            [point.x(), point.y()], self.crs().authid()
+        ).transform(dataset_projection)
+
+        reducer = ee.Reducer.first()
         scale = Map.getScale()
-        value = self.ee_object.reduceRegion(
-            ee.Reducer.first(), point_ee, scale
-        ).getInfo()
+        value = self.ee_object.reduceRegion(reducer, point_ee, scale).getInfo()
 
         band_indices = range(1, self.bandCount() + 1)
         band_names = [self.generateBandName(band_no) for band_no in band_indices]

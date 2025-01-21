@@ -84,9 +84,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     # QgsDataProvider methods
 
     def crs(self):
-        # TODO: should this be more elaborate? Example:
-        # self.ee_object.getInfo()["bands"][0]["crs"]
-        # used on initialization of layer by default within QGIS
         return QgsCoordinateReferenceSystem("EPSG:3857")
 
     def setDataSourceUri(self, uri):
@@ -245,7 +242,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def identify(
         self, point, format, boundingBox=None, width=None, height=None, dpi=None
     ):
-        # TODO: is the input point always in 3857
         dataset_projection = self.ee_info["bands"][0]["crs"]
         point_ee = ee.Geometry.Point(
             [point.x(), point.y()], self.crs().authid()
@@ -262,8 +258,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatValue, value)
 
         return result
-
-    # sample()
 
     def lastErrorTitle(self):
         return self.wms.lastErrorTitle()
@@ -430,17 +424,14 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
 
 class EarthEngineVectorDataProvider(QgsVectorDataProvider):
-    # TODO
     pass
 
 
 class EarthEngineRasterCollectionDataProvider(QgsRasterDataProvider):
-    # TODO
     pass
 
 
 class EarthEngineVectorCollectionDataProvider(QgsVectorDataProvider):
-    # TODO
     pass
 
 

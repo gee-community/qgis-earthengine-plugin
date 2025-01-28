@@ -5,6 +5,7 @@ Create and init the Earth Engine Qgis data provider
 
 import json
 
+import ee
 from qgis.core import (
     Qgis,
     QgsCoordinateReferenceSystem,
@@ -19,6 +20,8 @@ from qgis.core import (
     QgsVectorDataProvider,
 )
 from qgis.PyQt.QtCore import QObject
+
+from ee_plugin import Map
 
 BAND_TYPES = {
     "int8": Qgis.Int16,
@@ -239,18 +242,14 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def identify(
         self, point, format, boundingBox=None, width=None, height=None, dpi=None
     ):
-        # TODO: speed-up, extend this to maintain cache of visible image, update cache on-the-fly when needed
-        import ee
+        dataset_projection = self.ee_info["bands"][0]["crs"]
+        point_ee = ee.Geometry.Point(
+            [point.x(), point.y()], self.crs().authid()
+        ).transform(dataset_projection)
 
-        from ee_plugin import Map, utils
-
-        point = utils.geom_to_geo(point)
-        point_ee = ee.Geometry.Point([point.x(), point.y()])
+        reducer = ee.Reducer.first()
         scale = Map.getScale()
-        value = self.ee_object.reduceRegion(
-            ee.Reducer.first(), point_ee, scale
-        ).getInfo()
-
+        value = self.ee_object.reduceRegion(reducer, point_ee, scale).getInfo()
         band_indices = range(1, self.bandCount() + 1)
         band_names = [self.generateBandName(band_no) for band_no in band_indices]
         band_values = [value[band_name] for band_name in band_names]
@@ -259,8 +258,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatValue, value)
 
         return result
-
-    # sample()
 
     def lastErrorTitle(self):
         return self.wms.lastErrorTitle()
@@ -427,17 +424,14 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
 
 class EarthEngineVectorDataProvider(QgsVectorDataProvider):
-    # TODO
     pass
 
 
 class EarthEngineRasterCollectionDataProvider(QgsRasterDataProvider):
-    # TODO
     pass
 
 
 class EarthEngineVectorCollectionDataProvider(QgsVectorDataProvider):
-    # TODO
     pass
 
 

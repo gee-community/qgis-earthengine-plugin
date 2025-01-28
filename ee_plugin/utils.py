@@ -8,12 +8,8 @@ import json
 import ee
 import qgis
 from qgis.core import (
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
-    QgsPointXY,
     QgsProject,
     QgsRasterLayer,
-    QgsRectangle,
 )
 
 from .ee_plugin import VERSION as ee_plugin_version
@@ -183,16 +179,3 @@ def add_ee_catalog_image(name, asset_name, visParams, collection_props):
 def check_version():
     # check if we have the latest version only once plugin is used, not once it is loaded
     qgis.utils.plugins["ee_plugin"].check_version()
-
-
-def geom_to_geo(geom):
-    crs_src = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
-    crs_dst = QgsCoordinateReferenceSystem("EPSG:4326")
-    proj2geo = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
-
-    if isinstance(geom, QgsPointXY):
-        return proj2geo.transform(geom)
-    elif isinstance(geom, QgsRectangle):
-        return proj2geo.transformBoundingBox(geom)
-    else:
-        return geom.transform(proj2geo)

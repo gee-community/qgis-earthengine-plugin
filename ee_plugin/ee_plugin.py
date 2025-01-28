@@ -10,24 +10,42 @@ import json
 import os.path
 import webbrowser
 from builtins import object
+from typing import Callable, cast, Optional
 
 import requests  # type: ignore
 from qgis.core import QgsProject
-from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion
+from qgis.gui import QgisInterface
+from qgis.PyQt.QtCore import (
+    QCoreApplication,
+    QSettings,
+    QTranslator,
+    qVersion,
+    QObject,
+    Qt,
+)
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QMenu, QToolButton
+
+PLUGIN_DIR = os.path.dirname(__file__)
 
 # read the plugin version from metadata
 cfg = configparser.ConfigParser()
-cfg.read(os.path.join(os.path.dirname(__file__), "metadata.txt"))
+cfg.read(os.path.join(PLUGIN_DIR, "metadata.txt"))
 VERSION = cfg.get("general", "version")
 version_checked = False
+
+
+def icon(icon_name: str) -> QIcon:
+    """Helper function to return an icon from the plugin directory."""
+    return QIcon(os.path.join(PLUGIN_DIR, "icons", icon_name))
 
 
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface):
+    # iface: QgisInterface
+
+    def __init__(self, iface: QgisInterface):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -40,23 +58,19 @@ class GoogleEarthEnginePlugin(object):
         # Save reference to the QGIS interface
         self.iface = iface
 
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
+        self.menu = None
 
         # initialize locale
         locale = QSettings().value("locale/userLocale")[0:2]
         locale_path = os.path.join(
-            self.plugin_dir, "i18n", "GoogleEarthEnginePlugin_{}.qm".format(locale)
+            PLUGIN_DIR, "i18n", "GoogleEarthEnginePlugin_{}.qm".format(locale)
         )
-
         if os.path.exists(locale_path):
             self.translator = QTranslator()
             self.translator.load(locale_path)
 
             if qVersion() > "4.3.3":
                 QCoreApplication.installTranslator(self.translator)
-
-        self.menu_name_plugin = self.tr("Google Earth Engine")
 
         # Create and register the EE data providers
         provider.register_data_provider()
@@ -77,33 +91,73 @@ class GoogleEarthEnginePlugin(object):
         return QCoreApplication.translate("GoogleEarthEngine", message)
 
     def initGui(self):
-        ### Main dockwidget menu
-        # Create action that will start plugin configuration
-        ee_icon_path = ":/plugins/ee_plugin/icons/earth-engine.svg"
-        self.cmd_ee_user_guide = QAction(
-            QIcon(ee_icon_path), "User Guide", self.iface.mainWindow()
+        """Initialize the plugin GUI."""
+        # Build actions
+        self.ee_user_guide_action = self._build_action(
+            text="User Guide",
+            icon_name="earth-engine.svg",
+            callback=self.run_cmd_ee_user_guide,
         )
-        self.cmd_ee_user_guide.triggered.connect(self.run_cmd_ee_user_guide)
-
-        gcp_icon_path = ":/plugins/ee_plugin/icons/google-cloud.svg"
-        self.cmd_sign_in = QAction(
-            QIcon(gcp_icon_path), "Sign-in", self.iface.mainWindow()
+        self.sign_in_action = self._build_action(
+            text="Sign-in",
+            icon_name="google-cloud.svg",
+            callback=self.run_cmd_sign_in,
         )
-        self.cmd_sign_in.triggered.connect(self.run_cmd_sign_in)
-
-        gcp_project_icon_path = ":/plugins/ee_plugin/icons/google-cloud-project.svg"
-        self.cmd_set_cloud_project = QAction(
-            QIcon(gcp_project_icon_path), "Set Project", self.iface.mainWindow()
+        self.set_cloud_project_action = self._build_action(
+            text="Set Project",
+            icon_name="google-cloud-project.svg",
+            callback=self.run_cmd_set_cloud_project,
         )
-        self.cmd_set_cloud_project.triggered.connect(self.run_cmd_set_cloud_project)
 
-        # Add menu item
-        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_ee_user_guide)
-        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_sign_in)
-        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_set_cloud_project)
+        # Build plugin menu
+        self.menu = cast(
+            QMenu,
+            self.iface.pluginMenu().addMenu(
+                icon("earth-engine.svg"),
+                self.tr("&Google Earth Engine"),
+            ),
+        )
+        self.menu.setDefaultAction(self.ee_user_guide_action)
+        self.menu.addAction(self.ee_user_guide_action)
+        self.menu.addSeparator()
+        self.menu.addAction(self.sign_in_action)
+        self.menu.addAction(self.set_cloud_project_action)
+
+        # Build toolbar
+        self.toolButton = QToolButton()
+        self.toolButton.setMenu(QMenu())
+        self.toolButton.setToolButtonStyle(
+            Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+            if False
+            else Qt.ToolButtonStyle.ToolButtonIconOnly
+        )
+        self.toolButton.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
+        toolButtonMenu = self.toolButton.menu()
+
+        self.toolButton.setDefaultAction(self.ee_user_guide_action)
+        toolButtonMenu.addAction(self.ee_user_guide_action)
+        toolButtonMenu.addSeparator()
+        toolButtonMenu.addAction(self.sign_in_action)
+        toolButtonMenu.addAction(self.set_cloud_project_action)
+        self.iface.addToolBarWidget(self.toolButton)
 
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self.updateLayers)
+
+    def _build_action(
+        self,
+        *,
+        text: str,
+        icon_name: str,
+        parent: Optional[QObject] = None,
+        callback: Callable,
+    ) -> QAction:
+        """Helper to add a menu item and connect it to a handler."""
+        action = QAction(
+            icon(icon_name), self.tr(text), parent or self.iface.mainWindow()
+        )
+        action.triggered.connect(callback)
+        return action
 
     def run_cmd_ee_user_guide(self):
         # open user guide in external web browser
@@ -158,9 +212,12 @@ class GoogleEarthEnginePlugin(object):
 
     def unload(self):
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_ee_user_guide)
-        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_sign_in)
-        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_set_cloud_project)
+        if not self.menu:
+            # The initGui() method was never called
+            return
+
+        self.iface.pluginMenu().removeAction(self.menu.menuAction())
+        self.toolButton.deleteLater()
 
     def updateLayers(self):
         import ee

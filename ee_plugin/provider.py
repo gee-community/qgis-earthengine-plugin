@@ -17,7 +17,6 @@ from qgis.core import (
     QgsRasterDataProvider,
     QgsRasterIdentifyResult,
     QgsRasterInterface,
-    QgsVectorDataProvider,
 )
 from qgis.PyQt.QtCore import QObject
 
@@ -42,14 +41,6 @@ BAND_TYPES = {
 
 class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     PARENT = QObject()
-
-    # def __getattribute__(self, attr):
-    #     method = object.__getattribute__(self, attr)
-    #     # if not method:
-    #         # raise Exception("Method %s not implemented" % attr)
-    #     if callable(method):
-    #          print(f"method: {attr}")
-    #     return method
 
     def __init__(self, uri, providerOptions=None, flags=None, image=None):
         super().__init__()
@@ -86,9 +77,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
             provider.set_ee_object(image)
 
         return provider
-
-    # ============================
-    # QgsDataProvider methods
 
     def crs(self):
         return QgsCoordinateReferenceSystem("EPSG:3857")
@@ -189,8 +177,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def reloadProviderData(self):
         return self.wms.reloadProviderData()
 
-    # # QgsRasterDataProvider
-
     def providerCapabilities(self):
         return self.wms.providerCapabilities()
 
@@ -239,10 +225,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def getLegendGraphicFetcher(self, mapSettings):
         return self.wms.getLegendGraphicFetcher(mapSettings)
 
-    # buildPyramids()
-
-    # buildPyramidList()
-
     def htmlMetadata(self):
         return json.dumps(self.ee_object.getInfo())
 
@@ -281,16 +263,8 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def setEditable(self, enabled):
         return self.wms.setIsEditable(enabled)
 
-    # write()
-
-    # setNoDataValue()
-
     def remove(self):
         return self.wms.remove()
-
-    # validateCreationOptions()
-
-    # validatePyramidsConfigOptions()
 
     def stepWidth(self):
         return self.wms.stepWidth()
@@ -325,10 +299,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def readNativeAttributeTable(self):
         return self.wms.readNativeAttributeTable()
 
-    # readBlock()
-
-    # QgsWmsProvider
-
     def getMapUrl(self):
         return self.wms.getMapUrl()
 
@@ -341,8 +311,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def getLegendGraphicUrl(self):
         return self.wms.getLegendGraphicUrl()
 
-    # QgsRasterInterface
-    # TODO: I believe could be removed. Taken care of upon initialization.
     def clone(self):
         provider = EarthEngineRasterDataProvider(
             self.uri, self.providerOptions, self.flags, self.ee_object
@@ -413,35 +381,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def sourceInput(self):
         return self.wms.sourceInput()
 
-    # bandStatistics()
-
-    # hasStatistics()
-
-    # histogram()
-
-    # hasHistogram()
-
-    # cumulativeCut()
-
-    # writeXml()
-
-    # readXml()
-
     def set_ee_object(self, ee_object):
         self.ee_object = ee_object
         self.ee_info = ee_object.getInfo()
-
-
-class EarthEngineVectorDataProvider(QgsVectorDataProvider):
-    pass
-
-
-class EarthEngineRasterCollectionDataProvider(QgsRasterDataProvider):
-    pass
-
-
-class EarthEngineVectorCollectionDataProvider(QgsVectorDataProvider):
-    pass
 
 
 def register_data_provider():

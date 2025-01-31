@@ -45,13 +45,12 @@ def update_ee_layer_properties(layer, eeObject, opacity):
     layer.setCustomProperty("ee-object", eeObject.serialize())
 
 
-def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
+def add_or_update_ee_layer(eeObject, vis_params, name, shown, opacity):
     """
     Entry point to add/update an EE layer. Routes between raster and vector layers.
     """
     if isinstance(eeObject, ee.Image):
-        image = eeObject.visualize(**visParams)  # Apply visParams here
-        add_or_update_ee_raster_layer(image, name, shown, opacity)
+        add_or_update_ee_raster_layer(eeObject, name, vis_params, shown, opacity)
     elif isinstance(
         eeObject, (ee.Geometry, ee.Feature, ee.ImageCollection, ee.FeatureCollection)
     ):
@@ -60,26 +59,26 @@ def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
         raise TypeError("Unsupported EE object type")
 
 
-def add_or_update_ee_raster_layer(image, name, shown=True, opacity=1.0):
+def add_or_update_ee_raster_layer(image, name, vis_params, shown=True, opacity=1.0):
     """
     Adds or updates a raster EE layer.
     """
     layer = get_layer_by_name(name)
 
     if layer and layer.customProperty("ee-layer"):
-        layer = update_ee_image_layer(image, layer, shown, opacity)
+        layer = update_ee_image_layer(image, layer, vis_params, shown, opacity)
     else:
-        layer = add_ee_image_layer(image, name, shown, opacity)
+        layer = add_ee_image_layer(image, name, vis_params, shown, opacity)
 
     return layer
 
 
-def add_ee_image_layer(image, name, shown, opacity):
+def add_ee_image_layer(image, name, vis_params, shown, opacity):
     """
     Adds a raster layer using the 'EE' provider.
     """
     check_version()
-    url = "type=xyz&url=" + get_ee_image_url(image)
+    url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
 
     layer = QgsRasterLayer(url, name, "EE")
     assert layer.isValid(), f"Failed to load layer: {name}"
@@ -103,12 +102,12 @@ def add_ee_image_layer(image, name, shown, opacity):
     return layer
 
 
-def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
+def update_ee_image_layer(image, layer, vis_params, shown=True, opacity=1.0):
     """
     Updates an existing EE raster layer.
     """
     check_version()
-    url = "type=xyz&url=" + get_ee_image_url(image)
+    url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
 
     qgis_instance = QgsProject.instance()
     root = qgis_instance.layerTreeRoot()
@@ -215,11 +214,11 @@ def update_ee_vector_layer(eeObject, layer, shown, opacity):
     return new_layer
 
 
-def add_ee_catalog_image(name, asset_name, visParams):
+def add_ee_catalog_image(name, asset_name, vis_params):
     """
     Adds an EE image from a catalog.
     """
-    image = ee.Image(asset_name).visualize(visParams)
+    image = ee.Image(asset_name).visualize(vis_params)
     add_or_update_ee_raster_layer(image, name)
 
 

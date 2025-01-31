@@ -1,5 +1,6 @@
 import ee
 import pytest
+from qgis.core import QgsMapLayer, QgsProject
 
 from ee_plugin import Map
 
@@ -41,4 +42,13 @@ geometries = [
 
 @pytest.mark.parametrize("geometry, vis_params, layer_name", geometries)
 def test_add_geometry_layer(geometry, vis_params, layer_name):
+    qgis_instance = QgsProject.instance()
     Map.addLayer(geometry, vis_params, layer_name), "Layer added successfully"
+
+    layers = qgis_instance.mapLayersByName(layerName=layer_name)
+    assert len(layers) == 1, "Wrong number of layers added"
+
+    layer = layers[0]
+    assert layer, "Layer not found"
+    assert layer.name() == layer_name, "Layer name mismatch"
+    assert layer.type() == QgsMapLayer.VectorLayer, "Layer is not a vector layer"

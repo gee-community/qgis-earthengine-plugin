@@ -53,7 +53,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def __init__(self, uri, providerOptions=None, flags=None, image=None):
         super().__init__()
-
+        self.uri = uri
+        self.providerOptions = providerOptions
+        self.flags = flags
         self.ee_object = image
         self.ee_info = image.getInfo() if image else None
 
@@ -342,7 +344,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     # QgsRasterInterface
     # TODO: I believe could be removed. Taken care of upon initialization.
     def clone(self):
-        provider = EarthEngineRasterDataProvider(*self._args, **self._kwargs)
+        provider = EarthEngineRasterDataProvider(
+            self.uri, self.providerOptions, self.flags, self.ee_object
+        )
         provider.wms.setDataSourceUri(self.wms.dataSourceUri())
         provider.set_ee_object(self.ee_object)
         provider.setParent(EarthEngineRasterDataProvider.PARENT)

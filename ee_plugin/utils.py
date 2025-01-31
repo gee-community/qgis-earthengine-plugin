@@ -80,7 +80,13 @@ def add_ee_image_layer(image, name, shown, opacity):
     """
     check_version()
     url = "type=xyz&url=" + get_ee_image_url(image)
+
     layer = QgsRasterLayer(url, name, "EE")
+    assert layer.isValid(), f"Failed to load layer: {name}"
+
+    provider = layer.dataProvider()
+    assert provider is not None, f"Failed to get provider for layer: {name}"
+
     layer.dataProvider().set_ee_object(image)
     qgis_instance = QgsProject.instance()
 

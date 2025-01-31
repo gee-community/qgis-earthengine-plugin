@@ -13,7 +13,7 @@ from qgis.core import (
     QgsProject,
     QgsRectangle,
 )
-from qgis.PyQt.QtCore import QEventLoop, QTimer
+from qgis.PyQt.QtCore import QEventLoop, QTimer, QCoreApplication, QThread
 from qgis.utils import iface
 
 
@@ -133,8 +133,9 @@ def setCenter(lon, lat, zoom=None):
     # wait 100 milliseconds while load the ee image
     loop = QEventLoop()
     QTimer.singleShot(100, loop.quit)
-    loop.exec_()
-    ### center
+    for _ in range(10):  # Process events for 10 iterations
+        QCoreApplication.processEvents()
+        QThread.msleep(10)  ### center
     center_point_in = QgsPointXY(lon, lat)
     # convert coordinates
     crsSrc = QgsCoordinateReferenceSystem("EPSG:4326")

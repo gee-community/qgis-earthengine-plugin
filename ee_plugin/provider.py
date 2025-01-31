@@ -51,17 +51,17 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     #          print(f"method: {attr}")
     #     return method
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, uri, providerOptions=None, flags=None, image=None):
+        super().__init__()
 
-        self.ee_object = None
-
-        self._args = args
-        self._kwargs = kwargs
+        self.ee_object = image
+        self.ee_info = image.getInfo() if image else None
 
         # create WMS provider
-        self.wms = QgsProviderRegistry.instance().createProvider("wms", *args, **kwargs)
-        assert self.wms, f"Failed to create WMS provider: {args}, {kwargs}"
+        self.wms = QgsProviderRegistry.instance().createProvider(
+            "wms", uri, providerOptions
+        )
+        assert self.wms, f"Failed to create WMS provider: {uri}"
 
     @classmethod
     def description(cls):
@@ -72,13 +72,18 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return "EE"
 
     @classmethod
-    def createProvider(cls, uri, providerOptions, flags=None):
+    def createProvider(cls, uri, providerOptions, flags=None, image=None):
         # compatibility with Qgis < 3.16, ReadFlags only available since 3.16
         if Qgis.QGIS_VERSION_INT >= 31600:
             flags = QgsDataProvider.ReadFlags()
-            return EarthEngineRasterDataProvider(uri, providerOptions, flags)
+            provider = EarthEngineRasterDataProvider(uri, providerOptions, flags, image)
         else:
-            return EarthEngineRasterDataProvider(uri, providerOptions)
+            provider = EarthEngineRasterDataProvider(uri, providerOptions, image=image)
+
+        if image:
+            provider.set_ee_object(image)
+
+        return provider
 
     # ============================
     # QgsDataProvider methods
@@ -335,7 +340,7 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return self.wms.getLegendGraphicUrl()
 
     # QgsRasterInterface
-
+    # TODO: I believe could be removed. Taken care of upon initialization.
     def clone(self):
         provider = EarthEngineRasterDataProvider(*self._args, **self._kwargs)
         provider.wms.setDataSourceUri(self.wms.dataSourceUri())

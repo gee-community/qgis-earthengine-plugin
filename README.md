@@ -54,7 +54,7 @@ Map.setCenter(-121.753, 46.855, 9)
 
 ---
 
-## Troubleshooting
+## ❓ Troubleshooting
 
 ### Resetting Authentication
 If you experience authentication issues:
@@ -76,7 +76,7 @@ More on authentication troubleshooting: [Earth Engine Guide](https://developers.
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 We warmly welcome contributions! If you'd like to contribute:
 1. Check out [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions.

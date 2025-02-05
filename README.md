@@ -1,140 +1,93 @@
-### Support Ukraine
-
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
 
-# Google Earth Engine plugin for QGIS
+# Google Earth Engine Plugin for QGIS
 
-Integrates Google Earth Engine with QGIS using Python API. 
+Integrates Google Earth Engine with QGIS using the Python API.
 
-Check [User Guide](https://gee-community.github.io/qgis-earthengine-plugin/) to get started or ask general questions and comments in the [Discussion](https://github.com/gee-community/qgis-earthengine-plugin/discussions) section.
+📖 **[User Guide](https://gee-community.github.io/qgis-earthengine-plugin/)**  
+💬 **[Discussions & Support](https://github.com/gee-community/qgis-earthengine-plugin/discussions)**  
+🐞 **[Issue Tracker](https://github.com/gee-community/qgis-earthengine-plugin/issues)**  
 
 ![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
 
-### How to use with a simple example
+---
+
+## Quickstart Guide
+
+### 1️⃣ Install the Plugin
+- Open **QGIS Plugin Manager** (`Plugins > Manage and Install Plugins`).
+- Search for **"Google Earth Engine"** and install it.
+
+### 2️⃣ Find Your Google Cloud Project ID
+Google Earth Engine requires a **Google Cloud Project**. To find your Project ID:
+
+- Go to the [Google Cloud Console](https://console.cloud.google.com/).
+- Your **Project ID** is visible in the URL or can be selected from the resource list.
+- For more details, refer to the official [Google Cloud Project Management Guide](https://cloud.google.com/resource-manager/docs/creating-managing-projects).
+
+
+### 3️⃣ Authenticate with your project ID
+
+- Select the sign-in under `Plugins > Google Earth Engine > Sign-In`.
+- Follow prompts to enter your project ID.
+
+### 4️⃣ Use Earth Engine Directly in QGIS 🎉
+Once the plugin is set up, you can start using Earth Engine within QGIS! Try adding a dataset:
 
 ```python
 import ee
 from ee_plugin import Map
 
-# Add Earth Engine dataset
+# Load an elevation dataset
 image = ee.Image('USGS/SRTMGL1_003')
-vis_params = {'min': 0, 'max': 4000, 'palette': ['006633', 'E5FFCC', '662A00', 'D8D8D8', 'F5F5F5']}
-Map.addLayer(image, vis_params, 'DEM')
+
+# Define visualization parameters
+vis_params = {
+    'min': 0, 'max': 4000,
+    'palette': ['006633', 'E5FFCC', '662A00', 'D8D8D8', 'F5F5F5']
+}
+
+# Add the image layer to QGIS
+Map.addLayer(image, vis_params, 'Digital Elevation Model')
 Map.setCenter(-121.753, 46.855, 9)
 ```
 
-### Troubleshooting
+---
 
-#### How to reset your authentication settings?
+## Troubleshooting
 
-Install the Google Earth Engine [command line client](https://developers.google.com/earth-engine/command_line). Run the `earthengine authenticate` command. This resets the authentication credentials and solves most authentication errors.
+### Resetting Authentication
+If you experience authentication issues:
+- Run `earthengine authenticate` again.
+- Delete the credentials file and restart QGIS:
+  - **Windows:** `C:\Users\<USER>\.config\earthengine\credentials`
+  - **Linux:** `/home/<USER>/.config/earthengine/credentials`
+  - **MacOS:** `/Users/<USER>/.config/earthengine/credentials`
 
-An alternative is to delete the credentials file and re-authenticate the plugin by restarting the QGIS. 
+More on authentication troubleshooting: [Earth Engine Guide](https://developers.google.com/earth-engine/guides/auth).
 
-The credentials file is located in:
+### Common Errors
+| Error | Solution |
+|--------|------------|
+| `ModuleNotFoundError: No module named 'ee_plugin'` | Ensure the plugin is installed via QGIS Plugin Manager. |
+| `earthengine authenticate` fails | Run `earthengine authenticate --quiet` and restart QGIS. |
+| `ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED]` | On MacOS, run `/Applications/Python 3.6/Install Certificates.command`. |
+| Plugin crashes after authentication | Ensure your IP is not blocked by a firewall. Check [code.earthengine.google.com](http://code.earthengine.google.com). |
 
-```
-Windows: C:\Users\<USER>\.config\earthengine\credentials 
-Linux: /home/<USER>/.config/earthengine/credentials 
-MacOS: /Users/<USER>/.config/earthengine/credentials
-```
+---
 
-More about EE authentication guide and troubleshooting [here](https://developers.google.com/earth-engine/guides/auth).
+## Contributing
 
-#### Are you through a proxy?
+We warmly welcome contributions! If you'd like to contribute:
+1. Check out [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions.
+2. Ensure your contribution relates to an existing [issue](https://github.com/gee-community/qgis-earthengine-plugin/issues) or discussion.
+3. Open a pull request or issue before starting major changes.
 
-In your scripts, configure proxy settings on top of them:
+For questions, contact the original author: [gennadiy.donchyts@gmail.com](mailto:gennadiy.donchyts@gmail.com).
 
-```python
-import os
-os.environ['HTTP_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
-os.environ['HTTPS_PROXY'] = 'http://[username:password@]<ip_address_or_domain>:<port>'
-
-import ee
-from ee_plugin import Map
-```
-
-#### I am getting error like ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed on MacOS:
-
-Open Finder and double clicking on this file `/Applications/Python 3.6/Install Certificates.command`. This path may vary depending on how QGIS was installed (Homebrew, macports, native). Then restart QGIS. 
-
-#### Plugin crashes after authentication with a stack trace showing 404, what should I do?
-
-Go to http://code.earthengine.google.com and make sure you can access code editor. If the plugin is still failing - make sure your IP is not under firewall.
-
-### Roadmap
-
-#### Alpha 0.0.1 (Q4 2019) :heavy_check_mark:
-- [x] Create a new QGIS plugin skeleton
-- [x] Migrate to QGIS3
-- [x] Embed EE Python library
-- [x] Implement Map.addLayer() for ee.Image
-- [x] Implement Map.addLayer() for ee.Geometry, ee.Feature and ee.FeatureCollection
-- [x] Implement Map.centerObject()
-- [x] Implement Map.getBounds()
-- [x] Implement Map.getCenter()
-- [x] Implement Map.setCenter()
-- [x] Implement Map.getScale()
-- [x] Implement Map.getZoom()
-- [x] Implement Map.setZoom()
-- [x] Upload to QGIS plugin repository: https://plugins.qgis.org/plugins/ - approved!
-
-#### Alpha 0.0.2 (Q3 2020) :heavy_check_mark:
-- [x] Upgrade EE library to 0.1.224 (Windows, Linux, maxOS)
-
-#### Alpha 0.0.3 (Q4 2020) :heavy_check_mark:
-- [x] EE raster layer inspector
-- [x] Show some useful EE properties (bands, value types) in QGIS layer properties dialog
-- [x] Fix EE url authentication function if the credentials is not exists [#63](https://github.com/gee-community/qgis-earthengine-plugin/issues/63)
-- [x] Fix crash if the authentication dialog is cancelled or not filled by the user
-- [x] Init the Google Earth Engine user authorization system only when the user is going to use the plugin
-- [x] Fixed the authentication dialog when the url shortener doesn't work by any reason [#66](https://github.com/gee-community/qgis-earthengine-plugin/issues/66)
-- [x] Fix loading extra python dependencies to the plugin, fix [#62](https://github.com/gee-community/qgis-earthengine-plugin/issues/62)
-
-#### Alpha 0.0.4 (Q1 2021) :heavy_check_mark:
-- [x] Minor bugfix release (EE authentication)
-
-#### Alpha 0.0.5 (Q1 2022) :heavy_check_mark:
-- [x] Minor bugfix release (EE library upgrade)
-
-#### Alpha 0.0.6 (Q1 2023) :heavy_check_mark:
-- [x] Added support for QGIS 3.22+ (fix identify tool)
-
-### Beta 0.0.7 (Q4 2024) :heavy_check_mark:
-- [x] Added support for Google Cloud Projects 
-- [x] Added UI to change Google Cloud Project and re-login
-
-#### 1.0.0 (Q4 2025) :hourglass:
-- [ ] Improve authentication (UI and error handling)
-- [ ] Simplify interpoerability of features/geometry between EE and QGIS
-- [ ] Add layer as a child layer to the group layer [#101](https://github.com/gee-community/qgis-earthengine-plugin/issues/101)
-- [ ] EE vector layer inspector
-- [ ] EE raster collection layer inspector
-- [ ] Make print(ee_object) more user-friendly, without requiring getInfo(), maybe async
-- [ ] Get Link and Open Script
-- [ ] Skip import ee and from ee_plugin import Map for EE scripts
-...
-
-#### 1.1.0
-- [ ] Export.* and Tasks panel (start, cancel, info)
-- [ ] Map.layers() for EE layers, allowing to use things like ui.Map.Layer.setEeObject()
-- [ ] ui.Chart.*
-- [ ] require()
-- [ ] Faster identify tool, using local cached rasters
-- [ ] Add support for Data Catalog, allowing adding assets without the need to write scripts (select time, styling)
-- [ ] Custom EE scripts as Processing algorithms, so that users can use it within Graphical Modeller
-- [ ] Fetch (cache?) raster assets locally (EE > QGIS), for a given rectangle / CRS, as a Processing tool
-- [ ] Export vector and raster data (QGIS > EE) either via Tasks or some other way
-- [ ] Use QGIS vector/raster style editors to edit EE layer styles
-
-### Contributing
-
-We warmly welcome contributions of any kind and deeply appreciate all our contributors, large and small, who are listed on the [GitHub Contributors page](https://github.com/gee-community/qgis-earthengine-plugin/graphs/contributors).
-
-If you'd like to contribute, please:
-1. Check out the [CONTRIBUTING.md](CONTRIBUTING.md) file for detailed instructions on setting up your local environment.
-2. Ensure your contribution relates to an existing issue or discussion topic in the repository. If you're unsure, feel free to open an issue to discuss your idea before starting.
-
-For any questions or concerns, please don't hesitate to contact the original author: [gennadiy.donchyts@gmail.com](mailto:gennadiy.donchyts@gmail.com).
+For feature requests and updates, please check the [GitHub Issues](https://github.com/gee-community/qgis-earthengine-plugin/issues) and [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions).
 
 Thank you for helping improve the QGIS Earth Engine Plugin!
+
+
+

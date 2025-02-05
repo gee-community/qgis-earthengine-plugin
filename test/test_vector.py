@@ -43,7 +43,7 @@ geometries = [
 @pytest.mark.parametrize("geometry, vis_params, layer_name", geometries)
 def test_add_geometry_layer(geometry, vis_params, layer_name):
     qgis_instance = QgsProject.instance()
-    Map.addLayer(geometry, vis_params, layer_name), "Layer added successfully"
+    Map.addLayer(geometry, vis_params, layer_name)
 
     layers = qgis_instance.mapLayersByName(layerName=layer_name)
     assert len(layers) == 1, "Wrong number of layers added"
@@ -52,3 +52,18 @@ def test_add_geometry_layer(geometry, vis_params, layer_name):
     assert layer, "Layer not found"
     assert layer.name() == layer_name, "Layer name mismatch"
     assert layer.type() == QgsMapLayer.VectorLayer, "Layer is not a vector layer"
+
+
+def test_data_catalog_vector_layer():
+    qgis_instance = QgsProject.instance()
+
+    ecoregions = ee.FeatureCollection("RESOLVE/ECOREGIONS/2017")
+
+    Map.addLayer(ecoregions, {}, "ecoregions")
+
+    layers = qgis_instance.mapLayersByName(layerName="ecoregions")
+    assert len(layers) == 1, "Wrong number of layers added"
+    assert layers[0].name() == "ecoregions", "Layer name mismatch"
+    assert (
+        layers[0].type() == QgsMapLayer.RasterLayer
+    ), "Layer is treated as raster layer"

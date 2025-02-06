@@ -34,9 +34,16 @@ def test_raster_identify():
     )
 
     assert raster_identify_result, "Identify operation returned no results"
+    # can't fetch key to match elevation...
+    # but we can verify single band is returned
+    # which was an error caused when we modified the ee.Image to the visualize(**params)
+    # we simply need to pass visualize(**params) to EarthEngine when creating the WMS URL
     assert (
-        raster_identify_result.results()
-    ), "Identify operation returned an empty result set"
+        raster_identify_result.isValid()
+    ), "Identify operation returned an invalid result"
+    assert (
+        len(raster_identify_result.results()) == 1
+    ), "Identify operation returned more than one result, which means multiples bands were returned"
     assert (
         raster_identify_result.results()[1] > 0
     ), "Identified elevation is not positive"

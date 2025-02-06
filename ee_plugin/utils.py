@@ -64,7 +64,7 @@ def add_or_update_ee_layer(eeObject, vis_params, name, shown, opacity):
         add_or_update_ee_raster_layer(eeObject, name, vis_params, shown, opacity)
     elif isinstance(eeObject, ee.FeatureCollection):
         if is_named_dataset(eeObject):
-            add_or_update_vector_tiled_layer(eeObject, name, vis_params, shown, opacity)
+            add_or_update_named_vector_layer(eeObject, name, vis_params, shown, opacity)
         else:
             add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
     elif isinstance(eeObject, ee.Geometry):
@@ -145,7 +145,7 @@ def update_ee_image_layer(image, layer, vis_params, shown=True, opacity=1.0):
     return new_layer
 
 
-def add_or_update_vector_tiled_layer(
+def add_or_update_named_vector_layer(
     eeObject, name, vis_params, shown=True, opacity=1.0
 ):
     """
@@ -155,24 +155,8 @@ def add_or_update_vector_tiled_layer(
     if not table_id:
         raise ValueError(f"FeatureCollection {name} does not have a valid tableId.")
 
-    map_id_dict = ee.Image().paint(eeObject, 0, 2).getMapId(vis_params)
-    tile_url = map_id_dict["tile_fetcher"].url_format
-    uri = f"type=xyz&url={tile_url}"
-    layer = QgsRasterLayer(uri, name, "wms")
-
-    if not layer.isValid():
-        raise Exception(f"Failed to load vector tile layer: {name}")
-
-    QgsProject.instance().addMapLayer(layer)
-
-    if shown is not None:
-        QgsProject.instance().layerTreeRoot().findLayer(
-            layer.id()
-        ).setItemVisibilityChecked(shown)
-
-    if opacity is not None and layer.renderer():
-        layer.renderer().setOpacity(opacity)
-        layer.triggerRepaint()
+    image = ee.Image().paint(eeObject, 0, 2)
+    layer = add_or_update_ee_raster_layer(image, name, vis_params, shown, opacity)
 
     return layer
 

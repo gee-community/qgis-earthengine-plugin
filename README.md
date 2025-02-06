@@ -85,6 +85,7 @@ If you experience authentication issues:
 More on authentication troubleshooting: [Earth Engine Guide](https://developers.google.com/earth-engine/guides/auth).
 
 ### Common Errors
+
 | Error | Solution |
 |--------|------------|
 | `ModuleNotFoundError: No module named 'ee_plugin'` | Ensure the plugin is installed via QGIS Plugin Manager. |

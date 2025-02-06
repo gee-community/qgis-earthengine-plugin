@@ -35,7 +35,7 @@ jobs:
         paver package
    
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ee_plugin-${{ matrix.os }}.zip
         path: ee_plugin.zip

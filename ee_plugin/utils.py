@@ -24,11 +24,8 @@ def is_named_dataset(eeObject):
 
 
 def get_layer_by_name(name):
-    layers = QgsProject.instance().mapLayers().values()
-
-    for layer in layers:
-        if layer.name() == name:
-            return layer
+    for layer in QgsProject.instance().mapLayersByName(name):
+        return layer
 
     return None
 

@@ -17,7 +17,6 @@ The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthen
 ### 1️⃣ Install the Plugin
 - Open **QGIS Plugin Manager** (`Plugins > Manage and Install Plugins`).
 - Search for **"Google Earth Engine"** and install it.
-- Restart QGIS after installation.
 
 ### 2️⃣ Find Your Google Cloud Project ID
 Google Earth Engine requires a **Google Cloud Project**. To find your Project ID:

@@ -152,6 +152,7 @@ def add_or_update_named_vector_layer(
     if not table_id:
         raise ValueError(f"FeatureCollection {name} does not have a valid tableId.")
 
+    # Given the potential large-size of named datasets, we render FeatureCollections as WMS raster layers
     image = ee.Image().paint(eeObject, 0, 2)
     layer = add_or_update_ee_raster_layer(image, name, vis_params, shown, opacity)
 

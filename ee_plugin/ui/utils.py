@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Type
+from typing import List, Optional, Type, Callable, Tuple
 
-from qgis.PyQt.QtWidgets import (
+from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
     QGroupBox,
@@ -9,48 +9,51 @@ from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QDialog,
     QDialogButtonBox,
+    QLineEdit,
+    QDateEdit,
+    QCheckBox,
 )
 
 
-@dataclass
-class Label:
+IGNORED_TYPES = (QLabel, QGroupBox, QDialogButtonBox, QVBoxLayout, QFormLayout)
+
+
+def build_label(
+    *,
+    object_name: str,
+    text: str,
+    tooltip: Optional[str] = None,
+    whatsthis: Optional[str] = None,
+    cls: Type[QLabel] = QLabel,
+    parent: Optional[QWidget] = None,
+) -> QLabel:
     """
-    Defines a QLabel with optional tooltip/whatsThis.
+    Defines a QLabel with optional tooltip/WhatsThis.
     """
+    lbl = cls(parent)
+    lbl.setObjectName(object_name)
+    lbl.setText(text)
+    if tooltip:
+        lbl.setToolTip(tooltip)
+    if whatsthis:
+        lbl.setWhatsThis(whatsthis)
 
-    object_name: str
-    text: str
-    tooltip: Optional[str] = None
-    whatsthis: Optional[str] = None
-    cls: Type[QLabel] = QLabel
-
-    def build(self, parent: QWidget) -> QLabel:
-        """Instantiate and return a QLabel."""
-        label = self.cls(parent)
-        label.setObjectName(self.object_name)
-        label.setText(self.text)
-        if self.tooltip:
-            label.setToolTip(self.tooltip)
-        if self.whatsthis:
-            label.setWhatsThis(self.whatsthis)
-        return label
+    return lbl
 
 
-@dataclass
-class Widget:
+def build_widget(
+    *,
+    object_name: str,
+    cls: Type,
+    **kwargs,
+) -> QWidget:
     """
-    Describes the widget to be created (e.g., QLineEdit, QDateEdit, QgsColorButton).
-    Storing the actual widget class instead of a string.
+    Describes the widget to be created (e.g., QLineEdit, QDateEdit, QgsColorButton),
+    storing the actual widget class instead of a string.
     """
-
-    cls: Type
-    object_name: str
-
-    def build(self, parent: QWidget) -> QWidget:
-        """Instantiate and return a widget of the given class."""
-        w = self.cls(parent)
-        w.setObjectName(self.object_name)
-        return w
+    widget = cls(**kwargs)
+    widget.setObjectName(object_name)
+    return widget
 
 
 @dataclass
@@ -59,56 +62,69 @@ class Row:
     A row in a QFormLayout: label + widget side by side.
     """
 
-    label: Label
-    widget: Widget
-
-    def build(self, parent: QWidget, form_layout: QFormLayout):
-        """
-        Create a label and widget, then add them to the form layout.
-        Returns (label_instance, widget_instance).
-        """
-        lbl = self.label.build(parent)
-        wdg = self.widget.build(parent)
-        form_layout.addRow(lbl, wdg)
-        return lbl, wdg
+    label: QLabel
+    widget: QWidget
 
 
-@dataclass
-class GroupBox:
+def build_group_box(
+    *,
+    object_name: str,
+    title: str,
+    rows: List[Tuple[QWidget, QWidget]] = field(default_factory=list),
+) -> QGroupBox:
     """
-    A group box in the UI. If `stretch_factor` is provided, that determines
-    how tall this block grows relative to other siblings in the parent layout.
+    A group box in the UI.
+
+    :param object_name: The object name of the group box.
+    :param title: The title of the group box.
+    :param rows: A list of tuples, each containing a label and a widget.
     """
+    gb = QGroupBox()
+    gb.setObjectName(object_name)
+    gb.setTitle(title)
 
-    object_name: str
-    title: str
-    rows: List[Row] = field(default_factory=list)
-    stretch_factor: Optional[int] = None
+    form_layout = QFormLayout(gb)
+    gb.setLayout(form_layout)
 
-    def build(self, parent: QWidget, parent_layout: QVBoxLayout) -> QGroupBox:
-        """
-        Create a QGroupBox, give it a QFormLayout, build each row,
-        then add this group box to the parent_layout (with optional stretch).
-        Returns the newly created QGroupBox instance.
-        """
-        gb = QGroupBox(parent)
-        gb.setObjectName(self.object_name)
-        gb.setTitle(self.title)
+    for row in rows:
+        form_layout.addRow(*row)
 
-        form_layout = QFormLayout(gb)
-        for row in self.rows:
-            row.build(gb, form_layout)
-
-        if self.stretch_factor is not None:
-            parent_layout.addWidget(gb, self.stretch_factor)
-        else:
-            parent_layout.addWidget(gb)
-
-        return gb
+    return gb
 
 
-@dataclass
-class Dialog:
+def build_button_box(
+    *,
+    object_name: str,
+    buttons: List[QDialogButtonBox.StandardButton] = field(default_factory=list),
+    accepted: Optional[Callable] = None,
+    rejected: Optional[Callable] = None,
+) -> QDialogButtonBox:
+    """
+    A button box in the UI.
+    """
+    btn_box = QDialogButtonBox()
+    btn_box.setObjectName(object_name)
+
+    for button in buttons:
+        btn_box.addButton(button)
+
+    if accepted:
+        btn_box.accepted.connect(accepted)
+    if rejected:
+        btn_box.rejected.connect(rejected)
+
+    return btn_box
+
+
+def build_dialog(
+    object_name: str,
+    title: str,
+    width: int = 600,
+    height: int = 400,
+    margins: tuple = (10, 10, 10, 10),
+    children: List[QWidget] = field(default_factory=list),
+    parent: Optional[QWidget] = None,
+) -> QDialog:
     """
     The top-level definition of our dialog window.
     It holds the dialog's dimensions, title, margins, and the group boxes to be displayed.
@@ -117,38 +133,49 @@ class Dialog:
     adding each group box in turn, and finally adding a standard button box (OK/Cancel).
     """
 
-    object_name: str
-    title: str
-    width: int = 600
-    height: int = 400
-    margins: tuple = (10, 10, 10, 10)
-    group_boxes: List[GroupBox] = field(default_factory=list)
+    """
+    Create the QDialog, set its layout and geometry, build group boxes,
+    add the button box, and return the dialog widget.
 
-    def build(self, parent) -> QDialog:
-        """
-        Create the QDialog, set its layout and geometry, then build the group boxes
-        and the button box at the bottom. Returns the fully constructed dialog.
-        """
-        dialog = QDialog(parent)
-        dialog.setObjectName(self.object_name)
-        dialog.setWindowTitle(self.title)
-        dialog.resize(self.width, self.height)
+    :return: A tuple: (QDialog instance, Dict of widget references).
+    """
+    dialog = QDialog(parent)
+    dialog.setObjectName(object_name)
+    dialog.setWindowTitle(title)
+    dialog.resize(width, height)
 
-        main_layout = QVBoxLayout(dialog)
-        main_layout.setContentsMargins(*self.margins)
-        dialog.setLayout(main_layout)
+    main_layout = QVBoxLayout(dialog)
+    main_layout.setContentsMargins(*margins)
+    dialog.setLayout(main_layout)
 
-        # Build each group box in order
-        for gb_def in self.group_boxes:
-            gb_def.build(dialog, main_layout)
+    # Build each group box
+    for widget in children:
+        main_layout.addWidget(widget)
 
-        # Add OK/Cancel buttons
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.setObjectName("buttonBox")
-        main_layout.addWidget(button_box)
+    # Add OK/Cancel buttons
+    main_layout.addWidget(
+        build_button_box(
+            object_name="button_box",
+            buttons=[QDialogButtonBox.Ok, QDialogButtonBox.Cancel],
+            accepted=dialog.accept,
+            rejected=dialog.reject,
+        )
+    )
 
-        # Hook up signals
-        button_box.accepted.connect(dialog.accept)
-        button_box.rejected.connect(dialog.reject)
+    return dialog
 
-        return dialog
+
+def get_values(dialog):
+    """
+    Return a dictionary of all widget values from dialog.
+    """
+    parsers = {
+        QLineEdit: lambda w: w.text(),
+        QDateEdit: lambda w: w.date().toString("yyyy-MM-dd"),
+        QCheckBox: lambda w: w.isChecked(),
+    }
+    return {
+        w.objectName(): parsers[type(w)](w)
+        for w in dialog.findChildren(QWidget)
+        if type(w) in parsers
+    }

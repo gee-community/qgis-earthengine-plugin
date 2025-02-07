@@ -28,7 +28,14 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt import QtWidgets
 
 from . import dialog
-from .ui.utils import GroupBox, Row, Label, Widget, Dialog
+from .ui.utils import (
+    build_group_box,
+    Row,
+    build_label,
+    build_widget,
+    build_dialog,
+    get_values,
+)
 
 PLUGIN_DIR = os.path.dirname(__file__)
 
@@ -111,7 +118,7 @@ class GoogleEarthEnginePlugin(object):
             callback=self._run_cmd_set_cloud_project,
         )
         self.open_test_widget = self._build_action(
-            text="Test Dialog",
+            text="Test dialog",
             icon_name="earth-engine.svg",
             callback=self._test_dock_widget,
         )
@@ -270,91 +277,101 @@ class GoogleEarthEnginePlugin(object):
             add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)
 
     def _test_dock_widget(self):
-        dialog = Dialog(
-            object_name="Dialog",
-            title="Dialog",
+        dialog = build_dialog(
+            object_name="dialog",
+            title="dialog",
             margins=[10] * 4,
-            group_boxes=[
-                GroupBox(
+            children=[
+                build_group_box(
                     object_name="groupBox_1",
                     title="Source",
                     rows=[
-                        Row(
-                            label=Label(
+                        (
+                            build_label(
                                 object_name="addGEEFeatureCollectionToMapLabel",
                                 text="Add GEE Feature Collection to Map",
                                 tooltip="This is a tooltip!",
                                 whatsthis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
                             ),
-                            widget=Widget(
+                            build_widget(
                                 cls=QtWidgets.QLineEdit,
                                 object_name="addGEEFeatureCollectionToMapLineEdit",
                             ),
                         )
                     ],
                 ),
-                GroupBox(
+                build_group_box(
                     object_name="groupBox_2",
                     title="Filter by Properties",
                     rows=[
-                        Row(
-                            label=Label(object_name="nameLabel", text="Name"),
-                            widget=Widget(
-                                cls=QtWidgets.QLineEdit, object_name="nameLineEdit"
+                        (
+                            build_label(object_name="nameLabel", text="Name"),
+                            build_widget(
+                                cls=QtWidgets.QLineEdit,
+                                object_name="nameLineEdit",
                             ),
                         ),
-                        Row(
-                            label=Label(object_name="valueLabel", text="Value"),
-                            widget=Widget(
-                                cls=QtWidgets.QLineEdit, object_name="valueLineEdit"
+                        (
+                            build_label(object_name="valueLabel", text="Value"),
+                            build_widget(
+                                cls=QtWidgets.QLineEdit,
+                                object_name="valueLineEdit",
                             ),
                         ),
                     ],
                 ),
-                GroupBox(
+                build_group_box(
                     object_name="groupBox_3",
                     title="Filter by Dates",
                     rows=[
-                        Row(
-                            label=Label(object_name="nameLabel_2", text="Start"),
-                            widget=Widget(
-                                cls=QtWidgets.QDateEdit, object_name="dateEdit"
+                        (
+                            build_label(object_name="nameLabel_2", text="Start"),
+                            build_widget(
+                                cls=QtWidgets.QDateEdit,
+                                object_name="dateEdit",
                             ),
                         ),
-                        Row(
-                            label=Label(object_name="valueLabel_2", text="End"),
-                            widget=Widget(
-                                cls=QtWidgets.QDateEdit, object_name="dateEdit_2"
+                        (
+                            build_label(object_name="valueLabel_2", text="End"),
+                            build_widget(
+                                cls=QtWidgets.QDateEdit,
+                                object_name="dateEdit_2",
                             ),
                         ),
                     ],
                 ),
-                GroupBox(
-                    object_name="groupBox_4",
+                build_widget(
+                    cls=gui.QgsExtentGroupBox,
+                    object_name="mExtentGroupBox",
                     title="Filter by Coordinates",
-                    rows=[
-                        # Place a QgsExtentGroupBox in one row (with an empty label)
-                        Row(
-                            label=Label(object_name="extentLabel", text=""),
-                            widget=Widget(
-                                cls=gui.QgsExtentGroupBox,
-                                object_name="mExtentGroupBox",
-                            ),
-                        )
-                    ],
                 ),
-                GroupBox(
+                build_group_box(
                     object_name="groupBox_5",
                     title="Visualization",
                     rows=[
-                        Row(
-                            label=Label(object_name="label", text="Color"),
-                            widget=Widget(
-                                cls=gui.QgsColorButton, object_name="mColorButton"
+                        (
+                            build_label(object_name="label", text="Color"),
+                            build_widget(
+                                cls=gui.QgsColorButton,
+                                object_name="mColorButton",
                             ),
                         )
                     ],
                 ),
             ],
-        ).build(self.iface.mainWindow())
+        )
+
+        # qdialog = dialog.build(self.iface.mainWindow())
+        dialog.accepted.connect(
+            lambda: self.iface.messageBar().pushMessage(
+                f"Accepted {get_values(dialog)=}"
+            )
+        )
+        dialog.rejected.connect(
+            lambda: self.iface.messageBar().pushMessage("Cancelled")
+        )
         dialog.show()
+
+
+def retrieve_values():
+    print("handle")

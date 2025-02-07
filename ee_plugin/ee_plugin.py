@@ -87,28 +87,31 @@ class GoogleEarthEnginePlugin(object):
         """Initialize the plugin GUI."""
         # Build actions
         ee_user_guide_action = QtWidgets.QAction(
-            icon("earth-engine.svg"),
-            self.tr("User Guide"),
+            icon=icon("earth-engine.svg"),
+            text=self.tr("User Guide"),
+            parent=self.iface.mainWindow(),
             triggered=self._run_cmd_ee_user_guide,
         )
         sign_in_action = QtWidgets.QAction(
-            icon("google-cloud.svg"),
-            self.tr("Sign-in"),
+            icon=icon("google-cloud.svg"),
+            text=self.tr("Sign-in"),
+            parent=self.iface.mainWindow(),
             triggered=self._run_cmd_sign_in,
         )
         set_cloud_project_action = QtWidgets.QAction(
-            icon("google-cloud-project.svg"),
-            self.tr("Set Project"),
+            icon=icon("google-cloud-project.svg"),
+            text=self.tr(f"Set Project"),
+            parent=self.iface.mainWindow(),
             triggered=self._run_cmd_set_cloud_project,
         )
 
         # Build plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
         ee_menu = plugin_menu.addMenu(
-            icon("earth-engine.svg"), self.tr("&Google Earth Engine")
+            icon("earth-engine.svg"),
+            self.tr("&Google Earth Engine"),
         )
         self.menu = ee_menu
-        ee_menu.setDefaultAction(ee_user_guide_action)
         ee_menu.addAction(ee_user_guide_action)
         ee_menu.addSeparator()
         ee_menu.addAction(sign_in_action)

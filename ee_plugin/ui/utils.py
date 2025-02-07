@@ -1,9 +1,8 @@
-from dataclasses import dataclass, field
-from typing import List, Optional, Type, Callable, Tuple
+from dataclasses import field
+from typing import List, Tuple, Union
 
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtWidgets import (
     QWidget,
-    QLabel,
     QGroupBox,
     QFormLayout,
     QVBoxLayout,
@@ -12,155 +11,64 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QDateEdit,
     QCheckBox,
+    QLayout,
 )
+from qgis.gui import QgsColorButton, QgsCollapsibleGroupBox
 
 
-IGNORED_TYPES = (QLabel, QGroupBox, QDialogButtonBox, QVBoxLayout, QFormLayout)
-
-
-def build_label(
+def build_form_group_box(
     *,
-    object_name: str,
-    text: str,
-    tooltip: Optional[str] = None,
-    whatsthis: Optional[str] = None,
-    cls: Type[QLabel] = QLabel,
-    parent: Optional[QWidget] = None,
-) -> QLabel:
-    """
-    Defines a QLabel with optional tooltip/WhatsThis.
-    """
-    lbl = cls(parent)
-    lbl.setObjectName(object_name)
-    lbl.setText(text)
-    if tooltip:
-        lbl.setToolTip(tooltip)
-    if whatsthis:
-        lbl.setWhatsThis(whatsthis)
-
-    return lbl
-
-
-def build_widget(
-    *,
-    object_name: str,
-    cls: Type,
+    rows: List[
+        Union[Tuple[Union[QWidget, str], Union[QWidget, QLayout]], QWidget, QLayout]
+    ] = field(default_factory=list),
+    collapsable: bool = False,
     **kwargs,
-) -> QWidget:
+) -> Union[QGroupBox, QgsCollapsibleGroupBox]:
     """
-    Describes the widget to be created (e.g., QLineEdit, QDateEdit, QgsColorButton),
-    storing the actual widget class instead of a string.
+    A group box with a form layout.
     """
-    widget = cls(**kwargs)
-    widget.setObjectName(object_name)
-    return widget
-
-
-@dataclass
-class Row:
-    """
-    A row in a QFormLayout: label + widget side by side.
-    """
-
-    label: QLabel
-    widget: QWidget
-
-
-def build_group_box(
-    *,
-    object_name: str,
-    title: str,
-    rows: List[Tuple[QWidget, QWidget]] = field(default_factory=list),
-) -> QGroupBox:
-    """
-    A group box in the UI.
-
-    :param object_name: The object name of the group box.
-    :param title: The title of the group box.
-    :param rows: A list of tuples, each containing a label and a widget.
-    """
-    gb = QGroupBox()
-    gb.setObjectName(object_name)
-    gb.setTitle(title)
-
-    form_layout = QFormLayout(gb)
-    gb.setLayout(form_layout)
+    gb = QGroupBox(**kwargs) if not collapsable else QgsCollapsibleGroupBox(**kwargs)
+    layout = QFormLayout()
+    gb.setLayout(layout)
 
     for row in rows:
-        form_layout.addRow(*row)
+        if isinstance(row, (QWidget, QLayout)):
+            row = [row]
+        layout.addRow(*row)
 
     return gb
 
 
-def build_button_box(
-    *,
-    object_name: str,
-    buttons: List[QDialogButtonBox.StandardButton] = field(default_factory=list),
-    accepted: Optional[Callable] = None,
-    rejected: Optional[Callable] = None,
-) -> QDialogButtonBox:
-    """
-    A button box in the UI.
-    """
-    btn_box = QDialogButtonBox()
-    btn_box.setObjectName(object_name)
-
-    for button in buttons:
-        btn_box.addButton(button)
-
-    if accepted:
-        btn_box.accepted.connect(accepted)
-    if rejected:
-        btn_box.rejected.connect(rejected)
-
-    return btn_box
-
-
-def build_dialog(
-    object_name: str,
-    title: str,
-    width: int = 600,
-    height: int = 400,
-    margins: tuple = (10, 10, 10, 10),
-    children: List[QWidget] = field(default_factory=list),
-    parent: Optional[QWidget] = None,
+def build_vbox_dialog(
+    widgets: List[QWidget] = field(default_factory=list),
+    show: bool = True,
+    **kwargs,
 ) -> QDialog:
     """
-    The top-level definition of our dialog window.
-    It holds the dialog's dimensions, title, margins, and the group boxes to be displayed.
-
-    The build() method creates and returns a QDialog, setting up the layout,
-    adding each group box in turn, and finally adding a standard button box (OK/Cancel).
+    Build a dialog with a vertical layout and configured standard buttons.
     """
+    dialog = QDialog(**kwargs)
 
-    """
-    Create the QDialog, set its layout and geometry, build group boxes,
-    add the button box, and return the dialog widget.
-
-    :return: A tuple: (QDialog instance, Dict of widget references).
-    """
-    dialog = QDialog(parent)
-    dialog.setObjectName(object_name)
-    dialog.setWindowTitle(title)
-    dialog.resize(width, height)
-
+    # Configure dialog layout
     main_layout = QVBoxLayout(dialog)
-    main_layout.setContentsMargins(*margins)
     dialog.setLayout(main_layout)
 
-    # Build each group box
-    for widget in children:
+    # Add widgets to the dialog
+    for widget in widgets:
         main_layout.addWidget(widget)
 
     # Add OK/Cancel buttons
     main_layout.addWidget(
-        build_button_box(
-            object_name="button_box",
-            buttons=[QDialogButtonBox.Ok, QDialogButtonBox.Cancel],
+        QDialogButtonBox(
+            standardButtons=QDialogButtonBox.Cancel | QDialogButtonBox.Ok,
             accepted=dialog.accept,
             rejected=dialog.reject,
         )
     )
+
+    # Show the dialog on screen
+    if show:
+        dialog.show()
 
     return dialog
 
@@ -173,6 +81,7 @@ def get_values(dialog):
         QLineEdit: lambda w: w.text(),
         QDateEdit: lambda w: w.date().toString("yyyy-MM-dd"),
         QCheckBox: lambda w: w.isChecked(),
+        QgsColorButton: lambda w: w.color().name(),
     }
     return {
         w.objectName(): parsers[type(w)](w)

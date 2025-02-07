@@ -27,13 +27,9 @@ from qgis.PyQt.QtCore import (
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt import QtWidgets
 
-from . import dialog
 from .ui.utils import (
-    build_group_box,
-    Row,
-    build_label,
-    build_widget,
-    build_dialog,
+    build_form_group_box,
+    build_vbox_dialog,
     get_values,
 )
 
@@ -277,101 +273,71 @@ class GoogleEarthEnginePlugin(object):
             add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)
 
     def _test_dock_widget(self):
-        dialog = build_dialog(
-            object_name="dialog",
-            title="dialog",
-            margins=[10] * 4,
-            children=[
-                build_group_box(
-                    object_name="groupBox_1",
+        dialog = build_vbox_dialog(
+            windowTitle="Add Feature Collection",
+            widgets=[
+                build_form_group_box(
                     title="Source",
                     rows=[
                         (
-                            build_label(
-                                object_name="addGEEFeatureCollectionToMapLabel",
+                            QtWidgets.QLabel(
+                                objectName="addGEEFeatureCollectionToMapLabel",
                                 text="Add GEE Feature Collection to Map",
-                                tooltip="This is a tooltip!",
-                                whatsthis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
+                                toolTip="This is a tooltip!",
+                                whatsThis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
                             ),
-                            build_widget(
-                                cls=QtWidgets.QLineEdit,
-                                object_name="addGEEFeatureCollectionToMapLineEdit",
+                            QtWidgets.QLineEdit(
+                                objectName="addGEEFeatureCollectionToMapLineEdit"
                             ),
                         )
                     ],
                 ),
-                build_group_box(
-                    object_name="groupBox_2",
+                build_form_group_box(
                     title="Filter by Properties",
+                    collapsable=True,
+                    collapsed=True,
                     rows=[
                         (
-                            build_label(object_name="nameLabel", text="Name"),
-                            build_widget(
-                                cls=QtWidgets.QLineEdit,
-                                object_name="nameLineEdit",
-                            ),
+                            "Name",
+                            QtWidgets.QLineEdit(objectName="nameLineEdit"),
                         ),
                         (
-                            build_label(object_name="valueLabel", text="Value"),
-                            build_widget(
-                                cls=QtWidgets.QLineEdit,
-                                object_name="valueLineEdit",
-                            ),
+                            "Value",
+                            QtWidgets.QLineEdit(objectName="valueLineEdit"),
                         ),
                     ],
                 ),
-                build_group_box(
-                    object_name="groupBox_3",
+                build_form_group_box(
                     title="Filter by Dates",
+                    collapsable=True,
+                    collapsed=True,
                     rows=[
                         (
-                            build_label(object_name="nameLabel_2", text="Start"),
-                            build_widget(
-                                cls=QtWidgets.QDateEdit,
-                                object_name="dateEdit",
-                            ),
+                            "Start",
+                            QtWidgets.QDateEdit(objectName="dateEdit"),
                         ),
                         (
-                            build_label(object_name="valueLabel_2", text="End"),
-                            build_widget(
-                                cls=QtWidgets.QDateEdit,
-                                object_name="dateEdit_2",
-                            ),
+                            "End",
+                            QtWidgets.QDateEdit(objectName="dateEdit_2"),
                         ),
                     ],
                 ),
-                build_widget(
-                    cls=gui.QgsExtentGroupBox,
-                    object_name="mExtentGroupBox",
+                gui.QgsExtentGroupBox(
+                    objectName="mExtentGroupBox",
                     title="Filter by Coordinates",
+                    collapsed=True,
                 ),
-                build_group_box(
-                    object_name="groupBox_5",
+                build_form_group_box(
                     title="Visualization",
+                    collapsable=True,
+                    collapsed=True,
                     rows=[
-                        (
-                            build_label(object_name="label", text="Color"),
-                            build_widget(
-                                cls=gui.QgsColorButton,
-                                object_name="mColorButton",
-                            ),
-                        )
+                        ("Color", gui.QgsColorButton(objectName="mColorButton")),
                     ],
                 ),
             ],
-        )
-
-        # qdialog = dialog.build(self.iface.mainWindow())
-        dialog.accepted.connect(
-            lambda: self.iface.messageBar().pushMessage(
+            accepted=lambda: self.iface.messageBar().pushMessage(
                 f"Accepted {get_values(dialog)=}"
-            )
+            ),
+            rejected=lambda: self.iface.messageBar().pushMessage("Cancelled"),
         )
-        dialog.rejected.connect(
-            lambda: self.iface.messageBar().pushMessage("Cancelled")
-        )
-        dialog.show()
-
-
-def retrieve_values():
-    print("handle")

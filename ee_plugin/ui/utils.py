@@ -73,7 +73,7 @@ def build_vbox_dialog(
     return dialog
 
 
-def get_values(dialog):
+def get_values(dialog: QDialog) -> dict:
     """
     Return a dictionary of all widget values from dialog.
     """

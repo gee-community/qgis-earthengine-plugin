@@ -281,14 +281,11 @@ class GoogleEarthEnginePlugin(object):
                     rows=[
                         (
                             QtWidgets.QLabel(
-                                objectName="addGEEFeatureCollectionToMapLabel",
                                 text="Add GEE Feature Collection to Map",
                                 toolTip="This is a tooltip!",
                                 whatsThis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
                             ),
-                            QtWidgets.QLineEdit(
-                                objectName="addGEEFeatureCollectionToMapLineEdit"
-                            ),
+                            QtWidgets.QLineEdit(objectName="featureCollectionId"),
                         )
                     ],
                 ),
@@ -299,11 +296,11 @@ class GoogleEarthEnginePlugin(object):
                     rows=[
                         (
                             "Name",
-                            QtWidgets.QLineEdit(objectName="nameLineEdit"),
+                            QtWidgets.QLineEdit(objectName="filterName"),
                         ),
                         (
                             "Value",
-                            QtWidgets.QLineEdit(objectName="valueLineEdit"),
+                            QtWidgets.QLineEdit(objectName="filterValue"),
                         ),
                     ],
                 ),
@@ -314,16 +311,16 @@ class GoogleEarthEnginePlugin(object):
                     rows=[
                         (
                             "Start",
-                            QtWidgets.QDateEdit(objectName="dateEdit"),
+                            QtWidgets.QDateEdit(objectName="startDate"),
                         ),
                         (
                             "End",
-                            QtWidgets.QDateEdit(objectName="dateEdit_2"),
+                            QtWidgets.QDateEdit(objectName="endDate"),
                         ),
                     ],
                 ),
                 gui.QgsExtentGroupBox(
-                    objectName="mExtentGroupBox",
+                    objectName="extent",
                     title="Filter by Coordinates",
                     collapsed=True,
                 ),
@@ -332,7 +329,7 @@ class GoogleEarthEnginePlugin(object):
                     collapsable=True,
                     collapsed=True,
                     rows=[
-                        ("Color", gui.QgsColorButton(objectName="mColorButton")),
+                        ("Color", gui.QgsColorButton(objectName="vizColorHex")),
                     ],
                 ),
             ],

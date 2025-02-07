@@ -14,7 +14,7 @@ from typing import Callable, cast, Optional
 
 import requests  # type: ignore
 from qgis.core import QgsProject
-from qgis.gui import QgisInterface
+from qgis import gui
 from qgis.PyQt.QtCore import (
     QCoreApplication,
     QSettings,
@@ -23,8 +23,12 @@ from qgis.PyQt.QtCore import (
     QObject,
     Qt,
 )
+
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QMenu, QToolButton
+from qgis.PyQt import QtWidgets
+
+from . import dialog
+from .ui.utils import GroupBox, Row, Label, Widget, Dialog
 
 PLUGIN_DIR = os.path.dirname(__file__)
 
@@ -43,9 +47,7 @@ def icon(icon_name: str) -> QIcon:
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
 
-    # iface: QgisInterface
-
-    def __init__(self, iface: QgisInterface):
+    def __init__(self, iface: gui.QgisInterface):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -96,22 +98,27 @@ class GoogleEarthEnginePlugin(object):
         self.ee_user_guide_action = self._build_action(
             text="User Guide",
             icon_name="earth-engine.svg",
-            callback=self.run_cmd_ee_user_guide,
+            callback=self._run_cmd_ee_user_guide,
         )
         self.sign_in_action = self._build_action(
             text="Sign-in",
             icon_name="google-cloud.svg",
-            callback=self.run_cmd_sign_in,
+            callback=self._run_cmd_sign_in,
         )
         self.set_cloud_project_action = self._build_action(
             text="Set Project",
             icon_name="google-cloud-project.svg",
-            callback=self.run_cmd_set_cloud_project,
+            callback=self._run_cmd_set_cloud_project,
+        )
+        self.open_test_widget = self._build_action(
+            text="Test Dialog",
+            icon_name="earth-engine.svg",
+            callback=self._test_dock_widget,
         )
 
         # Build plugin menu
         self.menu = cast(
-            QMenu,
+            QtWidgets.QMenu,
             self.iface.pluginMenu().addMenu(
                 icon("earth-engine.svg"),
                 self.tr("&Google Earth Engine"),
@@ -124,25 +131,29 @@ class GoogleEarthEnginePlugin(object):
         self.menu.addAction(self.set_cloud_project_action)
 
         # Build toolbar
-        self.toolButton = QToolButton()
-        self.toolButton.setMenu(QMenu())
+        self.toolButton = QtWidgets.QToolButton()
         self.toolButton.setToolButtonStyle(
-            Qt.ToolButtonStyle.ToolButtonTextBesideIcon
-            if False
-            else Qt.ToolButtonStyle.ToolButtonIconOnly
+            Qt.ToolButtonStyle.ToolButtonIconOnly
+            # Qt.ToolButtonStyle.ToolButtonTextBesideIcon
         )
-        self.toolButton.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
-        toolButtonMenu = self.toolButton.menu()
-
-        self.toolButton.setDefaultAction(self.ee_user_guide_action)
-        toolButtonMenu.addAction(self.ee_user_guide_action)
-        toolButtonMenu.addSeparator()
-        toolButtonMenu.addAction(self.sign_in_action)
-        toolButtonMenu.addAction(self.set_cloud_project_action)
+        self.toolButton.setPopupMode(
+            QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup
+        )
+        self.toolButton.setDefaultAction(self.open_test_widget)
+        self.toolButton.setMenu(QtWidgets.QMenu())
+        self.toolButton.menu().addAction(self.open_test_widget)
+        self.toolButton.menu().addAction(self.ee_user_guide_action)
+        self.toolButton.menu().addSeparator()
+        self.toolButton.menu().addAction(self.sign_in_action)
+        self.toolButton.menu().addAction(self.set_cloud_project_action)
         self.iface.addToolBarWidget(self.toolButton)
 
+        self.iface.addPluginToVectorMenu("My Test", self.ee_user_guide_action)
+
+        # TODO: How to add to Processing Toolbox?
+
         # Register signal to initialize EE layers on project load
-        self.iface.projectRead.connect(self.updateLayers)
+        self.iface.projectRead.connect(self._updateLayers)
 
     def _build_action(
         self,
@@ -151,19 +162,19 @@ class GoogleEarthEnginePlugin(object):
         icon_name: str,
         parent: Optional[QObject] = None,
         callback: Callable,
-    ) -> QAction:
+    ) -> QtWidgets.QAction:
         """Helper to add a menu item and connect it to a handler."""
-        action = QAction(
+        action = QtWidgets.QAction(
             icon(icon_name), self.tr(text), parent or self.iface.mainWindow()
         )
         action.triggered.connect(callback)
         return action
 
-    def run_cmd_ee_user_guide(self):
+    def _run_cmd_ee_user_guide(self):
         # open user guide in external web browser
         webbrowser.open_new("http://qgis-ee-plugin.appspot.com/user-guide")
 
-    def run_cmd_sign_in(self):
+    def _run_cmd_sign_in(self):
         import ee
 
         from ee_plugin import ee_auth  # type: ignore
@@ -174,7 +185,7 @@ class GoogleEarthEnginePlugin(object):
         # after resetting authentication, select Google Cloud project again
         ee_auth.select_project()
 
-    def run_cmd_set_cloud_project(self):
+    def _run_cmd_set_cloud_project(self):
         from ee_plugin import ee_auth  # type: ignore
 
         ee_auth.select_project()
@@ -219,7 +230,7 @@ class GoogleEarthEnginePlugin(object):
         self.iface.pluginMenu().removeAction(self.menu.menuAction())
         self.toolButton.deleteLater()
 
-    def updateLayers(self):
+    def _updateLayers(self):
         import ee
 
         from .utils import add_or_update_ee_layer
@@ -257,3 +268,93 @@ class GoogleEarthEnginePlugin(object):
             opacity = layer.renderer().opacity()
 
             add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)
+
+    def _test_dock_widget(self):
+        dialog = Dialog(
+            object_name="Dialog",
+            title="Dialog",
+            margins=[10] * 4,
+            group_boxes=[
+                GroupBox(
+                    object_name="groupBox_1",
+                    title="Source",
+                    rows=[
+                        Row(
+                            label=Label(
+                                object_name="addGEEFeatureCollectionToMapLabel",
+                                text="Add GEE Feature Collection to Map",
+                                tooltip="This is a tooltip!",
+                                whatsthis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
+                            ),
+                            widget=Widget(
+                                cls=QtWidgets.QLineEdit,
+                                object_name="addGEEFeatureCollectionToMapLineEdit",
+                            ),
+                        )
+                    ],
+                ),
+                GroupBox(
+                    object_name="groupBox_2",
+                    title="Filter by Properties",
+                    rows=[
+                        Row(
+                            label=Label(object_name="nameLabel", text="Name"),
+                            widget=Widget(
+                                cls=QtWidgets.QLineEdit, object_name="nameLineEdit"
+                            ),
+                        ),
+                        Row(
+                            label=Label(object_name="valueLabel", text="Value"),
+                            widget=Widget(
+                                cls=QtWidgets.QLineEdit, object_name="valueLineEdit"
+                            ),
+                        ),
+                    ],
+                ),
+                GroupBox(
+                    object_name="groupBox_3",
+                    title="Filter by Dates",
+                    rows=[
+                        Row(
+                            label=Label(object_name="nameLabel_2", text="Start"),
+                            widget=Widget(
+                                cls=QtWidgets.QDateEdit, object_name="dateEdit"
+                            ),
+                        ),
+                        Row(
+                            label=Label(object_name="valueLabel_2", text="End"),
+                            widget=Widget(
+                                cls=QtWidgets.QDateEdit, object_name="dateEdit_2"
+                            ),
+                        ),
+                    ],
+                ),
+                GroupBox(
+                    object_name="groupBox_4",
+                    title="Filter by Coordinates",
+                    rows=[
+                        # Place a QgsExtentGroupBox in one row (with an empty label)
+                        Row(
+                            label=Label(object_name="extentLabel", text=""),
+                            widget=Widget(
+                                cls=gui.QgsExtentGroupBox,
+                                object_name="mExtentGroupBox",
+                            ),
+                        )
+                    ],
+                ),
+                GroupBox(
+                    object_name="groupBox_5",
+                    title="Visualization",
+                    rows=[
+                        Row(
+                            label=Label(object_name="label", text="Color"),
+                            widget=Widget(
+                                cls=gui.QgsColorButton, object_name="mColorButton"
+                            ),
+                        )
+                    ],
+                ),
+            ],
+        ).build(self.iface.mainWindow())
+        dialog.show()

@@ -4,19 +4,30 @@ Utils functions GEE
 """
 
 import json
+import tempfile
 
 import ee
 import qgis
-from qgis.core import (
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
-    QgsPointXY,
-    QgsProject,
-    QgsRasterLayer,
-    QgsRectangle,
-)
-
+from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer
 from .ee_plugin import VERSION as ee_plugin_version
+
+
+def is_named_dataset(eeObject):
+    """
+    Checks if the FeatureCollection is a named dataset that should be handled as a vector tiled layer.
+    """
+    try:
+        table_id = eeObject.args.get("tableId", "")
+        return bool(table_id)  # If tableId exists, it's a named dataset
+    except AttributeError:
+        return False
+
+
+def get_layer_by_name(name):
+    for layer in QgsProject.instance().mapLayersByName(name):
+        return layer
+
+    return None
 
 
 def get_ee_image_url(image):
@@ -25,174 +36,222 @@ def get_ee_image_url(image):
     return url
 
 
-def update_ee_layer_properties(layer, eeObject, visParams, shown, opacity):
+def update_ee_layer_properties(layer, eeObject, opacity):
+    """
+    Updates the layer properties including opacity.
+    """
     layer.dataProvider().set_ee_object(eeObject)
     layer.setCustomProperty("ee-layer", True)
 
-    if opacity is not None:
+    if opacity is not None and layer.renderer():
         renderer = layer.renderer()
         if renderer:
             renderer.setOpacity(opacity)
 
-    # serialize EE code
-    ee_object = eeObject.serialize()
-    ee_object_vis = json.dumps(visParams)
+    # Serialize EE object
     layer.setCustomProperty("ee-plugin-version", ee_plugin_version)
-    layer.setCustomProperty("ee-object", ee_object)
-    layer.setCustomProperty("ee-object-vis", ee_object_vis)
-
-    # update EE script in provider
-    if eeObject.getInfo()["type"] == "Image":  # TODO
-        layer.dataProvider().set_ee_object(eeObject)
+    layer.setCustomProperty("ee-object", eeObject.serialize())
 
 
-def add_ee_image_layer(image, name, shown, opacity):
-    check_version()
+def add_or_update_ee_layer(eeObject, vis_params, name, shown, opacity):
+    """
+    Entry point to add/update an EE layer. Routes between raster, vector layers, and vector tile layers.
+    """
+    if isinstance(eeObject, ee.Image):
+        add_or_update_ee_raster_layer(eeObject, name, vis_params, shown, opacity)
+    elif isinstance(eeObject, ee.FeatureCollection):
+        if is_named_dataset(eeObject):
+            add_or_update_named_vector_layer(eeObject, name, vis_params, shown, opacity)
+        else:
+            add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+    elif isinstance(eeObject, ee.Geometry):
+        add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+    else:
+        raise TypeError("Unsupported EE object type")
 
-    url = "type=xyz&url=" + get_ee_image_url(image)
-    layer = QgsRasterLayer(url, name, "EE")
-    QgsProject.instance().addMapLayer(layer)
 
-    if shown is not None:
-        QgsProject.instance().layerTreeRoot().findLayer(
-            layer.id()
-        ).setItemVisibilityChecked(shown)
+def add_or_update_ee_raster_layer(image, name, vis_params, shown=True, opacity=1.0):
+    """
+    Adds or updates a raster EE layer.
+    """
+    layer = get_layer_by_name(name)
+
+    if layer and layer.customProperty("ee-layer"):
+        layer = update_ee_image_layer(image, layer, vis_params, shown, opacity)
+    else:
+        layer = add_ee_image_layer(image, name, vis_params, shown, opacity)
 
     return layer
 
 
-def update_ee_image_layer(image, layer, shown=True, opacity=1.0):
+def add_ee_image_layer(image, name, vis_params, shown, opacity):
+    """
+    Adds a raster layer using the 'EE' provider.
+    """
     check_version()
+    url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
 
-    url = "type=xyz&url=" + get_ee_image_url(image)
+    layer = QgsRasterLayer(url, name, "EE")
+    assert layer.isValid(), f"Failed to load layer: {name}"
 
-    root = QgsProject.instance().layerTreeRoot()
-    layer_node = root.findLayer(layer)  # layer is a QgsMapLayer
+    provider = layer.dataProvider()
+    assert provider is not None, f"Failed to get provider for layer: {name}"
+
+    layer.dataProvider().set_ee_object(image)
+    qgis_instance = QgsProject.instance()
+
+    qgis_instance.addMapLayer(layer)
+
+    if opacity is not None and layer.renderer():
+        layer.renderer().setOpacity(opacity)
+
+    if shown is not None:
+        qgis_instance.layerTreeRoot().findLayer(layer.id()).setItemVisibilityChecked(
+            shown
+        )
+
+    return layer
+
+
+def update_ee_image_layer(image, layer, vis_params, shown=True, opacity=1.0):
+    """
+    Updates an existing EE raster layer.
+    """
+    check_version()
+    url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
+
+    qgis_instance = QgsProject.instance()
+    root = qgis_instance.layerTreeRoot()
+    layer_node = root.findLayer(layer.id())
     parent_group = layer_node.parent()
-
-    # Get layer index
     idx = parent_group.children().index(layer_node)
 
-    # new layer
-    layer_new = QgsRasterLayer(url, layer.name(), "EE")
+    new_layer = QgsRasterLayer(url, layer.name(), "EE")
 
-    # Remove old layer
-    QgsProject.instance().removeMapLayers([layer.id()])
+    if opacity is not None and new_layer.renderer():
+        new_layer.renderer().setOpacity(opacity)
 
-    QgsProject.instance().addMapLayer(layer_new, False)
-    root.insertLayer(idx, layer_new)
+    # Replace the old layer
+    qgis_instance.removeMapLayers([layer.id()])
+    qgis_instance.addMapLayer(new_layer, False)
+    root.insertLayer(idx, new_layer)
 
-    layer = layer_new
-
-    item = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
     if shown is not None:
-        item.setItemVisibilityChecked(shown)
+        root.findLayer(new_layer.id()).setItemVisibilityChecked(shown)
+
+    return new_layer
+
+
+def add_or_update_named_vector_layer(
+    eeObject, name, vis_params, shown=True, opacity=1.0
+):
+    """
+    Adds or updates a vector tiled layer from an Earth Engine named dataset.
+    """
+    table_id = eeObject.args.get("tableId", "")
+    if not table_id:
+        raise ValueError(f"FeatureCollection {name} does not have a valid tableId.")
+
+    # Given the potential large-size of named datasets, we render FeatureCollections as WMS raster layers
+    image = ee.Image().paint(eeObject, 0, 2)
+    layer = add_or_update_ee_raster_layer(image, name, vis_params, shown, opacity)
 
     return layer
 
 
-def get_layer_by_name(name):
-    layers = QgsProject.instance().mapLayers().values()
-
-    for layer in layers:
-        if layer.name() == name:
-            return layer
-
-    return None
-
-
-def add_or_update_ee_layer(eeObject, visParams, name, shown, opacity):
-    if visParams is None:
-        visParams = {}
-
-    if isinstance(eeObject, ee.Image):
-        image = eeObject.visualize(**visParams)
-
-    elif isinstance(
-        eeObject, (ee.Geometry, ee.Feature, ee.ImageCollection, ee.FeatureCollection)
-    ):
-        features = ee.FeatureCollection(eeObject)
-
-        if "width" in visParams:
-            width = visParams["width"]
-        else:
-            width = 2
-
-        if "color" in visParams:
-            color = visParams["color"]
-        else:
-            color = "000000"
-
-        image_fill = features.style(**{"fillColor": color}).updateMask(
-            ee.Image.constant(0.5)
-        )
-        image_outline = features.style(
-            **{"color": color, "fillColor": "00000000", "width": width}
-        )
-
-        image = image_fill.blend(image_outline)
-
-    else:
-        err_str = (
-            "\n\nThe image argument in 'addLayer' function must be an instance of one of ee.Image, ee.Geometry, "
-            "ee.Feature, ee.ImageCollection or ee.FeatureCollection."
-        )
-        raise AttributeError(err_str)
-
-    if name is None:
-        # extract name from id
-        try:
-            name = json.loads(eeObject.id().serialize())["scope"][0][1]["arguments"][
-                "id"
-            ]
-        except (AttributeError, KeyError, IndexError, json.JSONDecodeError) as e:
-            print(f"Error extracting name from id: {e}")
-            name = "untitled"
-
-    image.ee_type = type(eeObject)
-
-    layer = add_or_update_ee_image_layer(image, name, shown, opacity)
-    update_ee_layer_properties(layer, eeObject, visParams, shown, opacity)
-
-
-def add_or_update_ee_image_layer(image, name, shown=True, opacity=1.0):
+def add_or_update_ee_vector_layer(eeObject, name, shown=True, opacity=1.0):
+    """
+    Handles vector layers by converting them to a properly styled GeoJSON vector layer.
+    """
     layer = get_layer_by_name(name)
 
     if layer:
         if not layer.customProperty("ee-layer"):
-            raise Exception("Layer is not an EE layer: " + name)
-
-        layer = update_ee_image_layer(image, layer, shown, opacity)
+            raise Exception(f"Layer is not an EE layer: {name}")
+        layer = update_ee_vector_layer(eeObject, layer, shown, opacity)
     else:
-        layer = add_ee_image_layer(image, name, shown, opacity)
+        layer = add_ee_vector_layer(eeObject, name, shown, opacity)
 
     return layer
 
 
-def add_ee_catalog_image(name, asset_name, visParams, collection_props):
-    image = None
+def add_ee_vector_layer(eeObject, name, shown=True, opacity=1.0):
+    """
+    Adds a vector layer properly by converting EE Geometry to a valid GeoJSON FeatureCollection.
+    """
+    # Convert EE geometry into a proper GeoJSON FeatureCollection
+    geometry_info = eeObject.getInfo()
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": geometry_info,
+                "properties": {},  # Empty properties
+            }
+        ],
+    }
 
-    if collection_props:
-        raise Exception("Not supported yet")
+    # Write to a temporary file for QGIS
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".geojson")
+    with open(temp_file.name, "w") as f:
+        json.dump(geojson, f)
+
+    # Use the temp file as the data source
+    uri = temp_file.name
+
+    # Create the vector layer
+    layer = QgsVectorLayer(uri, name, "ogr")
+
+    if not layer.isValid():
+        print(f"Failed to load vector layer: {name}")
     else:
-        image = ee.Image(asset_name).visualize(visParams)
+        QgsProject.instance().addMapLayer(layer)
+        if shown is not None:
+            QgsProject.instance().layerTreeRoot().findLayer(
+                layer.id()
+            ).setItemVisibilityChecked(shown)
+        if opacity is not None and layer.renderer():
+            symbol = layer.renderer().symbol()
+            symbol.setOpacity(opacity)
+            layer.triggerRepaint()
 
-    add_or_update_ee_image_layer(image, name)
+    return layer
+
+
+def update_ee_vector_layer(eeObject, layer, shown, opacity):
+    """
+    Updates an existing vector layer with new features from EE.
+    """
+    geojson = eeObject.getInfo()
+    uri = f"GeoJSON?crs=EPSG:4326&url={json.dumps(geojson)}"
+
+    new_layer = QgsVectorLayer(uri, layer.name(), "ogr")
+
+    QgsProject.instance().removeMapLayers([layer.id()])
+    QgsProject.instance().addMapLayer(new_layer)
+
+    if opacity is not None and layer.renderer():
+        new_layer.renderer().setOpacity(opacity)
+
+    if shown is not None:
+        QgsProject.instance().layerTreeRoot().findLayer(
+            new_layer.id()
+        ).setItemVisibilityChecked(shown)
+
+    return new_layer
+
+
+def add_ee_catalog_image(name, asset_name, vis_params):
+    """
+    Adds an EE image from a catalog.
+    """
+    image = ee.Image(asset_name).visualize(vis_params)
+    add_or_update_ee_raster_layer(image, name)
 
 
 def check_version():
-    # check if we have the latest version only once plugin is used, not once it is loaded
+    """
+    Check if we have the latest plugin version.
+    """
     qgis.utils.plugins["ee_plugin"].check_version()
-
-
-def geom_to_geo(geom):
-    crs_src = QgsCoordinateReferenceSystem(QgsProject.instance().crs())
-    crs_dst = QgsCoordinateReferenceSystem("EPSG:4326")
-    proj2geo = QgsCoordinateTransform(crs_src, crs_dst, QgsProject.instance())
-
-    if isinstance(geom, QgsPointXY):
-        return proj2geo.transform(geom)
-    elif isinstance(geom, QgsRectangle):
-        return proj2geo.transformBoundingBox(geom)
-    else:
-        return geom.transform(proj2geo)

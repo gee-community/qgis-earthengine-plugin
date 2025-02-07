@@ -5,6 +5,7 @@ Create and init the Earth Engine Qgis data provider
 
 import json
 
+import ee
 from qgis.core import (
     Qgis,
     QgsCoordinateReferenceSystem,
@@ -16,9 +17,10 @@ from qgis.core import (
     QgsRasterDataProvider,
     QgsRasterIdentifyResult,
     QgsRasterInterface,
-    QgsVectorDataProvider,
 )
 from qgis.PyQt.QtCore import QObject
+
+from ee_plugin import Map
 
 BAND_TYPES = {
     "int8": Qgis.Int16,
@@ -40,25 +42,19 @@ BAND_TYPES = {
 class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     PARENT = QObject()
 
-    # def __getattribute__(self, attr):
-    #     method = object.__getattribute__(self, attr)
-    #     # if not method:
-    #         # raise Exception("Method %s not implemented" % attr)
-    #     if callable(method):
-    #          print(f"method: {attr}")
-    #     return method
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.ee_object = None
-
-        self._args = args
-        self._kwargs = kwargs
+    def __init__(self, uri, providerOptions=None, flags=None, image=None):
+        super().__init__()
+        self.uri = uri
+        self.providerOptions = providerOptions
+        self.flags = flags
+        self.ee_object = image
+        self.ee_info = image.getInfo() if image else None
 
         # create WMS provider
-        self.wms = QgsProviderRegistry.instance().createProvider("wms", *args, **kwargs)
-        assert self.wms, f"Failed to create WMS provider: {args}, {kwargs}"
+        self.wms = QgsProviderRegistry.instance().createProvider(
+            "wms", uri, providerOptions
+        )
+        assert self.wms, f"Failed to create WMS provider: {uri}"
 
     @classmethod
     def description(cls):
@@ -69,16 +65,18 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return "EE"
 
     @classmethod
-    def createProvider(cls, uri, providerOptions, flags=None):
+    def createProvider(cls, uri, providerOptions, flags=None, image=None):
         # compatibility with Qgis < 3.16, ReadFlags only available since 3.16
         if Qgis.QGIS_VERSION_INT >= 31600:
             flags = QgsDataProvider.ReadFlags()
-            return EarthEngineRasterDataProvider(uri, providerOptions, flags)
+            provider = EarthEngineRasterDataProvider(uri, providerOptions, flags, image)
         else:
-            return EarthEngineRasterDataProvider(uri, providerOptions)
+            provider = EarthEngineRasterDataProvider(uri, providerOptions, image=image)
 
-    # ============================
-    # QgsDataProvider methods
+        if image:
+            provider.set_ee_object(image)
+
+        return provider
 
     def crs(self):
         return QgsCoordinateReferenceSystem("EPSG:3857")
@@ -179,8 +177,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def reloadProviderData(self):
         return self.wms.reloadProviderData()
 
-    # # QgsRasterDataProvider
-
     def providerCapabilities(self):
         return self.wms.providerCapabilities()
 
@@ -229,28 +225,20 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def getLegendGraphicFetcher(self, mapSettings):
         return self.wms.getLegendGraphicFetcher(mapSettings)
 
-    # buildPyramids()
-
-    # buildPyramidList()
-
     def htmlMetadata(self):
         return json.dumps(self.ee_object.getInfo())
 
     def identify(
         self, point, format, boundingBox=None, width=None, height=None, dpi=None
     ):
-        # TODO: speed-up, extend this to maintain cache of visible image, update cache on-the-fly when needed
-        import ee
+        dataset_projection = self.ee_info["bands"][0]["crs"]
+        point_ee = ee.Geometry.Point(
+            [point.x(), point.y()], self.crs().authid()
+        ).transform(dataset_projection)
 
-        from ee_plugin import Map, utils
-
-        point = utils.geom_to_geo(point)
-        point_ee = ee.Geometry.Point([point.x(), point.y()])
+        reducer = ee.Reducer.first()
         scale = Map.getScale()
-        value = self.ee_object.reduceRegion(
-            ee.Reducer.first(), point_ee, scale
-        ).getInfo()
-
+        value = self.ee_object.reduceRegion(reducer, point_ee, scale).getInfo()
         band_indices = range(1, self.bandCount() + 1)
         band_names = [self.generateBandName(band_no) for band_no in band_indices]
         band_values = [value[band_name] for band_name in band_names]
@@ -259,8 +247,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatValue, value)
 
         return result
-
-    # sample()
 
     def lastErrorTitle(self):
         return self.wms.lastErrorTitle()
@@ -277,16 +263,8 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def setEditable(self, enabled):
         return self.wms.setIsEditable(enabled)
 
-    # write()
-
-    # setNoDataValue()
-
     def remove(self):
         return self.wms.remove()
-
-    # validateCreationOptions()
-
-    # validatePyramidsConfigOptions()
 
     def stepWidth(self):
         return self.wms.stepWidth()
@@ -321,10 +299,6 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def readNativeAttributeTable(self):
         return self.wms.readNativeAttributeTable()
 
-    # readBlock()
-
-    # QgsWmsProvider
-
     def getMapUrl(self):
         return self.wms.getMapUrl()
 
@@ -337,10 +311,10 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def getLegendGraphicUrl(self):
         return self.wms.getLegendGraphicUrl()
 
-    # QgsRasterInterface
-
     def clone(self):
-        provider = EarthEngineRasterDataProvider(*self._args, **self._kwargs)
+        provider = EarthEngineRasterDataProvider(
+            self.uri, self.providerOptions, self.flags, self.ee_object
+        )
         provider.wms.setDataSourceUri(self.wms.dataSourceUri())
         provider.set_ee_object(self.ee_object)
         provider.setParent(EarthEngineRasterDataProvider.PARENT)
@@ -407,38 +381,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
     def sourceInput(self):
         return self.wms.sourceInput()
 
-    # bandStatistics()
-
-    # hasStatistics()
-
-    # histogram()
-
-    # hasHistogram()
-
-    # cumulativeCut()
-
-    # writeXml()
-
-    # readXml()
-
     def set_ee_object(self, ee_object):
         self.ee_object = ee_object
         self.ee_info = ee_object.getInfo()
-
-
-class EarthEngineVectorDataProvider(QgsVectorDataProvider):
-    # TODO
-    pass
-
-
-class EarthEngineRasterCollectionDataProvider(QgsRasterDataProvider):
-    # TODO
-    pass
-
-
-class EarthEngineVectorCollectionDataProvider(QgsVectorDataProvider):
-    # TODO
-    pass
 
 
 def register_data_provider():

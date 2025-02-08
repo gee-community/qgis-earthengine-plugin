@@ -17,6 +17,11 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
+from .config import ee_config
+
+
+PLUGIN_DIR = os.path.dirname(__file__)
+
 # read the plugin version from metadata
 cfg = configparser.ConfigParser()
 cfg.read(os.path.join(os.path.dirname(__file__), "metadata.txt"))
@@ -61,6 +66,9 @@ class GoogleEarthEnginePlugin(object):
         # Create and register the EE data providers
         provider.register_data_provider()
 
+        # Reload the plugin when the config changes
+        ee_config.signals.project_changed.connect(self._reload)
+
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -93,7 +101,9 @@ class GoogleEarthEnginePlugin(object):
 
         gcp_project_icon_path = ":/plugins/ee_plugin/icons/google-cloud-project.svg"
         self.cmd_set_cloud_project = QAction(
-            QIcon(gcp_project_icon_path), "Set Project", self.iface.mainWindow()
+            QIcon(gcp_project_icon_path),
+            f"Set Project: {ee_config.project_id or '...'}",
+            self.iface.mainWindow(),
         )
         self.cmd_set_cloud_project.triggered.connect(self.run_cmd_set_cloud_project)
 
@@ -104,6 +114,11 @@ class GoogleEarthEnginePlugin(object):
 
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self.updateLayers)
+
+    def _reload(self):
+        """Reload the plugin if config changes."""
+        self.unload()
+        self.initGui()
 
     def run_cmd_ee_user_guide(self):
         # open user guide in external web browser

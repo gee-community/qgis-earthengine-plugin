@@ -100,7 +100,7 @@ class GoogleEarthEnginePlugin(object):
         )
         set_cloud_project_action = QtWidgets.QAction(
             icon=icon("google-cloud-project.svg"),
-            text=self.tr(f"Set Project"),
+            text=self.tr("Set Project"),
             parent=self.iface.mainWindow(),
             triggered=self._run_cmd_set_cloud_project,
         )

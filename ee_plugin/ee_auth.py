@@ -42,7 +42,7 @@ def ee_initialize_with_project(ee_config: EarthEngineConfig, force=False) -> Non
     Initialize EE with current project, possibly asking user to specify project if no
     project currently set in configuration or if we force the prompt
     """
-    project_id = ee_config.project_id
+    project_id = ee_config.project
 
     if not project_id or force:
         project_id = prompt_for_project(project_id)
@@ -50,7 +50,7 @@ def ee_initialize_with_project(ee_config: EarthEngineConfig, force=False) -> Non
             return
 
     ee.Initialize(project=project_id)
-    ee_config.save_project(project_id)
+    ee_config.project = project_id
 
 
 def prompt_for_project(cur_project: Optional[str]) -> Optional[str]:

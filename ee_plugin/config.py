@@ -11,7 +11,7 @@ class EarthEngineConfigDict(TypedDict):
 
 
 class _ConfigSignals(QObject):
-    project_changed = pyqtSignal()
+    updated = pyqtSignal(dict, name="newConfig")
 
 
 @dataclass
@@ -27,23 +27,24 @@ class EarthEngineConfig:
         except FileNotFoundError:
             return None
 
-    def save_project(self, project: str) -> None:
-        """Save project to the credentials file."""
+    def _update(self, **updates) -> None:
         current_config = self.read() or {}
-        if current_config.get("project") == project:
+
+        if all(current_config.get(k) == v for k, v in updates.items()):
             return
-        ee.oauth.write_private_json(
-            self.credentials_path,
-            {
-                **current_config,
-                "project": project,
-            },
-        )
-        self.signals.project_changed.emit()
+
+        updated_config = {**current_config, **updates}
+        ee.oauth.write_private_json(self.credentials_path, updated_config)
+        self.signals.updated.emit(updated_config)
 
     @property
-    def project_id(self) -> Optional[str]:
+    def project(self) -> Optional[str]:
         """Get the current project ID."""
         config = self.read()
         if config:
             return config.get("project")
+
+    @project.setter
+    def project(self, project_id: str):
+        """Set the current project ID."""
+        return self._update(project=project_id)

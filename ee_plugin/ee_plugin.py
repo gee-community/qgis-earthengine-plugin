@@ -69,9 +69,7 @@ class GoogleEarthEnginePlugin(object):
         provider.register_data_provider()
 
         # Reload the plugin when the config changes
-        self.ee_config.signals.project_changed.connect(
-            self._refresh_project_button_text
-        )
+        self.ee_config.signals.project_changed.connect(self._refresh_project_id)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -124,7 +122,7 @@ class GoogleEarthEnginePlugin(object):
         """Get the text for the project button."""
         return f"Set Project: {self.ee_config.project_id or '...'}"
 
-    def _refresh_project_button_text(self):
+    def _refresh_project_id(self):
         """Refresh the text for the project button."""
         self.cmd_set_cloud_project.setText(self._project_button_text)
 

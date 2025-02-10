@@ -38,11 +38,9 @@ def classFactory(iface):  # pylint: disable=invalid-name
         ee.data.setUserAgent(user_agent)
 
     # authenticate and initialize EE
-    from . import ee_auth
+    from . import ee_auth, config, ee_plugin
 
-    ee_auth.authenticate_and_set_project()
-
-    # start
-    from .ee_plugin import GoogleEarthEnginePlugin
-
-    return GoogleEarthEnginePlugin(iface)
+    ee_config = config.EarthEngineConfig()
+    ee_auth.ensure_authenticated(ee_config)
+    ee_auth.ee_initialize_with_project(ee_config)
+    return ee_plugin.GoogleEarthEnginePlugin(iface, ee_config=ee_config)

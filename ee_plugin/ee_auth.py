@@ -1,33 +1,13 @@
-import json
-import pathlib
+from typing import Optional
 
 import ee
 from qgis.PyQt.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
-CREDENTIALS_PATH = pathlib.Path("~/.config/earthengine/credentials").expanduser()
+from .config import EarthEngineConfig
 
 
-def ee_read_config():
-    """Reads project name, return None if there is no EE config file detected"""
-    try:
-        with open(CREDENTIALS_PATH) as json_config_file:
-            config = json.load(json_config_file)
-    except FileNotFoundError:
-        # File may not exist if we initialized from default credentials.
-        return None
-
-    return config
-
-
-def save_project_to_config(project):
-    """Write new project name into the EE config file"""
-    config = ee_read_config()
-    config["project"] = project
-    ee.oauth.write_private_json(CREDENTIALS_PATH, config)
-
-
-def ee_authenticate():
-    """show a dialog to allow users to start or cancel the authentication process"""
+def ee_authenticate(ee_config: EarthEngineConfig) -> bool:
+    """Show a dialog to allow users to start or cancel the authentication process"""
 
     msg = """This plugin uses Google Earth Engine API and it looks like it is not yet authenticated on this machine.<br>
     <br>
@@ -54,13 +34,27 @@ def ee_authenticate():
         ee.Authenticate(auth_mode="localhost", force=True)
 
         # bug: ee.Authenticate(force=True) returns None, check the auth status manually
-        config = ee_read_config()
-        if config is not None:
-            return True
+        return bool(ee_config.read())
 
 
-def ee_initialize_with_project(project, force=False):
-    """Initializes EE with a project or ask user to specify project if there is no project set"""
+def ee_initialize_with_project(ee_config: EarthEngineConfig, force=False) -> None:
+    """
+    Initialize EE with current project, possibly asking user to specify project if no
+    project currently set in configuration or if we force the prompt
+    """
+    project_id = ee_config.project
+
+    if not project_id or force:
+        project_id = prompt_for_project(project_id)
+        if not project_id:
+            return
+
+    ee.Initialize(project=project_id)
+    ee_config.project = project_id
+
+
+def prompt_for_project(cur_project: Optional[str]) -> Optional[str]:
+    """Show a dialog to prompt user to specify project"""
 
     msg_no_project = """Google Cloud Project is empty.<br>
     <br>
@@ -79,60 +73,24 @@ def ee_initialize_with_project(project, force=False):
     <br>
     Google Cloud Project:"""
 
-    if project is None:
-        msg = msg_no_project
-    elif force:
-        msg = msg_with_project
-    else:
-        # project is set and no force - initialize and return
-        ee.Initialize(project=project)
-        return
-
-    (project, ok) = QInputDialog.getText(
-        None, "Select Earth Engine project", msg, QLineEdit.Normal, project
+    msg = msg_with_project if cur_project else msg_no_project
+    (project, _ok) = QInputDialog.getText(
+        None, "Select Earth Engine project", msg, QLineEdit.Normal, cur_project
     )
-
-    if not ok:
-        return  # no project is configured and cancelled, you're on your own
-
-    # sanity check
-    if len(project) == 0:
-        return
-
-    ee.Initialize(project=project)
-    save_project_to_config(project)
+    return project
 
 
-def authenticate_and_set_project():
-    config = ee_read_config()
+def ensure_authenticated(ee_config: EarthEngineConfig) -> None:
+    """
+    Ensure that the user is authenticated with Earth Engine, throwing an exception if not.
+    """
+    # Trigger authentication if there is no config (ie not authenticated)
+    if not ee_config.read():
+        auth_success = ee_authenticate(ee_config)
 
-    is_authenticated = False
-
-    if config is not None:
-        is_authenticated = True
-
-    if not is_authenticated:  # not authenticated > start authentication process
-        is_authenticated = ee_authenticate()
-
-    # authentication failed
-    if not is_authenticated:
-        raise ee.EEException(
-            "Can not initialize Google Earth Engine. Please make sure you can access Earth Engine, restart QGIS, and re-enable EE plugin."
-        )
-
-    # initialize EE with existing project or select a new one if there is no project
-    project = None
-    if config is not None:
-        project = config.get("project")
-    ee_initialize_with_project(project)
-
-
-def select_project():
-    # read existing project
-    config = ee_read_config()
-
-    project = None
-    if config is not None:
-        project = config.get("project")
-
-    ee_initialize_with_project(project, force=True)
+        # authentication failed
+        if not auth_success:
+            raise ee.EEException(
+                "Can not initialize Google Earth Engine. Please make sure you can "
+                "access Earth Engine, restart QGIS, and re-enable EE plugin."
+            )

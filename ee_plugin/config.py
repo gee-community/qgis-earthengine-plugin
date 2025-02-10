@@ -10,14 +10,14 @@ class EarthEngineConfigDict(TypedDict):
     project: str
 
 
-class ConfigSignals(QObject):
+class _ConfigSignals(QObject):
     project_changed = pyqtSignal()
 
 
 @dataclass
 class EarthEngineConfig:
     credentials_path: str = field(default_factory=ee.oauth.get_credentials_path)
-    signals: ConfigSignals = field(default_factory=ConfigSignals, init=False)
+    signals: _ConfigSignals = field(default_factory=_ConfigSignals, init=False)
 
     def read(self) -> Optional[EarthEngineConfigDict]:
         """Read the credentials file."""
@@ -47,6 +47,3 @@ class EarthEngineConfig:
         config = self.read()
         if config:
             return config.get("project")
-
-
-ee_config = EarthEngineConfig()

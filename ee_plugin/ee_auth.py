@@ -7,7 +7,7 @@ from .config import EarthEngineConfig
 
 
 def ee_authenticate(ee_config: EarthEngineConfig) -> bool:
-    """show a dialog to allow users to start or cancel the authentication process"""
+    """Show a dialog to allow users to start or cancel the authentication process"""
 
     msg = """This plugin uses Google Earth Engine API and it looks like it is not yet authenticated on this machine.<br>
     <br>
@@ -38,7 +38,10 @@ def ee_authenticate(ee_config: EarthEngineConfig) -> bool:
 
 
 def ee_initialize_with_project(ee_config: EarthEngineConfig, force=False) -> None:
-    """Initializes EE with a project or ask user to specify project if there is no project set"""
+    """
+    Initialize EE with current project, possibly asking user to specify project if no
+    project currently set in configuration or if we force the prompt
+    """
     project_id = ee_config.project_id
 
     if not project_id or force:
@@ -51,7 +54,7 @@ def ee_initialize_with_project(ee_config: EarthEngineConfig, force=False) -> Non
 
 
 def prompt_for_project(cur_project: Optional[str]) -> Optional[str]:
-    """Prompt user to specify project"""
+    """Show a dialog to prompt user to specify project"""
 
     msg_no_project = """Google Cloud Project is empty.<br>
     <br>
@@ -78,7 +81,9 @@ def prompt_for_project(cur_project: Optional[str]) -> Optional[str]:
 
 
 def ensure_authenticated(ee_config: EarthEngineConfig) -> None:
-    """Ensure that the user is authenticated with Earth Engine"""
+    """
+    Ensure that the user is authenticated with Earth Engine, throwing an exception if not.
+    """
     # Trigger authentication if there is no config (ie not authenticated)
     if not ee_config.read():
         auth_success = ee_authenticate(ee_config)

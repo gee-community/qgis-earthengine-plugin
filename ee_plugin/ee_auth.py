@@ -1,5 +1,6 @@
-import ee
 from typing import Optional
+
+import ee
 from qgis.PyQt.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
 from .config import EarthEngineConfig

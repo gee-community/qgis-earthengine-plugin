@@ -10,22 +10,14 @@ import json
 import os.path
 import webbrowser
 from builtins import object
-from typing import Callable, cast, Optional
+from typing import cast
 
 import requests  # type: ignore
-from qgis.core import QgsProject
 from qgis import gui
-from qgis.PyQt.QtCore import (
-    QCoreApplication,
-    QSettings,
-    QTranslator,
-    qVersion,
-    QObject,
-    Qt,
-)
-
-from qgis.PyQt.QtGui import QIcon
+from qgis.core import QgsProject
 from qgis.PyQt import QtWidgets
+from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion, Qt
+from qgis.PyQt.QtGui import QIcon
 
 from .ui.utils import (
     build_form_group_box,
@@ -64,6 +56,7 @@ class GoogleEarthEnginePlugin(object):
         self.iface = iface
 
         self.menu = None
+        self.toolButton = None
 
         # initialize locale
         locale = QSettings().value("locale/userLocale")[0:2]
@@ -98,80 +91,64 @@ class GoogleEarthEnginePlugin(object):
     def initGui(self):
         """Initialize the plugin GUI."""
         # Build actions
-        self.ee_user_guide_action = self._build_action(
-            text="User Guide",
-            icon_name="earth-engine.svg",
-            callback=self._run_cmd_ee_user_guide,
+        ee_user_guide_action = QtWidgets.QAction(
+            icon=icon("earth-engine.svg"),
+            text=self.tr("User Guide"),
+            parent=self.iface.mainWindow(),
+            triggered=self._run_cmd_ee_user_guide,
         )
-        self.sign_in_action = self._build_action(
-            text="Sign-in",
-            icon_name="google-cloud.svg",
-            callback=self._run_cmd_sign_in,
+        sign_in_action = QtWidgets.QAction(
+            icon=icon("google-cloud.svg"),
+            text=self.tr("Sign-in"),
+            parent=self.iface.mainWindow(),
+            triggered=self._run_cmd_sign_in,
         )
-        self.set_cloud_project_action = self._build_action(
-            text="Set Project",
-            icon_name="google-cloud-project.svg",
-            callback=self._run_cmd_set_cloud_project,
-        )
-        self.open_test_widget = self._build_action(
-            text="Test dialog",
-            icon_name="earth-engine.svg",
-            callback=self._test_dock_widget,
+        set_cloud_project_action = QtWidgets.QAction(
+            icon=icon("google-cloud-project.svg"),
+            text=self.tr("Set Project"),
+            parent=self.iface.mainWindow(),
+            triggered=self._run_cmd_set_cloud_project,
         )
 
         # Build plugin menu
-        self.menu = cast(
-            QtWidgets.QMenu,
-            self.iface.pluginMenu().addMenu(
-                icon("earth-engine.svg"),
-                self.tr("&Google Earth Engine"),
-            ),
+        plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
+        ee_menu = plugin_menu.addMenu(
+            icon("earth-engine.svg"),
+            self.tr("&Google Earth Engine"),
         )
-        self.menu.setDefaultAction(self.ee_user_guide_action)
-        self.menu.addAction(self.ee_user_guide_action)
-        self.menu.addSeparator()
-        self.menu.addAction(self.sign_in_action)
-        self.menu.addAction(self.set_cloud_project_action)
+        self.menu = ee_menu
+        ee_menu.addAction(ee_user_guide_action)
+        ee_menu.addSeparator()
+        ee_menu.addAction(sign_in_action)
+        ee_menu.addAction(set_cloud_project_action)
 
         # Build toolbar
-        self.toolButton = QtWidgets.QToolButton()
-        self.toolButton.setToolButtonStyle(
+        toolButton = QtWidgets.QToolButton()
+        toolButton.setToolButtonStyle(
             Qt.ToolButtonStyle.ToolButtonIconOnly
             # Qt.ToolButtonStyle.ToolButtonTextBesideIcon
         )
-        self.toolButton.setPopupMode(
+        toolButton.setPopupMode(
             QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup
         )
-        self.toolButton.setDefaultAction(self.open_test_widget)
-        self.toolButton.setMenu(QtWidgets.QMenu())
-        self.toolButton.menu().addAction(self.open_test_widget)
-        self.toolButton.menu().addAction(self.ee_user_guide_action)
-        self.toolButton.menu().addSeparator()
-        self.toolButton.menu().addAction(self.sign_in_action)
-        self.toolButton.menu().addAction(self.set_cloud_project_action)
-        self.iface.addToolBarWidget(self.toolButton)
-
-        self.iface.addPluginToVectorMenu("My Test", self.ee_user_guide_action)
-
-        # TODO: How to add to Processing Toolbox?
+        toolButton.setMenu(QtWidgets.QMenu())
+        toolButton.setDefaultAction(ee_user_guide_action)
+        toolButton.menu().addAction(ee_user_guide_action)
+        toolButton.menu().addSeparator()
+        toolButton.menu().addAction(sign_in_action)
+        toolButton.menu().addAction(set_cloud_project_action)
+        self.iface.pluginToolBar().addWidget(toolButton)
+        self.toolButton = toolButton
 
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self._updateLayers)
 
-    def _build_action(
-        self,
-        *,
-        text: str,
-        icon_name: str,
-        parent: Optional[QObject] = None,
-        callback: Callable,
-    ) -> QtWidgets.QAction:
-        """Helper to add a menu item and connect it to a handler."""
-        action = QtWidgets.QAction(
-            icon(icon_name), self.tr(text), parent or self.iface.mainWindow()
-        )
-        action.triggered.connect(callback)
-        return action
+    def unload(self):
+        if self.menu:
+            self.iface.pluginMenu().removeAction(self.menu.menuAction())
+
+        if self.toolButton:
+            self.toolButton.deleteLater()
 
     def _run_cmd_ee_user_guide(self):
         # open user guide in external web browser
@@ -223,15 +200,6 @@ class GoogleEarthEnginePlugin(object):
             print(f"An unexpected error occurred: {e}")
         finally:
             version_checked = True
-
-    def unload(self):
-        # Remove the plugin menu item and icon
-        if not self.menu:
-            # The initGui() method was never called
-            return
-
-        self.iface.pluginMenu().removeAction(self.menu.menuAction())
-        self.toolButton.deleteLater()
 
     def _updateLayers(self):
         import ee

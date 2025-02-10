@@ -10,12 +10,14 @@ import json
 import os.path
 import webbrowser
 from builtins import object
+from typing import cast
 
 import requests  # type: ignore
+from qgis import gui
 from qgis.core import QgsProject
-from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion
+from qgis.PyQt import QtWidgets
+from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion, Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
 
 from .config import EarthEngineConfig
 
@@ -24,9 +26,14 @@ PLUGIN_DIR = os.path.dirname(__file__)
 
 # read the plugin version from metadata
 cfg = configparser.ConfigParser()
-cfg.read(os.path.join(os.path.dirname(__file__), "metadata.txt"))
+cfg.read(os.path.join(PLUGIN_DIR, "metadata.txt"))
 VERSION = cfg.get("general", "version")
 version_checked = False
+
+
+def icon(icon_name: str) -> QIcon:
+    """Helper function to return an icon from the plugin directory."""
+    return QIcon(os.path.join(PLUGIN_DIR, "icons", icon_name))
 
 
 class GoogleEarthEnginePlugin(object):
@@ -34,7 +41,7 @@ class GoogleEarthEnginePlugin(object):
 
     ee_config: EarthEngineConfig
 
-    def __init__(self, iface, ee_config: EarthEngineConfig):
+    def __init__(self, iface: gui.QgisInterface, ee_config: EarthEngineConfig):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -48,14 +55,14 @@ class GoogleEarthEnginePlugin(object):
         self.iface = iface
 
         self.ee_config = ee_config
-        self.plugin_dir = os.path.dirname(__file__)
+        self.menu = None
+        self.toolButton = None
 
         # initialize locale
         locale = QSettings().value("locale/userLocale")[0:2]
         locale_path = os.path.join(
-            self.plugin_dir, "i18n", "GoogleEarthEnginePlugin_{}.qm".format(locale)
+            PLUGIN_DIR, "i18n", "GoogleEarthEnginePlugin_{}.qm".format(locale)
         )
-
         if os.path.exists(locale_path):
             self.translator = QTranslator()
             self.translator.load(locale_path)
@@ -63,13 +70,13 @@ class GoogleEarthEnginePlugin(object):
             if qVersion() > "4.3.3":
                 QCoreApplication.installTranslator(self.translator)
 
-        self.menu_name_plugin = self.tr("Google Earth Engine")
-
         # Create and register the EE data providers
         provider.register_data_provider()
 
         # Reload the plugin when the config changes
-        self.ee_config.signals.project_changed.connect(self._refresh_project_id)
+        self.ee_config.signals.project_changed.connect(
+            self._refresh_project_id
+        )
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -87,35 +94,66 @@ class GoogleEarthEnginePlugin(object):
         return QCoreApplication.translate("GoogleEarthEngine", message)
 
     def initGui(self):
-        ### Main dockwidget menu
-        # Create action that will start plugin configuration
-        ee_icon_path = ":/plugins/ee_plugin/icons/earth-engine.svg"
-        self.cmd_ee_user_guide = QAction(
-            QIcon(ee_icon_path), "User Guide", self.iface.mainWindow()
+        """Initialize the plugin GUI."""
+        # Build actions
+        ee_user_guide_action = QtWidgets.QAction(
+            icon=icon("earth-engine.svg"),
+            text=self.tr("User Guide"),
+            parent=self.iface.mainWindow(),
+            triggered=self._run_cmd_ee_user_guide,
         )
-        self.cmd_ee_user_guide.triggered.connect(self.run_cmd_ee_user_guide)
-
-        gcp_icon_path = ":/plugins/ee_plugin/icons/google-cloud.svg"
-        self.cmd_sign_in = QAction(
-            QIcon(gcp_icon_path), "Sign-in", self.iface.mainWindow()
+        sign_in_action = QtWidgets.QAction(
+            icon=icon("google-cloud.svg"),
+            text=self.tr("Sign-in"),
+            parent=self.iface.mainWindow(),
+            triggered=self._run_cmd_sign_in,
         )
-        self.cmd_sign_in.triggered.connect(self.run_cmd_sign_in)
-
-        gcp_project_icon_path = ":/plugins/ee_plugin/icons/google-cloud-project.svg"
-        self.cmd_set_cloud_project = QAction(
-            QIcon(gcp_project_icon_path),
-            self._project_button_text,
-            self.iface.mainWindow(),
+        set_cloud_project_action = QtWidgets.QAction(
+            icon=icon("google-cloud-project.svg"),
+            text=self.tr(self._project_button_text),
+            parent=self.iface.mainWindow(),
+            triggered=self._run_cmd_set_cloud_project,
         )
-        self.cmd_set_cloud_project.triggered.connect(self.run_cmd_set_cloud_project)
 
-        # Add menu item
-        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_ee_user_guide)
-        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_sign_in)
-        self.iface.addPluginToMenu(self.menu_name_plugin, self.cmd_set_cloud_project)
+        # Build plugin menu
+        plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
+        ee_menu = plugin_menu.addMenu(
+            icon("earth-engine.svg"),
+            self.tr("&Google Earth Engine"),
+        )
+        self.menu = ee_menu
+        ee_menu.addAction(ee_user_guide_action)
+        ee_menu.addSeparator()
+        ee_menu.addAction(sign_in_action)
+        ee_menu.addAction(set_cloud_project_action)
+
+        # Build toolbar
+        toolButton = QtWidgets.QToolButton()
+        toolButton.setToolButtonStyle(
+            Qt.ToolButtonStyle.ToolButtonIconOnly
+            # Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+        )
+        toolButton.setPopupMode(
+            QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup
+        )
+        toolButton.setMenu(QtWidgets.QMenu())
+        toolButton.setDefaultAction(ee_user_guide_action)
+        toolButton.menu().addAction(ee_user_guide_action)
+        toolButton.menu().addSeparator()
+        toolButton.menu().addAction(sign_in_action)
+        toolButton.menu().addAction(set_cloud_project_action)
+        self.iface.pluginToolBar().addWidget(toolButton)
+        self.toolButton = toolButton
 
         # Register signal to initialize EE layers on project load
-        self.iface.projectRead.connect(self.updateLayers)
+        self.iface.projectRead.connect(self._updateLayers)
+
+    def unload(self):
+        if self.menu:
+            self.iface.pluginMenu().removeAction(self.menu.menuAction())
+
+        if self.toolButton:
+            self.toolButton.deleteLater()
 
     @property
     def _project_button_text(self):
@@ -124,13 +162,15 @@ class GoogleEarthEnginePlugin(object):
 
     def _refresh_project_id(self):
         """Refresh the text for the project button."""
-        self.cmd_set_cloud_project.setText(self._project_button_text)
+        self.cmd_set_cloud_project.setText(
+          self.tr(self._project_button_text)
+        )
 
-    def run_cmd_ee_user_guide(self):
+    def _run_cmd_ee_user_guide(self):
         # open user guide in external web browser
         webbrowser.open_new("http://qgis-ee-plugin.appspot.com/user-guide")
 
-    def run_cmd_sign_in(self):
+    def _run_cmd_sign_in(self):
         import ee
 
         # reset authentication by forcing sign in
@@ -139,7 +179,7 @@ class GoogleEarthEnginePlugin(object):
         # after resetting authentication, select Google Cloud project again
         self.run_cmd_set_cloud_project()
 
-    def run_cmd_set_cloud_project(self):
+    def _run_cmd_set_cloud_project(self):
         from ee_plugin import ee_auth  # type: ignore
 
         ee_auth.ee_initialize_with_project(self.ee_config, force=True)
@@ -175,13 +215,7 @@ class GoogleEarthEnginePlugin(object):
         finally:
             version_checked = True
 
-    def unload(self):
-        # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_ee_user_guide)
-        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_sign_in)
-        self.iface.removePluginMenu(self.menu_name_plugin, self.cmd_set_cloud_project)
-
-    def updateLayers(self):
+    def _updateLayers(self):
         import ee
 
         from .utils import add_or_update_ee_layer

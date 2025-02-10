@@ -74,9 +74,7 @@ class GoogleEarthEnginePlugin(object):
         provider.register_data_provider()
 
         # Reload the plugin when the config changes
-        self.ee_config.signals.project_changed.connect(
-            self._refresh_project_id
-        )
+        self.ee_config.signals.project_changed.connect(self._refresh_project_id)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -108,7 +106,7 @@ class GoogleEarthEnginePlugin(object):
             parent=self.iface.mainWindow(),
             triggered=self._run_cmd_sign_in,
         )
-        set_cloud_project_action = QtWidgets.QAction(
+        self.set_cloud_project_action = QtWidgets.QAction(
             icon=icon("google-cloud-project.svg"),
             text=self.tr(self._project_button_text),
             parent=self.iface.mainWindow(),
@@ -125,7 +123,7 @@ class GoogleEarthEnginePlugin(object):
         ee_menu.addAction(ee_user_guide_action)
         ee_menu.addSeparator()
         ee_menu.addAction(sign_in_action)
-        ee_menu.addAction(set_cloud_project_action)
+        ee_menu.addAction(self.set_cloud_project_action)
 
         # Build toolbar
         toolButton = QtWidgets.QToolButton()
@@ -141,7 +139,7 @@ class GoogleEarthEnginePlugin(object):
         toolButton.menu().addAction(ee_user_guide_action)
         toolButton.menu().addSeparator()
         toolButton.menu().addAction(sign_in_action)
-        toolButton.menu().addAction(set_cloud_project_action)
+        toolButton.menu().addAction(self.set_cloud_project_action)
         self.iface.pluginToolBar().addWidget(toolButton)
         self.toolButton = toolButton
 
@@ -162,9 +160,7 @@ class GoogleEarthEnginePlugin(object):
 
     def _refresh_project_id(self):
         """Refresh the text for the project button."""
-        self.cmd_set_cloud_project.setText(
-          self.tr(self._project_button_text)
-        )
+        self.set_cloud_project_action.setText(self.tr(self._project_button_text))
 
     def _run_cmd_ee_user_guide(self):
         # open user guide in external web browser

@@ -1,6 +1,6 @@
 import json
 from tempfile import NamedTemporaryFile
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 

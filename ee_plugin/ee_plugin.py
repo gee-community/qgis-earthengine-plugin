@@ -19,11 +19,13 @@ from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion, Qt
 from qgis.PyQt.QtGui import QIcon
 
+from .config import EarthEngineConfig
 from .ui.utils import (
     build_form_group_box,
     build_vbox_dialog,
     get_values,
 )
+
 
 PLUGIN_DIR = os.path.dirname(__file__)
 
@@ -42,7 +44,9 @@ def icon(icon_name: str) -> QIcon:
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface: gui.QgisInterface):
+    ee_config: EarthEngineConfig
+
+    def __init__(self, iface: gui.QgisInterface, ee_config: EarthEngineConfig):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -55,6 +59,7 @@ class GoogleEarthEnginePlugin(object):
         # Save reference to the QGIS interface
         self.iface = iface
 
+        self.ee_config = ee_config
         self.menu = None
         self.toolButton = None
 
@@ -72,6 +77,9 @@ class GoogleEarthEnginePlugin(object):
 
         # Create and register the EE data providers
         provider.register_data_provider()
+
+        # Reload the plugin when the config changes
+        self.ee_config.signals.updated.connect(self._handle_updated_config)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -103,9 +111,9 @@ class GoogleEarthEnginePlugin(object):
             parent=self.iface.mainWindow(),
             triggered=self._run_cmd_sign_in,
         )
-        set_cloud_project_action = QtWidgets.QAction(
+        self.set_cloud_project_action = QtWidgets.QAction(
             icon=icon("google-cloud-project.svg"),
-            text=self.tr("Set Project"),
+            text=self.tr(self._project_button_text),
             parent=self.iface.mainWindow(),
             triggered=self._run_cmd_set_cloud_project,
         )
@@ -120,7 +128,7 @@ class GoogleEarthEnginePlugin(object):
         ee_menu.addAction(ee_user_guide_action)
         ee_menu.addSeparator()
         ee_menu.addAction(sign_in_action)
-        ee_menu.addAction(set_cloud_project_action)
+        ee_menu.addAction(self.set_cloud_project_action)
 
         # Build toolbar
         toolButton = QtWidgets.QToolButton()
@@ -136,7 +144,7 @@ class GoogleEarthEnginePlugin(object):
         toolButton.menu().addAction(ee_user_guide_action)
         toolButton.menu().addSeparator()
         toolButton.menu().addAction(sign_in_action)
-        toolButton.menu().addAction(set_cloud_project_action)
+        toolButton.menu().addAction(self.set_cloud_project_action)
         self.iface.pluginToolBar().addWidget(toolButton)
         self.toolButton = toolButton
 
@@ -150,6 +158,15 @@ class GoogleEarthEnginePlugin(object):
         if self.toolButton:
             self.toolButton.deleteLater()
 
+    @property
+    def _project_button_text(self):
+        """Get the text for the project button."""
+        return f"Set Project: {self.ee_config.project or '...'}"
+
+    def _handle_updated_config(self):
+        """Refresh the text for the project button."""
+        self.set_cloud_project_action.setText(self.tr(self._project_button_text))
+
     def _run_cmd_ee_user_guide(self):
         # open user guide in external web browser
         webbrowser.open_new("http://qgis-ee-plugin.appspot.com/user-guide")
@@ -157,18 +174,16 @@ class GoogleEarthEnginePlugin(object):
     def _run_cmd_sign_in(self):
         import ee
 
-        from ee_plugin import ee_auth  # type: ignore
-
         # reset authentication by forcing sign in
         ee.Authenticate(auth_mode="localhost", force=True)
 
         # after resetting authentication, select Google Cloud project again
-        ee_auth.select_project()
+        self.run_cmd_set_cloud_project()
 
     def _run_cmd_set_cloud_project(self):
         from ee_plugin import ee_auth  # type: ignore
 
-        ee_auth.select_project()
+        ee_auth.ee_initialize_with_project(self.ee_config, force=True)
 
     def check_version(self):
         global version_checked

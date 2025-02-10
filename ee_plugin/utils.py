@@ -9,7 +9,6 @@ import tempfile
 import ee
 import qgis
 from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer
-from .ee_plugin import VERSION as ee_plugin_version
 
 
 def is_named_dataset(eeObject):
@@ -34,23 +33,6 @@ def get_ee_image_url(image):
     map_id = ee.data.getMapId({"image": image})
     url = map_id["tile_fetcher"].url_format + "&zmax=25"
     return url
-
-
-def update_ee_layer_properties(layer, eeObject, opacity):
-    """
-    Updates the layer properties including opacity.
-    """
-    layer.dataProvider().set_ee_object(eeObject)
-    layer.setCustomProperty("ee-layer", True)
-
-    if opacity is not None and layer.renderer():
-        renderer = layer.renderer()
-        if renderer:
-            renderer.setOpacity(opacity)
-
-    # Serialize EE object
-    layer.setCustomProperty("ee-plugin-version", ee_plugin_version)
-    layer.setCustomProperty("ee-object", eeObject.serialize())
 
 
 def add_or_update_ee_layer(eeObject, vis_params, name, shown, opacity):

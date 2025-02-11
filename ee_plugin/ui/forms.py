@@ -26,7 +26,11 @@ def add_feature_collection_form(iface: gui.QgisInterface, _debug=True, **kwargs)
                             whatsThis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
                         ),
                         QtWidgets.QLineEdit(objectName="feature_collection_id"),
-                    )
+                    ),
+                    (
+                        "Use <pre>add_or_update_ee_vector_layer</pre>",
+                        QtWidgets.QCheckBox(objectName="use_util"),
+                    ),
                 ],
             ),
             build_form_group_box(
@@ -102,6 +106,7 @@ def load(
     mXMaxLineEdit: str,
     mXMinLineEdit: str,
     viz_color_hex: str,
+    use_util: bool,
     **kwargs,
 ):
     """
@@ -148,7 +153,20 @@ def load(
 
     # 6. Add to map
     layer_name = f"FC: {feature_collection_id}"
-    utils.add_or_update_ee_vector_layer(fc, layer_name)
+    if use_util:
+        utils.add_ee_vector_layer(fc, layer_name)
+    else:
+        Map.addLayer(
+            fc,
+            {
+                # "color": viz_color_hex,
+                # If you'd like transparency or a custom fill color, you can add:
+                # "fillColor": viz_color_hex,
+                # "opacity": 0.6,
+                "palette": viz_color_hex,
+            },
+            layer_name,
+        )
     return fc
 
 

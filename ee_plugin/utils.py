@@ -284,7 +284,7 @@ def add_ee_catalog_image(
     """
     Adds an EE image from a catalog.
     """
-    image = ee.Image(asset_name).visualize(vis_params)
+    image = ee.Image(asset_name).visualize(**vis_params)
     add_or_update_ee_raster_layer(image, name)
 
 

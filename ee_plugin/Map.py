@@ -23,6 +23,8 @@ def get_iface() -> gui.QgisInterface:
     # Lazy import to ensure that iface is available after gqis is initialized
     from qgis.utils import iface
 
+    if not iface:
+        raise ImportError("QGIS interface not available. Has QGIS been initialized?")
     return iface
 
 

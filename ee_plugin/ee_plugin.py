@@ -12,6 +12,7 @@ import webbrowser
 from builtins import object
 from typing import cast
 
+import ee
 import requests  # type: ignore
 from qgis import gui
 from qgis.core import QgsProject
@@ -20,6 +21,7 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion,
 from qgis.PyQt.QtGui import QIcon
 
 from .config import EarthEngineConfig
+from .Map import addLayer
 from .ui.utils import (
     build_form_group_box,
     build_vbox_dialog,
@@ -118,6 +120,13 @@ class GoogleEarthEnginePlugin(object):
             triggered=self._run_cmd_set_cloud_project,
         )
 
+        add_gee_layer_action = QtWidgets.QAction(
+            icon=icon("add-layer.svg"),
+            text=self.tr("Add GEE Dataset"),
+            parent=self.iface.mainWindow(),
+            triggered=self._add_gee_layer_dialog,
+        )
+
         # Build plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
         ee_menu = plugin_menu.addMenu(
@@ -129,6 +138,7 @@ class GoogleEarthEnginePlugin(object):
         ee_menu.addSeparator()
         ee_menu.addAction(sign_in_action)
         ee_menu.addAction(self.set_cloud_project_action)
+        ee_menu.addAction(add_gee_layer_action)
 
         # Build toolbar
         toolButton = QtWidgets.QToolButton()
@@ -145,6 +155,7 @@ class GoogleEarthEnginePlugin(object):
         toolButton.menu().addSeparator()
         toolButton.menu().addAction(sign_in_action)
         toolButton.menu().addAction(self.set_cloud_project_action)
+        toolButton.menu().addAction(add_gee_layer_action)
         self.iface.pluginToolBar().addWidget(toolButton)
         self.toolButton = toolButton
 
@@ -321,3 +332,94 @@ class GoogleEarthEnginePlugin(object):
             ),
             rejected=lambda: self.iface.messageBar().pushMessage("Cancelled"),
         )
+
+    def _add_gee_layer_dialog(self):
+        """Display a dialog to add a GEE dataset to the QGIS map."""
+
+        dialog = build_vbox_dialog(
+            windowTitle="Add Google Earth Engine Layer",
+            widgets=[
+                build_form_group_box(
+                    title="Dataset",
+                    rows=[
+                        (
+                            QtWidgets.QLabel(
+                                text="Enter GEE Dataset Name (e.g., COPERNICUS/S2, USGS/SRTMGL1_003)",
+                                toolTip="Provide the full Earth Engine dataset ID.",
+                            ),
+                            QtWidgets.QLineEdit(objectName="datasetId"),
+                        )
+                    ],
+                ),
+                build_form_group_box(
+                    title="Visualization Parameters (JSON)",
+                    collapsable=True,
+                    collapsed=True,
+                    rows=[
+                        (
+                            QtWidgets.QLabel(
+                                text="Enter JSON for visualization parameters",
+                                toolTip="Example: {'min': 0, 'max': 4000, 'palette': ['006633', 'E5FFCC', '662A00']}",
+                            ),
+                            QtWidgets.QTextEdit(
+                                objectName="vizParams",
+                                placeholderText='{"min": 0, "max": 4000, "palette": ["006633", "E5FFCC", "662A00"]}',
+                            ),
+                        )
+                    ],
+                ),
+            ],
+            accepted=lambda: self._load_gee_layer(dialog),
+            rejected=lambda: self.iface.messageBar().pushMessage("Cancelled"),
+        )
+
+    def _load_gee_layer(self, dialog):
+        """Fetch and add the selected Earth Engine dataset to the map with user-defined visualization parameters."""
+        values = get_values(dialog)
+        dataset_id = values["datasetId"]
+
+        if not dataset_id:
+            self.iface.messageBar().pushMessage(
+                "Error", "Dataset ID is required", level=3
+            )
+            return
+
+        try:
+            # Get asset metadata
+            asset_info = ee.data.getAsset(dataset_id)
+            asset_type = asset_info.get("type", "")
+
+            # Determine if it's an ImageCollection or Image
+            if asset_type == "IMAGE_COLLECTION":
+                ee_object = ee.ImageCollection(dataset_id).mosaic()
+            elif asset_type == "IMAGE":
+                ee_object = ee.Image(dataset_id)
+            else:
+                raise ValueError(f"Unsupported asset type: {asset_type}")
+
+            # Get visualization parameters from user as JSON
+            vis_params_input = values.get("vizParams", "{}")
+
+            try:
+                vis_params_input = vis_params_input.replace("'", '"')
+                vis_params = json.loads(vis_params_input)
+            except json.JSONDecodeError:
+                raise ValueError("Invalid JSON format in visualization parameters")
+
+            # Add the dataset to QGIS map
+            addLayer(ee_object, vis_params, dataset_id)
+
+            self.iface.messageBar().pushMessage(
+                f"Added {dataset_id} to map with custom visualization"
+            )
+
+        except ee.EEException as e:
+            self.iface.messageBar().pushMessage(
+                "Error", f"Earth Engine Error: {str(e)}", level=3
+            )
+        except ValueError as e:
+            self.iface.messageBar().pushMessage("Error", str(e), level=3)
+        except Exception as e:
+            self.iface.messageBar().pushMessage(
+                "Error", f"Unexpected error: {str(e)}", level=3
+            )

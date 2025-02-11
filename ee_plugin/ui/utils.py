@@ -12,6 +12,7 @@ from qgis.PyQt.QtWidgets import (
     QDateEdit,
     QCheckBox,
     QLayout,
+    QTextEdit,
 )
 from qgis.gui import QgsColorButton, QgsCollapsibleGroupBox
 
@@ -82,6 +83,7 @@ def get_values(dialog: QDialog) -> dict:
         QDateEdit: lambda w: w.date().toString("yyyy-MM-dd"),
         QCheckBox: lambda w: w.isChecked(),
         QgsColorButton: lambda w: w.color().name(),
+        QTextEdit: lambda w: w.toPlainText().strip(),
     }
     return {
         w.objectName(): parsers[type(w)](w)

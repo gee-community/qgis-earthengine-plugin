@@ -20,7 +20,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import QObject
 
-from ee_plugin import Map
+from . import Map
 
 BAND_TYPES = {
     "int8": Qgis.Int16,

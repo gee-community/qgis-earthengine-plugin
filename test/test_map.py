@@ -1,10 +1,9 @@
 from ee_plugin import Map
+import ee
 
 
 def test_add_layer():
     """Test adding a layer to the map."""
-    import ee
-
     image = ee.Image("USGS/SRTMGL1_003")
     vis_params = {
         "min": 0,

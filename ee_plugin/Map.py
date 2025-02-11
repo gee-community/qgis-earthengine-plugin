@@ -13,8 +13,19 @@ from qgis.core import (
     QgsProject,
     QgsRectangle,
 )
+from qgis import gui
 from qgis.PyQt.QtCore import QEventLoop, QTimer, QCoreApplication, QThread
-from qgis.utils import iface
+
+from . import utils
+
+
+def get_iface() -> gui.QgisInterface:
+    # Lazy import to ensure that iface is available after gqis is initialized
+    from qgis.utils import iface
+
+    if not iface:
+        raise ImportError("QGIS interface not available. Has QGIS been initialized?")
+    return iface
 
 
 def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
@@ -27,8 +38,6 @@ def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
         >>> from ee_plugin import Map
         >>> Map.addLayer(.....)
     """
-    from . import utils
-
     utils.add_or_update_ee_layer(eeObject, visParams, name, shown, opacity)
 
 
@@ -67,6 +76,7 @@ def centerObject(feature, zoom=None):
         rect_proj = geo2proj.transform(rect)
 
         # center geometry
+        iface = get_iface()
         iface.mapCanvas().zoomToFeatureExtent(rect_proj)
     else:
         # set map center to feature centroid at a specified zoom
@@ -85,6 +95,7 @@ def getBounds(asGeoJSON=False):
         >>> bounds = Map.getBounds(True)
         >>> Map.addLayer(bounds, {}, 'bounds')
     """
+    iface = get_iface()
     ex = iface.mapCanvas().extent()
     # return ex
     xmax = ex.xMaximum()
@@ -113,6 +124,7 @@ def getCenter():
         >>> center = Map.getCenter()
         >>> Map.addLayer(center, { 'color': 'red' }, 'center')
     """
+    iface = get_iface()
     center = iface.mapCanvas().center()
 
     crs = iface.mapCanvas().mapSettings().destinationCrs().authid()
@@ -143,6 +155,8 @@ def setCenter(lon, lat, zoom=None):
     xform = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
     # forward transformation: src -> dest
     center_point = xform.transform(center_point_in)
+
+    iface = get_iface()
     iface.mapCanvas().setCenter(center_point)
 
     ### zoom
@@ -162,7 +176,7 @@ def getScale():
         >>> from ee_plugin import Map
         >>> print(Map.getScale())
     """
-
+    iface = get_iface()
     return iface.mapCanvas().scale() / 1000
 
 
@@ -180,6 +194,7 @@ def getZoom():
     """
 
     # from https://gis.stackexchange.com/questions/268890/get-current-zoom-level-from-qgis-map-canvas
+    iface = get_iface()
     scale = iface.mapCanvas().scale()
     dpi = iface.mainWindow().physicalDpiX()
     maxScalePerPixel = 156543.04

@@ -18,8 +18,9 @@ from qgis.core import QgsProject
 from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion, Qt
 from qgis.PyQt.QtGui import QIcon
+import ee
 
-from .config import EarthEngineConfig
+from . import provider, config, ee_auth, utils
 
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -39,9 +40,9 @@ def icon(icon_name: str) -> QIcon:
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
 
-    ee_config: EarthEngineConfig
+    ee_config: config.EarthEngineConfig
 
-    def __init__(self, iface: gui.QgisInterface, ee_config: EarthEngineConfig):
+    def __init__(self, iface: gui.QgisInterface, ee_config: config.EarthEngineConfig):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -49,7 +50,6 @@ class GoogleEarthEnginePlugin(object):
             application at run time.
         :type iface: QgsInterface
         """
-        from . import provider
 
         # Save reference to the QGIS interface
         self.iface = iface
@@ -176,8 +176,6 @@ class GoogleEarthEnginePlugin(object):
         self.run_cmd_set_cloud_project()
 
     def _run_cmd_set_cloud_project(self):
-        from ee_plugin import ee_auth  # type: ignore
-
         ee_auth.ee_initialize_with_project(self.ee_config, force=True)
 
     def check_version(self):
@@ -212,10 +210,6 @@ class GoogleEarthEnginePlugin(object):
             version_checked = True
 
     def _updateLayers(self):
-        import ee
-
-        from .utils import add_or_update_ee_layer
-
         layers = QgsProject.instance().mapLayers().values()
 
         for layer in filter(lambda layer: layer.customProperty("ee-layer"), layers):
@@ -248,4 +242,4 @@ class GoogleEarthEnginePlugin(object):
             )
             opacity = layer.renderer().opacity()
 
-            add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)
+            utils.add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)

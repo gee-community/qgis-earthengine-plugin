@@ -20,11 +20,7 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion,
 from qgis.PyQt.QtGui import QIcon
 
 from .config import EarthEngineConfig
-from .ui.utils import (
-    build_form_group_box,
-    build_vbox_dialog,
-    get_values,
-)
+from .ui.forms import add_feature_collection_form
 
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -117,6 +113,12 @@ class GoogleEarthEnginePlugin(object):
             parent=self.iface.mainWindow(),
             triggered=self._run_cmd_set_cloud_project,
         )
+        add_fc_button = QtWidgets.QAction(
+            icon=icon("google-cloud.svg"),
+            text=self.tr("Add Feature Collection"),
+            parent=self.iface.mainWindow(),
+            triggered=lambda: add_feature_collection_form(self.iface),
+        )
 
         # Build plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
@@ -129,6 +131,7 @@ class GoogleEarthEnginePlugin(object):
         ee_menu.addSeparator()
         ee_menu.addAction(sign_in_action)
         ee_menu.addAction(self.set_cloud_project_action)
+        ee_menu.addAction(add_fc_button)
 
         # Build toolbar
         toolButton = QtWidgets.QToolButton()
@@ -254,70 +257,3 @@ class GoogleEarthEnginePlugin(object):
             opacity = layer.renderer().opacity()
 
             add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)
-
-    def _test_dock_widget(self):
-        dialog = build_vbox_dialog(
-            windowTitle="Add Feature Collection",
-            widgets=[
-                build_form_group_box(
-                    title="Source",
-                    rows=[
-                        (
-                            QtWidgets.QLabel(
-                                text="Add GEE Feature Collection to Map",
-                                toolTip="This is a tooltip!",
-                                whatsThis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
-                            ),
-                            QtWidgets.QLineEdit(objectName="featureCollectionId"),
-                        )
-                    ],
-                ),
-                build_form_group_box(
-                    title="Filter by Properties",
-                    collapsable=True,
-                    collapsed=True,
-                    rows=[
-                        (
-                            "Name",
-                            QtWidgets.QLineEdit(objectName="filterName"),
-                        ),
-                        (
-                            "Value",
-                            QtWidgets.QLineEdit(objectName="filterValue"),
-                        ),
-                    ],
-                ),
-                build_form_group_box(
-                    title="Filter by Dates",
-                    collapsable=True,
-                    collapsed=True,
-                    rows=[
-                        (
-                            "Start",
-                            QtWidgets.QDateEdit(objectName="startDate"),
-                        ),
-                        (
-                            "End",
-                            QtWidgets.QDateEdit(objectName="endDate"),
-                        ),
-                    ],
-                ),
-                gui.QgsExtentGroupBox(
-                    objectName="extent",
-                    title="Filter by Coordinates",
-                    collapsed=True,
-                ),
-                build_form_group_box(
-                    title="Visualization",
-                    collapsable=True,
-                    collapsed=True,
-                    rows=[
-                        ("Color", gui.QgsColorButton(objectName="vizColorHex")),
-                    ],
-                ),
-            ],
-            accepted=lambda: self.iface.messageBar().pushMessage(
-                f"Accepted {get_values(dialog)=}"
-            ),
-            rejected=lambda: self.iface.messageBar().pushMessage("Cancelled"),
-        )

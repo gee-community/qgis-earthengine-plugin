@@ -83,8 +83,9 @@ def get_values(dialog: QDialog) -> dict:
         QCheckBox: lambda w: w.isChecked(),
         QgsColorButton: lambda w: w.color().name(),
     }
-    return {
-        w.objectName(): parsers[type(w)](w)
-        for w in dialog.findChildren(QWidget)
-        if type(w) in parsers
-    }
+    values = {}
+    for cls, formatter in parsers.items():
+        for widget in dialog.findChildren(cls):
+            values[widget.objectName()] = formatter(widget)
+
+    return values

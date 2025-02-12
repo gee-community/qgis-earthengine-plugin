@@ -50,7 +50,7 @@ def add_gee_layer_dialog(iface: gui.QgisInterface):
                 ],
             ),
         ],
-        accepted=lambda: _load_gee_layer(dialog, iface),
+        accepted=lambda: _load_gee_layer(dialog),
         rejected=lambda: QgsMessageLog.logMessage(
             "User cancelled adding GEE Layer.", "GEE Plugin", level=Qgis.Info
         ),
@@ -59,7 +59,7 @@ def add_gee_layer_dialog(iface: gui.QgisInterface):
     return dialog
 
 
-def _load_gee_layer(dialog: Dict[str, QtWidgets.QWidget], iface: gui.QgisInterface):
+def _load_gee_layer(dialog: Dict[str, QtWidgets.QWidget]):
     """Fetch and add the selected Earth Engine dataset to the map with user-defined visualization parameters."""
     values = get_values(dialog)
     dataset_id = values["datasetId"]

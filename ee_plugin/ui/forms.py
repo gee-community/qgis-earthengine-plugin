@@ -144,16 +144,11 @@ def add_feature_collection(
         ee.FeatureCollection: The filtered FeatureCollection.
     """
 
-    # 1. Load the FeatureCollection
     fc = ee.FeatureCollection(feature_collection_id)
 
-    # 2. Filter by property name and value if provided
     if filter_name and filter_value:
         fc = fc.filter(ee.Filter.eq(filter_name, filter_value))
 
-    # 3. Filter by date if both start_date and end_date are provided
-    #    This step only makes sense if your FeatureCollection has a date property
-    #    (e.g. "date" or "system:time_start"). Change "date" below to the relevant property.
     # if start_date and end_date:
     #     fc = fc.filter(
     #         ee.Filter.date(ee.Date(start_date), ee.Date(end_date))
@@ -162,13 +157,12 @@ def add_feature_collection(
     #         #     start_date, end_date, 'year' (or 'day', etc.) if using calendarRange
     #     )
 
-    # 4. Filter by geometry if provided
     extent_src = [mXMinLineEdit, mYMinLineEdit, mXMaxLineEdit, mYMaxLineEdit]
     if all(extent_src):
         extent = ee.Geometry.Rectangle([float(val) for val in extent_src])
-        # fc = fc.filterBounds(extent)
+
         # Alternatively, if you want to clip features to the extent rather than just filter:
-        fc = fc.map(lambda f: f.intersection(extent))
+        fc = fc.filterBounds(extent)
 
     # 6. Add to map
     layer_name = f"FC: {feature_collection_id}"
@@ -194,6 +188,3 @@ def add_feature_collection(
             layer_name,
         )
     return fc
-
-
-# 'USGS/WBD/2017/HUC06'

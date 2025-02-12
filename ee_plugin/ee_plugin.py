@@ -121,7 +121,7 @@ class GoogleEarthEnginePlugin(object):
 
         add_gee_layer_action = QtWidgets.QAction(
             icon=icon("add-layer.svg"),
-            text=self.tr("Add GEE Dataset"),
+            text=self.tr("Add GEE Image"),
             parent=self.iface.mainWindow(),
             triggered=add_gee_layer_dialog,
         )

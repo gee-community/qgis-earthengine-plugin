@@ -80,6 +80,7 @@ def get_values(dialog: QDialog) -> dict:
     parsers = {
         QLineEdit: lambda w: w.text(),
         QDateEdit: lambda w: w.date().toString("yyyy-MM-dd"),
+        QgsDateEdit: lambda w: None if w.isNull() else w.findChild(QLineEdit).text(),
         QCheckBox: lambda w: w.isChecked(),
         QgsColorButton: lambda w: w.color().name(),
     }

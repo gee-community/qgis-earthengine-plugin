@@ -166,7 +166,14 @@ def load(
     # 6. Add to map
     layer_name = f"FC: {feature_collection_id}"
     if use_util:
-        utils.add_ee_vector_layer(fc, layer_name)
+        try:
+            utils.add_ee_vector_layer(fc, layer_name)
+        except ee.ee_exception.EEException as e:
+            Map.get_iface().messageBar().pushMessage(
+                "Error",
+                f"Failed to load the Feature Collection: {e}",
+                level=gui.Qgis.Critical,
+            )
     else:
         Map.addLayer(
             fc,

@@ -114,42 +114,53 @@ class GoogleEarthEnginePlugin(object):
             triggered=self._run_cmd_set_cloud_project,
         )
         add_fc_button = QtWidgets.QAction(
-            icon=icon("google-cloud.svg"),
             text=self.tr("Add Feature Collection"),
             parent=self.iface.mainWindow(),
             triggered=lambda: forms.add_feature_collection_form(self.iface),
         )
 
-        # Build plugin menu
+        # Initialize plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
-        ee_menu = plugin_menu.addMenu(
+        self.menu = plugin_menu.addMenu(
             icon("earth-engine.svg"),
             self.tr("&Google Earth Engine"),
         )
-        self.menu = ee_menu
-        ee_menu.addAction(ee_user_guide_action)
-        ee_menu.addSeparator()
-        ee_menu.addAction(sign_in_action)
-        ee_menu.addAction(self.set_cloud_project_action)
-        ee_menu.addAction(add_fc_button)
 
-        # Build toolbar
-        toolButton = QtWidgets.QToolButton()
-        toolButton.setToolButtonStyle(
+        # Initialize toolbar menu
+        self.toolButton = QtWidgets.QToolButton()
+        self.toolButton.setToolButtonStyle(
             Qt.ToolButtonStyle.ToolButtonIconOnly
             # Qt.ToolButtonStyle.ToolButtonTextBesideIcon
         )
-        toolButton.setPopupMode(
-            QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup
+        self.toolButton.setPopupMode(
+            # QtWidgets.QToolButton.ToolButtonPopupMode.DelayedPopup  # Button is only for triggering action
+            QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup  # Button is only for opening dropdown menu
+            # QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup  # Button is split into action and dropdown menu
         )
-        toolButton.setMenu(QtWidgets.QMenu())
-        toolButton.setDefaultAction(ee_user_guide_action)
-        toolButton.menu().addAction(ee_user_guide_action)
-        toolButton.menu().addSeparator()
-        toolButton.menu().addAction(sign_in_action)
-        toolButton.menu().addAction(self.set_cloud_project_action)
-        self.iface.pluginToolBar().addWidget(toolButton)
-        self.toolButton = toolButton
+        self.toolButton.setMenu(QtWidgets.QMenu())
+        self.toolButton.setDefaultAction(
+            QtWidgets.QAction(
+                icon=icon("earth-engine.svg"),
+                text=f'<strong>{self.tr("Google Earth Engine")}</strong>',
+                parent=self.iface.mainWindow(),
+            )
+        )
+        self.iface.pluginToolBar().addWidget(self.toolButton)
+
+        # Add actions to the menu
+        for action in [
+            ee_user_guide_action,
+            None,
+            sign_in_action,
+            self.set_cloud_project_action,
+            None,
+            add_fc_button,
+        ]:
+            for menu in [self.menu, self.toolButton.menu()]:
+                if action:
+                    menu.addAction(action)
+                else:
+                    menu.addSeparator()
 
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self._updateLayers)

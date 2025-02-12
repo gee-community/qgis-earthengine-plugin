@@ -51,7 +51,7 @@ def add_feature_collection_form(
                         QtWidgets.QLineEdit(objectName="feature_collection_id"),
                     ),
                     (
-                        "Use <pre>add_or_update_ee_vector_layer</pre>",
+                        "Retain as a vector layer",
                         QtWidgets.QCheckBox(objectName="use_util"),
                     ),
                 ],

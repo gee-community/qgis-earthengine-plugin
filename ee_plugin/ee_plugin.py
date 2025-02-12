@@ -119,6 +119,7 @@ class GoogleEarthEnginePlugin(object):
             triggered=self._run_cmd_set_cloud_project,
         )
 
+        # TODO: how is iface passed here?
         add_gee_layer_action = QtWidgets.QAction(
             icon=icon("add-layer.svg"),
             text=self.tr("Add GEE Dataset"),

@@ -2,8 +2,9 @@ import json
 from typing import Dict
 
 import ee
+from qgis import gui
 from qgis.PyQt import QtWidgets
-from qgis.utils import iface
+from qgis.core import QgsMessageLog, Qgis
 
 from ..Map import addLayer
 from .utils import (
@@ -13,7 +14,7 @@ from .utils import (
 )
 
 
-def add_gee_layer_dialog():
+def add_gee_layer_dialog(iface: gui.QgisInterface):
     """Display a dialog to add a GEE dataset to the QGIS map."""
 
     dialog = build_vbox_dialog(
@@ -49,19 +50,23 @@ def add_gee_layer_dialog():
                 ],
             ),
         ],
-        accepted=lambda: _load_gee_layer(dialog),
-        rejected=lambda: iface.messageBar().pushMessage("Cancelled"),
+        accepted=lambda: _load_gee_layer(dialog, iface),
+        rejected=lambda: QgsMessageLog.logMessage(
+            "User cancelled adding GEE Layer.", "GEE Plugin", level=Qgis.Info
+        ),
     )
 
+    return dialog
 
-def _load_gee_layer(dialog: Dict[str, QtWidgets.QWidget]):
+
+def _load_gee_layer(dialog: Dict[str, QtWidgets.QWidget], iface: gui.QgisInterface):
     """Fetch and add the selected Earth Engine dataset to the map with user-defined visualization parameters."""
     values = get_values(dialog)
     dataset_id = values["datasetId"]
 
     if not dataset_id:
-        iface.messageBar().pushMessage("Error", "Dataset ID is required", level=3)
-        return
+        message = "Dataset ID is required."
+        QgsMessageLog.logMessage(message, "GEE Plugin", level=Qgis.Critical)
 
     try:
         # Get asset metadata
@@ -80,23 +85,26 @@ def _load_gee_layer(dialog: Dict[str, QtWidgets.QWidget]):
         vis_params_input = values.get("vizParams", "{}")
 
         try:
-            vis_params_input = vis_params_input.replace("'", '"')
-            vis_params = json.loads(vis_params_input)
+            vis_params = json.loads(vis_params_input.replace("'", '"'))
         except json.JSONDecodeError:
-            raise ValueError("Invalid JSON format in visualization parameters")
+            raise ValueError("Invalid JSON format in visualization parameters.")
 
         # Add the dataset to QGIS map
         addLayer(ee_object, vis_params, dataset_id)
 
-        iface.messageBar().pushMessage(
-            f"Added {dataset_id} to map with custom visualization"
+        success_message = (
+            f"Successfully added {dataset_id} to the map with custom visualization."
         )
+        QgsMessageLog.logMessage(success_message, "GEE Plugin", level=Qgis.Success)
 
     except ee.EEException as e:
-        iface.messageBar().pushMessage(
-            "Error", f"Earth Engine Error: {str(e)}", level=3
-        )
+        error_message = f"Earth Engine Error: {str(e)}"
+        QgsMessageLog.logMessage(error_message, "GEE Plugin", level=Qgis.Critical)
+
     except ValueError as e:
-        iface.messageBar().pushMessage("Error", str(e), level=3)
+        error_message = str(e)
+        QgsMessageLog.logMessage(error_message, "GEE Plugin", level=Qgis.Critical)
+
     except Exception as e:
-        iface.messageBar().pushMessage("Error", f"Unexpected error: {str(e)}", level=3)
+        error_message = f"Unexpected error: {str(e)}"
+        QgsMessageLog.logMessage(error_message, "GEE Plugin", level=Qgis.Critical)

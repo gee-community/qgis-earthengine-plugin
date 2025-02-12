@@ -33,3 +33,10 @@ def load_ee_plugin(qgis_app, setup_ee, ee_config):
     plugins["ee_plugin"] = plugin
     plugin.check_version()
     yield qgis_app
+
+
+@fixture(scope="function", autouse=True)
+def qgis_iface_clean(qgis_iface):
+    """Remove all layers from the map canvas after each test."""
+    qgis_iface.mapCanvas().setLayers([])
+    yield qgis_iface

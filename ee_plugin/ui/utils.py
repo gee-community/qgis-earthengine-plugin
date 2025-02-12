@@ -84,6 +84,7 @@ def get_values(dialog: QDialog) -> dict:
         QgsColorButton: lambda w: w.color().name(),
     }
     values = {}
+    # TODO: Some widgets have subwidgets with different names, need to reasonbly handle this
     for cls, formatter in parsers.items():
         for widget in dialog.findChildren(cls):
             values[widget.objectName()] = formatter(widget)

@@ -18,17 +18,17 @@ def add_gee_layer_dialog(iface: gui.QgisInterface):
     """Display a dialog to add a GEE dataset to the QGIS map."""
 
     dialog = build_vbox_dialog(
-        windowTitle="Add Google Earth Engine Layer",
+        windowTitle="Add Google Earth Engine Image",
         widgets=[
             build_form_group_box(
                 title="Dataset",
                 rows=[
                     (
                         QtWidgets.QLabel(
-                            text="Enter GEE Dataset Name (e.g., COPERNICUS/S2, USGS/SRTMGL1_003)",
-                            toolTip="Provide the full Earth Engine dataset ID.",
+                            text="Enter GEE Image Name (e.g., COPERNICUS/S2, USGS/SRTMGL1_003)",
+                            toolTip="Provide the full Earth Engine ID.",
                         ),
-                        QtWidgets.QLineEdit(objectName="datasetId"),
+                        QtWidgets.QLineEdit(objectName="imageId"),
                     )
                 ],
             ),
@@ -62,38 +62,38 @@ def add_gee_layer_dialog(iface: gui.QgisInterface):
 def _load_gee_layer(dialog: Dict[str, QtWidgets.QWidget]):
     """Fetch and add the selected Earth Engine dataset to the map with user-defined visualization parameters."""
     values = get_values(dialog)
-    dataset_id = values["datasetId"]
+    image_id = values["imageId"]
 
-    if not dataset_id:
-        message = "Dataset ID is required."
+    if not image_id:
+        message = "Image ID is required."
         QgsMessageLog.logMessage(message, "GEE Plugin", level=Qgis.Critical)
+        return
 
     try:
         # Get asset metadata
-        asset_info = ee.data.getAsset(dataset_id)
+        asset_info = ee.data.getAsset(image_id)
         asset_type = asset_info.get("type", "")
 
-        # Determine if it's an ImageCollection or Image
-        if asset_type == "IMAGE_COLLECTION":
-            ee_object = ee.ImageCollection(dataset_id).mosaic()
-        elif asset_type == "IMAGE":
-            ee_object = ee.Image(dataset_id)
+        if asset_type == "IMAGE":
+            ee_object = ee.Image(image_id)
         else:
             raise ValueError(f"Unsupported asset type: {asset_type}")
 
         # Get visualization parameters from user as JSON
         vis_params_input = values.get("vizParams", "{}")
-
-        try:
-            vis_params = json.loads(vis_params_input.replace("'", '"'))
-        except json.JSONDecodeError:
-            raise ValueError("Invalid JSON format in visualization parameters.")
+        if not vis_params_input:
+            vis_params = {}
+        else:
+            try:
+                vis_params = json.loads(vis_params_input.replace("'", '"'))
+            except json.JSONDecodeError:
+                raise ValueError("Invalid JSON format in visualization parameters.")
 
         # Add the dataset to QGIS map
-        addLayer(ee_object, vis_params, dataset_id)
+        addLayer(ee_object, vis_params, image_id)
 
         success_message = (
-            f"Successfully added {dataset_id} to the map with custom visualization."
+            f"Successfully added {image_id} to the map with custom visualization."
         )
         QgsMessageLog.logMessage(success_message, "GEE Plugin", level=Qgis.Success)
 

@@ -28,7 +28,7 @@ def DefaultNullQgsDateEdit(
 
 
 def add_feature_collection_form(
-    iface: gui.QgisInterface, _debug=True, **kwargs
+    iface: gui.QgisInterface, **dialog_kwargs
 ) -> QtWidgets.QDialog:
     """Add a GEE Feature Collection to the map."""
     dialog = build_vbox_dialog(
@@ -101,16 +101,10 @@ def add_feature_collection_form(
             ),
         ],
         parent=iface.mainWindow(),
-        **kwargs,
+        **dialog_kwargs,
     )
 
-    if _debug:
-        dialog.accepted.connect(
-            lambda: iface.messageBar().pushMessage(f"Accepted {get_values(dialog)=}")
-        )
-
     dialog.accepted.connect(lambda: add_feature_collection(**get_values(dialog)))
-
     return dialog
 
 

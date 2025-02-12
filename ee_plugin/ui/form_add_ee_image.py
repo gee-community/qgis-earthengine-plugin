@@ -14,7 +14,7 @@ from .utils import (
 )
 
 
-def add_gee_layer_dialog(iface: gui.QgisInterface):
+def add_gee_layer_dialog(iface: gui.QgisInterface) -> QtWidgets.QDialog:
     """Display a dialog to add a GEE dataset to the QGIS map."""
 
     dialog = build_vbox_dialog(

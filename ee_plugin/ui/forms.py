@@ -1,5 +1,7 @@
+from typing import Optional
 from qgis import gui
 from qgis.PyQt import QtWidgets, QtCore
+import ee
 
 from .utils import (
     build_form_group_box,
@@ -8,7 +10,21 @@ from .utils import (
 )
 
 from .. import Map, utils
-import ee
+
+
+def DefaultNullQgsDateEdit(
+    *, date: Optional[QtCore.QDate] = None, **kwargs
+) -> gui.QgsDateEdit:
+    """Build a QgsDateEdit widget, with null default capability."""
+    d = gui.QgsDateEdit(**kwargs)
+    # It would be great to remove this helper and just use the built-in QgsDateEdit class
+    # but at this time it's not clear how to make a DateEdit widget that initializes with
+    # a null value. This is a workaround.
+    if date is None:
+        d.clear()
+    else:
+        d.setDate(date)
+    return d
 
 
 def add_feature_collection_form(iface: gui.QgisInterface, _debug=True, **kwargs):
@@ -55,15 +71,11 @@ def add_feature_collection_form(iface: gui.QgisInterface, _debug=True, **kwargs)
                 rows=[
                     (
                         "Start",
-                        QtWidgets.QDateEdit(
-                            objectName="start_date",
-                            specialValueText="",
-                            date=QtCore.QDate(0, 0, 0),
-                        ),
+                        DefaultNullQgsDateEdit(objectName="start_date"),
                     ),
                     (
                         "End",
-                        QtWidgets.QDateEdit(objectName="end_date"),
+                        DefaultNullQgsDateEdit(objectName="end_date"),
                     ),
                 ],
             ),

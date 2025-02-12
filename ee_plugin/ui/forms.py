@@ -109,12 +109,12 @@ def add_feature_collection_form(
             lambda: iface.messageBar().pushMessage(f"Accepted {get_values(dialog)=}")
         )
 
-    dialog.accepted.connect(lambda: load(**get_values(dialog)))
+    dialog.accepted.connect(lambda: add_feature_collection(**get_values(dialog)))
 
     return dialog
 
 
-def load(
+def add_feature_collection(
     feature_collection_id: str,
     filter_name: str,
     filter_value: str,

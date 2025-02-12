@@ -76,7 +76,15 @@ def build_vbox_dialog(
 def get_values(dialog: QDialog) -> dict:
     """
     Return a dictionary of all widget values from dialog.
+
+    Note that the response dictionary may contain keys that were not explicitely set as
+    object names in the widgets. This is due to the fact that some widgets are composites
+    of multiple child widgets. The child widgets are parsed and stored in the response
+    but it is the value of the parent widget that should be used in the application.
     """
+    # NOTE: To support more widgets, register the widget class with a parser here. These
+    # parsers are read in order, so more specific widgets should be listed last as their
+    # results will overwrite more general widgets.
     parsers = {
         QLineEdit: lambda w: w.text(),
         QDateEdit: lambda w: w.date().toString("yyyy-MM-dd"),

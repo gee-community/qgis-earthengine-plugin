@@ -37,7 +37,12 @@ def add_feature_collection_form(iface: gui.QgisInterface, _debug=True, **kwargs)
                 rows=[
                     (
                         QtWidgets.QLabel(
-                            text="Add GEE Feature Collection to Map",
+                            text="<br />".join(
+                                [
+                                    "Add GEE Feature Collection to Map",
+                                    "e.g. <code>USGS/WBD/2017/HUC06</code>",
+                                ]
+                            ),
                             toolTip="This is a tooltip!",
                             whatsThis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
                         ),

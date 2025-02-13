@@ -1,5 +1,6 @@
+import inspect
 from dataclasses import field
-from typing import List, Tuple, Union
+from typing import Callable, List, Tuple, Union
 
 from qgis.PyQt.QtWidgets import (
     QWidget,
@@ -80,7 +81,7 @@ def build_vbox_dialog(
     return dialog
 
 
-def get_values(dialog: QDialog) -> dict:
+def get_dialog_values(dialog: QDialog) -> dict:
     """
     Return a dictionary of all widget values from dialog.
 
@@ -106,3 +107,16 @@ def get_values(dialog: QDialog) -> dict:
             values[widget.objectName()] = formatter(widget)
 
     return values
+
+
+def call_func_with_values(func: Callable, dialog: QDialog):
+    """
+    Call a function with values from a dialog. Prior to the call, the function signature
+    is inspected and used to filter out any values from the dialog that are not expected
+    by the function.
+    """
+    func_signature = inspect.signature(func)
+    func_kwargs = set(func_signature.parameters.keys())
+    dialog_values = get_dialog_values(dialog)
+    kwargs = {k: v for k, v in dialog_values.items() if k in func_kwargs}
+    return func(**kwargs)

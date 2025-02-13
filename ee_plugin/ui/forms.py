@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Callable
 from qgis import gui
 from qgis.PyQt import QtWidgets, QtCore
 import ee
@@ -6,7 +6,7 @@ import ee
 from .utils import (
     build_form_group_box,
     build_vbox_dialog,
-    get_values,
+    call_func_with_values,
 )
 
 from .. import Map, utils
@@ -28,7 +28,9 @@ def DefaultNullQgsDateEdit(
 
 
 def add_feature_collection_form(
-    iface: gui.QgisInterface, **dialog_kwargs
+    iface: gui.QgisInterface,
+    accepted: Optional[Callable] = None,
+    **dialog_kwargs,
 ) -> QtWidgets.QDialog:
     """Add a GEE Feature Collection to the map."""
     dialog = build_vbox_dialog(
@@ -104,7 +106,8 @@ def add_feature_collection_form(
         **dialog_kwargs,
     )
 
-    dialog.accepted.connect(lambda: add_feature_collection(**get_values(dialog)))
+    if accepted:
+        dialog.accepted.connect(lambda: call_func_with_values(accepted, dialog))
     return dialog
 
 
@@ -117,7 +120,6 @@ def add_feature_collection(
     extent: Optional[tuple[float, float, float, float]],
     viz_color_hex: str,
     use_util: bool,
-    **kwargs,
 ):
     """
     Loads and optionally filters a FeatureCollection, then adds it to the map.

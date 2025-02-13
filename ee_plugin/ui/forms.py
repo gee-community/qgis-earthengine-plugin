@@ -13,10 +13,10 @@ from .. import Map, utils
 
 
 def DefaultNullQgsDateEdit(
-    *, date: Optional[QtCore.QDate] = None, **kwargs
+    *, date: Optional[QtCore.QDate] = None, displayFormat="yyyy-MM-dd", **kwargs
 ) -> gui.QgsDateEdit:
     """Build a QgsDateEdit widget, with null default capability."""
-    d = gui.QgsDateEdit(**kwargs)
+    d = gui.QgsDateEdit(**kwargs, displayFormat=displayFormat)
     # It would be great to remove this helper and just use the built-in QgsDateEdit class
     # but at this time it's not clear how to make a DateEdit widget that initializes with
     # a null value. This is a workaround.

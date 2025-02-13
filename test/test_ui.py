@@ -111,7 +111,7 @@ def test_add_feature_collection_form(qgis_iface, form_input, expected_form_outpu
         "end_date": None,
         "extent": None,
         "viz_color_hex": "#000000",
-        "use_util": False,
+        "as_vector": False,
     }
 
     callback.assert_called_once_with(**{**default_outputs, **expected_form_output})

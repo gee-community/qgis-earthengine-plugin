@@ -49,14 +49,20 @@ def add_feature_collection_form(
                                     "e.g. <code>USGS/WBD/2017/HUC06</code>",
                                 ]
                             ),
-                            toolTip="This is a tooltip!",
-                            whatsThis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
                         ),
-                        QtWidgets.QLineEdit(objectName="feature_collection_id"),
+                        QtWidgets.QLineEdit(
+                            objectName="feature_collection_id",
+                            whatsThis=(
+                                "Attempt to retain the layer as a vector layer, running "
+                                "the risk of encountering Earth Engine API limitations if "
+                                "the layer is large. Otherwise, the layer will be added as "
+                                "a WMS raster layer."
+                            ),
+                        ),
                     ),
                     (
                         "Retain as a vector layer",
-                        QtWidgets.QCheckBox(objectName="use_util"),
+                        QtWidgets.QCheckBox(objectName="as_vector"),
                     ),
                 ],
             ),
@@ -121,7 +127,7 @@ def add_feature_collection(
     end_date: Optional[str],
     extent: Optional[tuple[float, float, float, float]],
     viz_color_hex: str,
-    use_util: bool,
+    as_vector: bool,
 ):
     """
     Loads and optionally filters a FeatureCollection, then adds it to the map.
@@ -152,7 +158,7 @@ def add_feature_collection(
 
     # 6. Add to map
     layer_name = f"FC: {feature_collection_id}"
-    if use_util:
+    if as_vector:
         try:
             utils.add_ee_vector_layer(fc, layer_name)
         except ee.ee_exception.EEException as e:

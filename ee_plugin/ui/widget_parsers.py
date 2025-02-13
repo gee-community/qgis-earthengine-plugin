@@ -8,12 +8,8 @@ def qgs_extent_to_bbox(
     w: QgsExtentGroupBox,
 ) -> Optional[tuple[float, float, float, float]]:
     """
-    Convert a QgsRectangle in a given CRS to an Earth Engine ee.Geometry.Rectangle.
-
-    :param rect: A QgsRectangle representing the bounding box.
-    :param source_crs: The CRS in which rect is defined (e.g., QgsCoordinateReferenceSystem("EPSG:XXXX")).
-    :param target_crs: The CRS to transform to. Defaults to EPSG:4326 (WGS84 lat/lon).
-    :return: An ee.Geometry.Rectangle in the target CRS (default: EPSG:4326).
+    Convert a QgsRectangle in a given CRS to an EPSG:4326 bounding box, formatted as
+    (xmin, ymin, xmax, ymax).
     """
     extent = w.outputExtent()
     if extent.area() == float("inf"):

@@ -129,14 +129,9 @@ class GoogleEarthEnginePlugin(object):
 
         # Initialize toolbar menu
         self.toolButton = QtWidgets.QToolButton()
-        self.toolButton.setToolButtonStyle(
-            Qt.ToolButtonStyle.ToolButtonIconOnly
-            # Qt.ToolButtonStyle.ToolButtonTextBesideIcon
-        )
+        self.toolButton.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         self.toolButton.setPopupMode(
-            # QtWidgets.QToolButton.ToolButtonPopupMode.DelayedPopup  # Button is only for triggering action
-            QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup  # Button is only for opening dropdown menu
-            # QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup  # Button is split into action and dropdown menu
+            QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup
         )
         self.toolButton.setMenu(QtWidgets.QMenu())
         self.toolButton.setDefaultAction(

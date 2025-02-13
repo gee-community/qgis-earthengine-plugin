@@ -1,7 +1,9 @@
 import inspect
 from dataclasses import field
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple, Union, Optional
 
+from qgis import gui
+from qgis.PyQt import QtCore
 from qgis.PyQt.QtWidgets import (
     QWidget,
     QGroupBox,
@@ -120,3 +122,20 @@ def call_func_with_values(func: Callable, dialog: QDialog):
     dialog_values = get_dialog_values(dialog)
     kwargs = {k: v for k, v in dialog_values.items() if k in func_kwargs}
     return func(**kwargs)
+
+
+def DefaultNullQgsDateEdit(
+    *, date: Optional[QtCore.QDate] = None, displayFormat="yyyy-MM-dd", **kwargs
+) -> gui.QgsDateEdit:
+    """Build a QgsDateEdit widget, with null default capability."""
+    # NOTE: Specifying a displayFormat guarantees that the date will be formatted as
+    # expected across different runtime environments.
+    d = gui.QgsDateEdit(**kwargs, displayFormat=displayFormat)
+    # NOTE: It would be great to remove this helper and just use the built-in QgsDateEdit
+    # class but at this time it's not clear how to make a DateEdit widget that initializes
+    # with a null value. This is a workaround.
+    if date is None:
+        d.clear()
+    else:
+        d.setDate(date)
+    return d

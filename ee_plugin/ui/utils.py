@@ -13,7 +13,14 @@ from qgis.PyQt.QtWidgets import (
     QCheckBox,
     QLayout,
 )
-from qgis.gui import QgsColorButton, QgsCollapsibleGroupBox
+from qgis.gui import (
+    QgsColorButton,
+    QgsCollapsibleGroupBox,
+    QgsDateEdit,
+    QgsExtentGroupBox,
+)
+
+from . import widget_parsers
 
 
 def build_form_group_box(
@@ -91,9 +98,9 @@ def get_values(dialog: QDialog) -> dict:
         QgsDateEdit: lambda w: None if w.isNull() else w.findChild(QLineEdit).text(),
         QCheckBox: lambda w: w.isChecked(),
         QgsColorButton: lambda w: w.color().name(),
+        QgsExtentGroupBox: widget_parsers.qgs_extent_to_bbox,
     }
     values = {}
-    # TODO: Some widgets have subwidgets with different names, need to reasonbly handle this
     for cls, formatter in parsers.items():
         for widget in dialog.findChildren(cls):
             values[widget.objectName()] = formatter(widget)

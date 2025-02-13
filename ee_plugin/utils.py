@@ -56,8 +56,6 @@ def add_or_update_ee_layer(
     """
     Entry point to add/update an EE layer. Routes between raster, vector layers, and vector tile layers.
     """
-    vis_params = vis_params or {}
-
     if isinstance(eeObject, ee.Image):
         return add_or_update_ee_raster_layer(eeObject, name, vis_params, shown, opacity)
 

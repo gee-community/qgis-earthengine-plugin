@@ -5,13 +5,26 @@ Utils functions GEE
 
 import json
 import tempfile
+from typing import Optional, TypedDict, Any
 
 import ee
 import qgis
-from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer
+from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, QgsMapLayer
 
 
-def is_named_dataset(eeObject):
+class VisualizeParams(TypedDict, total=False):
+    bands: Optional[Any]
+    gain: Optional[Any]
+    bias: Optional[Any]
+    min: Optional[Any]
+    max: Optional[Any]
+    gamma: Optional[Any]
+    opacity: Optional[float]
+    palette: Optional[Any]
+    forceRgbOutput: Optional[bool]
+
+
+def is_named_dataset(eeObject: ee.Element) -> bool:
     """
     Checks if the FeatureCollection is a named dataset that should be handled as a vector tiled layer.
     """
@@ -22,51 +35,68 @@ def is_named_dataset(eeObject):
         return False
 
 
-def get_layer_by_name(name):
+def get_layer_by_name(name: str) -> Optional[QgsMapLayer]:
     for layer in QgsProject.instance().mapLayersByName(name):
         return layer
 
-    return None
 
-
-def get_ee_image_url(image):
+def get_ee_image_url(image: ee.Image) -> str:
     map_id = ee.data.getMapId({"image": image})
     url = map_id["tile_fetcher"].url_format + "&zmax=25"
     return url
 
 
-def add_or_update_ee_layer(eeObject, vis_params, name, shown, opacity):
+def add_or_update_ee_layer(
+    eeObject: ee.Element,
+    vis_params: VisualizeParams,
+    name: str,
+    shown: bool,
+    opacity: float,
+) -> QgsMapLayer:
     """
     Entry point to add/update an EE layer. Routes between raster, vector layers, and vector tile layers.
     """
     if isinstance(eeObject, ee.Image):
-        add_or_update_ee_raster_layer(eeObject, name, vis_params, shown, opacity)
-    elif isinstance(eeObject, ee.FeatureCollection):
+        return add_or_update_ee_raster_layer(eeObject, name, vis_params, shown, opacity)
+
+    if isinstance(eeObject, ee.FeatureCollection):
         if is_named_dataset(eeObject):
-            add_or_update_named_vector_layer(eeObject, name, vis_params, shown, opacity)
-        else:
-            add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
-    elif isinstance(eeObject, ee.Geometry):
-        add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
-    else:
-        raise TypeError("Unsupported EE object type")
+            return add_or_update_named_vector_layer(
+                eeObject, name, vis_params, shown, opacity
+            )
+        return add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+
+    if isinstance(eeObject, ee.Geometry):
+        return add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+
+    raise TypeError("Unsupported EE object type")
 
 
-def add_or_update_ee_raster_layer(image, name, vis_params, shown=True, opacity=1.0):
+def add_or_update_ee_raster_layer(
+    image: ee.Image,
+    name: str,
+    vis_params: VisualizeParams,
+    shown: bool = True,
+    opacity: float = 1.0,
+) -> QgsRasterLayer:
     """
     Adds or updates a raster EE layer.
     """
     layer = get_layer_by_name(name)
 
     if layer and layer.customProperty("ee-layer"):
-        layer = update_ee_image_layer(image, layer, vis_params, shown, opacity)
-    else:
-        layer = add_ee_image_layer(image, name, vis_params, shown, opacity)
+        return update_ee_image_layer(image, layer, vis_params, shown, opacity)
 
-    return layer
+    return add_ee_image_layer(image, name, vis_params, shown, opacity)
 
 
-def add_ee_image_layer(image, name, vis_params, shown, opacity):
+def add_ee_image_layer(
+    image: ee.Image,
+    name: str,
+    vis_params: VisualizeParams,
+    shown: bool,
+    opacity: float,
+) -> QgsRasterLayer:
     """
     Adds a raster layer using the 'EE' provider.
     """
@@ -95,7 +125,13 @@ def add_ee_image_layer(image, name, vis_params, shown, opacity):
     return layer
 
 
-def update_ee_image_layer(image, layer, vis_params, shown=True, opacity=1.0):
+def update_ee_image_layer(
+    image: ee.Image,
+    layer: QgsMapLayer,
+    vis_params: VisualizeParams,
+    shown: bool = True,
+    opacity: float = 1.0,
+) -> QgsRasterLayer:
     """
     Updates an existing EE raster layer.
     """
@@ -125,8 +161,12 @@ def update_ee_image_layer(image, layer, vis_params, shown=True, opacity=1.0):
 
 
 def add_or_update_named_vector_layer(
-    eeObject, name, vis_params, shown=True, opacity=1.0
-):
+    eeObject: ee.Element,
+    name: str,
+    vis_params: VisualizeParams,
+    shown: bool = True,
+    opacity: float = 1.0,
+) -> QgsRasterLayer:
     """
     Adds or updates a vector tiled layer from an Earth Engine named dataset.
     """
@@ -136,12 +176,16 @@ def add_or_update_named_vector_layer(
 
     # Given the potential large-size of named datasets, we render FeatureCollections as WMS raster layers
     image = ee.Image().paint(eeObject, 0, 2)
-    layer = add_or_update_ee_raster_layer(image, name, vis_params, shown, opacity)
 
-    return layer
+    return add_or_update_ee_raster_layer(image, name, vis_params, shown, opacity)
 
 
-def add_or_update_ee_vector_layer(eeObject, name, shown=True, opacity=1.0):
+def add_or_update_ee_vector_layer(
+    eeObject: ee.Element,
+    name: str,
+    shown: bool = True,
+    opacity: float = 1.0,
+) -> QgsVectorLayer:
     """
     Handles vector layers by converting them to a properly styled GeoJSON vector layer.
     """
@@ -150,14 +194,17 @@ def add_or_update_ee_vector_layer(eeObject, name, shown=True, opacity=1.0):
     if layer:
         if not layer.customProperty("ee-layer"):
             raise Exception(f"Layer is not an EE layer: {name}")
-        layer = update_ee_vector_layer(eeObject, layer, shown, opacity)
-    else:
-        layer = add_ee_vector_layer(eeObject, name, shown, opacity)
+        return update_ee_vector_layer(eeObject, layer, shown, opacity)
 
-    return layer
+    return add_ee_vector_layer(eeObject, name, shown, opacity)
 
 
-def add_ee_vector_layer(eeObject, name, shown=True, opacity=1.0):
+def add_ee_vector_layer(
+    eeObject: ee.Element,
+    name: str,
+    shown: bool = True,
+    opacity: float = 1.0,
+) -> QgsVectorLayer:
     """
     Adds a vector layer properly by converting EE Geometry to a valid GeoJSON FeatureCollection.
     """
@@ -201,7 +248,12 @@ def add_ee_vector_layer(eeObject, name, shown=True, opacity=1.0):
     return layer
 
 
-def update_ee_vector_layer(eeObject, layer, shown, opacity):
+def update_ee_vector_layer(
+    eeObject: ee.Element,
+    layer: QgsMapLayer,
+    shown: bool,
+    opacity: float,
+) -> QgsVectorLayer:
     """
     Updates an existing vector layer with new features from EE.
     """
@@ -224,15 +276,19 @@ def update_ee_vector_layer(eeObject, layer, shown, opacity):
     return new_layer
 
 
-def add_ee_catalog_image(name, asset_name, vis_params):
+def add_ee_catalog_image(
+    name: str,
+    asset_name: str,
+    vis_params: VisualizeParams,
+) -> QgsRasterLayer:
     """
     Adds an EE image from a catalog.
     """
-    image = ee.Image(asset_name).visualize(vis_params)
+    image = ee.Image(asset_name).visualize(**vis_params)
     add_or_update_ee_raster_layer(image, name)
 
 
-def check_version():
+def check_version() -> None:
     """
     Check if we have the latest plugin version.
     """

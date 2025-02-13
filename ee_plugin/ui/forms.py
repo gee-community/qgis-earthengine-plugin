@@ -112,12 +112,9 @@ def add_feature_collection(
     feature_collection_id: str,
     filter_name: str,
     filter_value: str,
-    start_date: str,
-    end_date: str,
-    mYMaxLineEdit: str,
-    mYMinLineEdit: str,
-    mXMaxLineEdit: str,
-    mXMinLineEdit: str,
+    start_date: Optional[str],
+    end_date: Optional[str],
+    extent: Optional[tuple[float, float, float, float]],
     viz_color_hex: str,
     use_util: bool,
     **kwargs,
@@ -143,20 +140,11 @@ def add_feature_collection(
     if filter_name and filter_value:
         fc = fc.filter(ee.Filter.eq(filter_name, filter_value))
 
-    # if start_date and end_date:
-    #     fc = fc.filter(
-    #         ee.Filter.date(ee.Date(start_date), ee.Date(end_date))
-    #         # If your features store date in a property named "date", you might need:
-    #         # ee.Filter.calendarRange(
-    #         #     start_date, end_date, 'year' (or 'day', etc.) if using calendarRange
-    #     )
+    if start_date and end_date:
+        fc = fc.filter(ee.Filter.date(ee.Date(start_date), ee.Date(end_date)))
 
-    extent_src = [mXMinLineEdit, mYMinLineEdit, mXMaxLineEdit, mYMaxLineEdit]
-    if all(extent_src):
-        extent = ee.Geometry.Rectangle([float(val) for val in extent_src])
-
-        # Alternatively, if you want to clip features to the extent rather than just filter:
-        fc = fc.filterBounds(extent)
+    if extent:
+        fc = fc.filterBounds(ee.Geometry.Rectangle(extent))
 
     # 6. Add to map
     layer_name = f"FC: {feature_collection_id}"
@@ -170,15 +158,5 @@ def add_feature_collection(
                 level=gui.Qgis.Critical,
             )
     else:
-        Map.addLayer(
-            fc,
-            {
-                # "color": viz_color_hex,
-                # If you'd like transparency or a custom fill color, you can add:
-                # "fillColor": viz_color_hex,
-                # "opacity": 0.6,
-                "palette": viz_color_hex,
-            },
-            layer_name,
-        )
+        Map.addLayer(fc, {"palette": viz_color_hex}, layer_name)
     return fc

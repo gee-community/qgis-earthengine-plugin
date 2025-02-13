@@ -16,10 +16,12 @@ def DefaultNullQgsDateEdit(
     *, date: Optional[QtCore.QDate] = None, displayFormat="yyyy-MM-dd", **kwargs
 ) -> gui.QgsDateEdit:
     """Build a QgsDateEdit widget, with null default capability."""
+    # NOTE: Specifying a displayFormat guarantees that the date will be formatted as
+    # expected across different runtime environments.
     d = gui.QgsDateEdit(**kwargs, displayFormat=displayFormat)
-    # It would be great to remove this helper and just use the built-in QgsDateEdit class
-    # but at this time it's not clear how to make a DateEdit widget that initializes with
-    # a null value. This is a workaround.
+    # NOTE: It would be great to remove this helper and just use the built-in QgsDateEdit
+    # class but at this time it's not clear how to make a DateEdit widget that initializes
+    # with a null value. This is a workaround.
     if date is None:
         d.clear()
     else:

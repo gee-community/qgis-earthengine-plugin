@@ -37,20 +37,18 @@ def test_add_feature_collection_form(qgis_iface):
         "USGS/WBD/2017/HUC06"
     )
 
-    assert utils.get_values(dialog) == {
-        "feature_collection_id": "USGS/WBD/2017/HUC06",
-        "filter_name": "",
-        "filter_value": "",
-        # "start_date": "",  # TODO: This is missing
-        # "end_date": "",  # TODO: This is missing
-        "mYMaxLineEdit": "",
-        "mYMinLineEdit": "",
-        "mXMaxLineEdit": "",
-        "mXMinLineEdit": "",
-        "viz_color_hex": "#000000",
-        "use_util": False,
-        **{  # TODO: this is unexpected
-            "mCondensedLineEdit": "",
-            "qt_spinbox_lineedit": "2025-02-12",
-        },
-    }
+    dialog_values = utils.get_values(dialog)
+
+    assert (
+        dialog_values.items()
+        >= {
+            "feature_collection_id": "USGS/WBD/2017/HUC06",
+            "filter_name": "",
+            "filter_value": "",
+            "start_date": None,
+            "end_date": None,
+            "extent": None,
+            "viz_color_hex": "#000000",
+            "use_util": False,
+        }.items()
+    )

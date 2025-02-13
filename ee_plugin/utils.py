@@ -10,6 +10,7 @@ from typing import Optional, TypedDict, Any
 import ee
 import qgis
 from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, QgsMapLayer
+from qgis.PyQt.QtCore import QCoreApplication
 
 
 class VisualizeParams(TypedDict, total=False):
@@ -293,3 +294,10 @@ def check_version() -> None:
     Check if we have the latest plugin version.
     """
     qgis.utils.plugins["ee_plugin"].check_version()
+
+
+def translate(message: str) -> str:
+    """
+    Helper to translate messages.
+    """
+    return QCoreApplication.translate("GoogleEarthEngine", message)

@@ -89,8 +89,7 @@ class GoogleEarthEnginePlugin(object):
         :returns: Translated version of message.
         :rtype: QString
         """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate("GoogleEarthEngine", message)
+        return utils.translate(message)
 
     def initGui(self):
         """Initialize the plugin GUI."""

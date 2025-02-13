@@ -10,6 +10,7 @@ from .utils import (
 )
 
 from .. import Map, utils
+from ..utils import translate as _
 
 
 def DefaultNullQgsDateEdit(
@@ -36,53 +37,61 @@ def add_feature_collection_form(
 ) -> QtWidgets.QDialog:
     """Add a GEE Feature Collection to the map."""
     dialog = build_vbox_dialog(
-        windowTitle="Add Feature Collection",
+        windowTitle=_("Add Feature Collection"),
         widgets=[
             build_form_group_box(
-                title="Source",
+                title=_("Source"),
                 rows=[
                     (
                         QtWidgets.QLabel(
+                            toolTip=_("The Earth Engine Feature Collection ID."),
                             text="<br />".join(
                                 [
-                                    "Add GEE Feature Collection to Map",
+                                    _("Feature Collection ID"),
                                     "e.g. <code>USGS/WBD/2017/HUC06</code>",
                                 ]
                             ),
                         ),
                         QtWidgets.QLineEdit(
                             objectName="feature_collection_id",
-                            whatsThis=(
+                        ),
+                    ),
+                    (
+                        QtWidgets.QLabel(
+                            _("Retain as a vector layer"),
+                            toolTip=_(
+                                "Store as a vector layer rather than WMS Raster layer."
+                            ),
+                            whatsThis=_(
                                 "Attempt to retain the layer as a vector layer, running "
                                 "the risk of encountering Earth Engine API limitations if "
                                 "the layer is large. Otherwise, the layer will be added as "
                                 "a WMS raster layer."
                             ),
                         ),
-                    ),
-                    (
-                        "Retain as a vector layer",
-                        QtWidgets.QCheckBox(objectName="as_vector"),
+                        QtWidgets.QCheckBox(
+                            objectName="as_vector",
+                        ),
                     ),
                 ],
             ),
             build_form_group_box(
-                title="Filter by Properties",
+                title=_("Filter by Properties"),
                 collapsable=True,
                 collapsed=True,
                 rows=[
                     (
-                        "Name",
+                        _("Name"),
                         QtWidgets.QLineEdit(objectName="filter_name"),
                     ),
                     (
-                        "Value",
+                        _("Value"),
                         QtWidgets.QLineEdit(objectName="filter_value"),
                     ),
                 ],
             ),
             build_form_group_box(
-                title="Filter by Dates",
+                title=_("Filter by Dates"),
                 collapsable=True,
                 collapsed=True,
                 rows=[
@@ -98,15 +107,18 @@ def add_feature_collection_form(
             ),
             gui.QgsExtentGroupBox(
                 objectName="extent",
-                title="Filter by Coordinates",
+                title=_("Filter by Coordinates"),
                 collapsed=True,
             ),
             build_form_group_box(
-                title="Visualization",
+                title=_("Visualization"),
                 collapsable=True,
                 collapsed=True,
                 rows=[
-                    ("Color", gui.QgsColorButton(objectName="viz_color_hex")),
+                    (
+                        _("Color"),
+                        gui.QgsColorButton(objectName="viz_color_hex"),
+                    ),
                 ],
             ),
         ],

@@ -3,15 +3,15 @@ from qgis import gui
 from qgis.PyQt import QtWidgets
 import ee
 
-from .utils import (
+from ..utils import (
     build_form_group_box,
     build_vbox_dialog,
     call_func_with_values,
     DefaultNullQgsDateEdit,
 )
 
-from .. import Map, utils
-from ..utils import translate as _
+from ... import Map, utils
+from ...utils import translate as _
 
 
 def form(

@@ -2,9 +2,10 @@ import datetime
 from unittest.mock import create_autospec
 
 import pytest
+from ee_plugin.ui.forms import add_feature_collection
 from qgis import gui
 from qgis.PyQt import QtWidgets, QtGui
-from ee_plugin.ui import utils, add_feature_collection
+from ee_plugin.ui import utils
 
 
 def test_get_values():

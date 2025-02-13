@@ -21,7 +21,7 @@ from qgis.PyQt.QtGui import QIcon
 import ee
 
 from . import provider, config, ee_auth, utils
-from .ui import add_feature_collection
+from .ui.forms import add_feature_collection
 
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -116,7 +116,8 @@ class GoogleEarthEnginePlugin(object):
             text=self.tr("Add Feature Collection"),
             parent=self.iface.mainWindow(),
             triggered=lambda: add_feature_collection.form(
-                self.iface, accepted=add_feature_collection.callback
+                self.iface,
+                accepted=add_feature_collection.callback,
             ),
         )
 

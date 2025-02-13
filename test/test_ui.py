@@ -4,13 +4,13 @@ from unittest.mock import create_autospec
 import pytest
 from qgis import gui
 from qgis.PyQt import QtWidgets, QtGui
-from ee_plugin.ui import utils, forms
+from ee_plugin.ui import utils, add_feature_collection
 
 
 def test_get_values():
-    dialog = forms.build_vbox_dialog(
+    dialog = utils.build_vbox_dialog(
         widgets=[
-            forms.build_form_group_box(
+            utils.build_form_group_box(
                 rows=[
                     (
                         "Label",
@@ -83,8 +83,8 @@ def test_get_values():
     ],
 )
 def test_add_feature_collection_form(qgis_iface, form_input, expected_form_output):
-    callback = create_autospec(forms.add_feature_collection)
-    dialog = forms.add_feature_collection_form(iface=qgis_iface, accepted=callback)
+    mock_callback = create_autospec(add_feature_collection.callback)
+    dialog = add_feature_collection.form(iface=qgis_iface, accepted=mock_callback)
 
     # Populate dialog with form_input
     for key, value in form_input.items():
@@ -114,4 +114,4 @@ def test_add_feature_collection_form(qgis_iface, form_input, expected_form_outpu
         "as_vector": False,
     }
 
-    callback.assert_called_once_with(**{**default_outputs, **expected_form_output})
+    mock_callback.assert_called_once_with(**{**default_outputs, **expected_form_output})

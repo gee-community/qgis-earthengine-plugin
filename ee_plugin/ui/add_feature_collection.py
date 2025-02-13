@@ -14,7 +14,7 @@ from .. import Map, utils
 from ..utils import translate as _
 
 
-def add_feature_collection_form(
+def form(
     iface: gui.QgisInterface,
     accepted: Optional[Callable] = None,
     **dialog_kwargs,
@@ -115,7 +115,7 @@ def add_feature_collection_form(
     return dialog
 
 
-def add_feature_collection(
+def callback(
     feature_collection_id: str,
     filter_name: str,
     filter_value: str,

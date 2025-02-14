@@ -1,6 +1,7 @@
 import ee
 from pytest import fixture
-from qgis.utils import plugins
+from qgis.utils import plugins, isPluginLoaded
+from qgis.gui import QgisInterface
 from PyQt5.QtCore import QSettings, QCoreApplication
 
 from ee_plugin import ee_plugin, config
@@ -20,7 +21,11 @@ def ee_config():
 
 
 @fixture(scope="session", autouse=True)
-def load_ee_plugin(qgis_app, setup_ee, ee_config):
+def load_ee_plugin(
+    qgis_iface: QgisInterface,
+    setup_ee: None,
+    ee_config: config.EarthEngineConfig,
+):
     """Load Earth Engine plugin and configure QSettings."""
 
     # Set QSettings values required by the plugin
@@ -29,7 +34,9 @@ def load_ee_plugin(qgis_app, setup_ee, ee_config):
     QSettings().setValue("locale/userLocale", "en")
 
     # Initialize and register the plugin
-    plugin = ee_plugin.GoogleEarthEnginePlugin(qgis_app, ee_config=ee_config)
-    plugins["ee_plugin"] = plugin
+    plugin = ee_plugin.GoogleEarthEnginePlugin(iface=qgis_iface, ee_config=ee_config)
     plugin.check_version()
-    yield qgis_app
+
+    plugins["ee_plugin"] = plugin
+    assert isPluginLoaded("ee_plugin")
+    yield qgis_iface

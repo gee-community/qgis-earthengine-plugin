@@ -116,3 +116,20 @@ def test_add_feature_collection_form(qgis_iface, form_input, expected_form_outpu
     }
 
     mock_callback.assert_called_once_with(**{**default_outputs, **expected_form_output})
+
+
+def test_callback(qgis_iface):
+    add_feature_collection.callback(
+        feature_collection_id="USGS/WBD/2017/HUC06",
+        filter_name=None,
+        filter_value=None,
+        start_date=None,
+        end_date=None,
+        extent=None,
+        viz_color_hex="#000000",
+        as_vector=False,
+    )
+
+    assert len(qgis_iface.mapCanvas().layers()) == 1
+    assert qgis_iface.mapCanvas().layers()[0].name() == "USGS/WBD/2017/HUC06"
+    assert qgis_iface.mapCanvas().layers()[0].dataProvider().name() == "EE"

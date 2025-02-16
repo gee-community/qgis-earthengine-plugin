@@ -36,6 +36,7 @@ def load_ee_plugin(qgis_app, setup_ee, ee_config):
     yield qgis_app
 
 
-@fixture(autouse=True)
+@fixture(autouse=True, scope="function")
 def clean_qgis_iface(qgis_iface: QgisInterface):
     qgis_iface.mapCanvas().setLayers([])
+    yield qgis_iface

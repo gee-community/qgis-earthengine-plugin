@@ -102,6 +102,7 @@ def get_dialog_values(dialog: QDialog) -> dict:
         QgsDateEdit: lambda w: None if w.isNull() else w.findChild(QLineEdit).text(),
         QCheckBox: lambda w: w.isChecked(),
         QgsColorButton: lambda w: w.color().name(),
+        QTextEdit: lambda w: w.toPlainText(),
         QgsExtentGroupBox: widget_parsers.qgs_extent_to_bbox,
     }
     values = {}

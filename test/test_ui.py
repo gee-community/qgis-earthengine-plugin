@@ -131,5 +131,5 @@ def test_callback(qgis_iface):
     )
 
     assert len(qgis_iface.mapCanvas().layers()) == 1
-    assert qgis_iface.mapCanvas().layers()[0].name() == "FC: SGS/WBD/2017/HUC06"
+    assert qgis_iface.mapCanvas().layers()[0].name() == "FC: USGS/WBD/2017/HUC06"
     assert qgis_iface.mapCanvas().layers()[0].dataProvider().name() == "EE"

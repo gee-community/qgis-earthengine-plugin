@@ -14,6 +14,7 @@ from ..utils import (
 )
 
 
+# TODO: iface is not used
 def form(
     iface: gui.QgisInterface, accepted: Optional[Callable] = None, **dialog_kwargs
 ) -> QtWidgets.QDialog:
@@ -58,6 +59,7 @@ def form(
     return dialog
 
 
+# TODO: message logging
 def callback(image_id: str = None, viz_params: dict = None):
     """Fetch and add the selected Earth Engine dataset to the map with user-defined visualization parameters."""
     if not image_id:

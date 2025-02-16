@@ -1,11 +1,11 @@
 from qgis.PyQt import QtWidgets
 
 from ee_plugin.ui.utils import get_values
-from ee_plugin.ui.form_add_ee_image import add_gee_layer_dialog, _load_gee_layer
+from ee_plugin.ui.forms.add_ee_image import form, _load_gee_layer
 
 
 def test_add_gee_layer_dialog(qgis_iface_clean):
-    dialog = add_gee_layer_dialog(qgis_iface_clean)
+    dialog = form(qgis_iface_clean)
     dialog.findChild(QtWidgets.QLineEdit, "imageId").setText("COPERNICUS/S2")
 
     dialog.findChild(QtWidgets.QTextEdit, "vizParams").setText(
@@ -19,7 +19,7 @@ def test_add_gee_layer_dialog(qgis_iface_clean):
 
 
 def test_load_gee_layer_srtm(qgis_iface_clean):
-    dialog = add_gee_layer_dialog(qgis_iface_clean)
+    dialog = form(qgis_iface_clean)
     dialog.findChild(QtWidgets.QLineEdit, "imageId").setText("USGS/SRTMGL1_003")
 
     dialog.findChild(QtWidgets.QTextEdit, "vizParams").setText(
@@ -39,7 +39,7 @@ def test_load_gee_layer_srtm(qgis_iface_clean):
 
 
 def test_converting_viz_params_json(qgis_iface_clean):
-    dialog = add_gee_layer_dialog(qgis_iface_clean)
+    dialog = form(qgis_iface_clean)
     dialog.findChild(QtWidgets.QLineEdit, "imageId").setText("USGS/SRTMGL1_003")
 
     # single quotes should get replaced to double quotes
@@ -56,7 +56,7 @@ def test_converting_viz_params_json(qgis_iface_clean):
 
 
 def test_invalid_vis_params(qgis_iface_clean):
-    dialog = add_gee_layer_dialog(qgis_iface_clean)
+    dialog = form(qgis_iface_clean)
     dialog.findChild(QtWidgets.QLineEdit, "imageId").setText("USGS/SRTMGL1_003")
 
     dialog.findChild(QtWidgets.QTextEdit, "vizParams").setText(
@@ -69,7 +69,7 @@ def test_invalid_vis_params(qgis_iface_clean):
 
 
 def test_empty_vis_params(qgis_iface_clean):
-    dialog = add_gee_layer_dialog(qgis_iface_clean)
+    dialog = form(qgis_iface_clean)
     dialog.findChild(QtWidgets.QLineEdit, "imageId").setText("USGS/SRTMGL1_003")
 
     dialog.findChild(QtWidgets.QTextEdit, "vizParams").setText("")

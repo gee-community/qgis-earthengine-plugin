@@ -21,7 +21,7 @@ from qgis.PyQt.QtGui import QIcon
 import ee
 
 from . import provider, config, ee_auth, utils
-from .ui.forms import add_feature_collection
+from .ui.forms import add_feature_collection, add_ee_image
 
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -124,6 +124,14 @@ class GoogleEarthEnginePlugin(object):
                 accepted=add_feature_collection.callback,
             ),
         )
+        add_ee_image_button = QtWidgets.QAction(
+            text=self.tr("Add Image"),
+            parent=self.iface.mainWindow(),
+            triggered=lambda: add_ee_image.form(
+                self.iface,
+                accepted=add_ee_image.callback,
+            ),
+        )
 
         # Initialize plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
@@ -156,6 +164,7 @@ class GoogleEarthEnginePlugin(object):
             self.set_cloud_project_action,
             None,
             add_fc_button,
+            add_ee_image_button,
         ]:
             for menu in [self.menu, self.toolButton.menu()]:
                 if action:

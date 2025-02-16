@@ -1,5 +1,6 @@
 import ee
 from pytest import fixture
+from qgis.gui import QgisInterface
 from qgis.utils import plugins
 from PyQt5.QtCore import QSettings, QCoreApplication
 
@@ -35,8 +36,6 @@ def load_ee_plugin(qgis_app, setup_ee, ee_config):
     yield qgis_app
 
 
-@fixture(scope="function", autouse=True)
-def qgis_iface_clean(qgis_iface):
-    """Remove all layers from the map canvas after each test."""
+@fixture(autouse=True)
+def clean_qgis_iface(qgis_iface: QgisInterface):
     qgis_iface.mapCanvas().setLayers([])
-    yield qgis_iface

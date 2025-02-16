@@ -18,14 +18,10 @@ from qgis.core import QgsProject
 from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion, Qt
 from qgis.PyQt.QtGui import QIcon
+import ee
 
-from .config import EarthEngineConfig
-from .ui.form_add_ee_image import add_gee_layer_dialog
-from .ui.utils import (
-    build_form_group_box,
-    build_vbox_dialog,
-    get_values,
-)
+from . import provider, config, ee_auth, utils
+from .ui.forms import add_feature_collection
 
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -45,9 +41,9 @@ def icon(icon_name: str) -> QIcon:
 class GoogleEarthEnginePlugin(object):
     """QGIS Plugin Implementation."""
 
-    ee_config: EarthEngineConfig
+    ee_config: config.EarthEngineConfig
 
-    def __init__(self, iface: gui.QgisInterface, ee_config: EarthEngineConfig):
+    def __init__(self, iface: gui.QgisInterface, ee_config: config.EarthEngineConfig):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -55,7 +51,6 @@ class GoogleEarthEnginePlugin(object):
             application at run time.
         :type iface: QgsInterface
         """
-        from . import provider
 
         # Save reference to the QGIS interface
         self.iface = iface
@@ -80,7 +75,11 @@ class GoogleEarthEnginePlugin(object):
         provider.register_data_provider()
 
         # Reload the plugin when the config changes
-        self.ee_config.signals.updated.connect(self._handle_updated_config)
+        self.ee_config.signals.updated.connect(
+            lambda: self.set_cloud_project_action.setText(
+                self.tr(self._project_button_text)
+            )
+        )
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -94,8 +93,7 @@ class GoogleEarthEnginePlugin(object):
         :returns: Translated version of message.
         :rtype: QString
         """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate("GoogleEarthEngine", message)
+        return utils.translate(message)
 
     def initGui(self):
         """Initialize the plugin GUI."""
@@ -118,45 +116,52 @@ class GoogleEarthEnginePlugin(object):
             parent=self.iface.mainWindow(),
             triggered=self._run_cmd_set_cloud_project,
         )
-
-        add_gee_layer_action = QtWidgets.QAction(
-            icon=icon("add-layer.svg"),
-            text=self.tr("Add GEE Image"),
+        add_fc_button = QtWidgets.QAction(
+            text=self.tr("Add Feature Collection"),
             parent=self.iface.mainWindow(),
-            triggered=add_gee_layer_dialog,
+            triggered=lambda: add_feature_collection.form(
+                self.iface,
+                accepted=add_feature_collection.callback,
+            ),
         )
 
-        # Build plugin menu
+        # Initialize plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
-        ee_menu = plugin_menu.addMenu(
+        self.menu = plugin_menu.addMenu(
             icon("earth-engine.svg"),
             self.tr("&Google Earth Engine"),
         )
-        self.menu = ee_menu
-        ee_menu.addAction(ee_user_guide_action)
-        ee_menu.addSeparator()
-        ee_menu.addAction(sign_in_action)
-        ee_menu.addAction(self.set_cloud_project_action)
-        ee_menu.addAction(add_gee_layer_action)
 
-        # Build toolbar
-        toolButton = QtWidgets.QToolButton()
-        toolButton.setToolButtonStyle(
-            Qt.ToolButtonStyle.ToolButtonIconOnly
-            # Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+        # Initialize toolbar menu
+        self.toolButton = QtWidgets.QToolButton()
+        self.toolButton.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        self.toolButton.setPopupMode(
+            QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup
         )
-        toolButton.setPopupMode(
-            QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup
+        self.toolButton.setMenu(QtWidgets.QMenu())
+        self.toolButton.setDefaultAction(
+            QtWidgets.QAction(
+                icon=icon("earth-engine.svg"),
+                text=f'<strong>{self.tr("Google Earth Engine")}</strong>',
+                parent=self.iface.mainWindow(),
+            )
         )
-        toolButton.setMenu(QtWidgets.QMenu())
-        toolButton.setDefaultAction(ee_user_guide_action)
-        toolButton.menu().addAction(ee_user_guide_action)
-        toolButton.menu().addSeparator()
-        toolButton.menu().addAction(sign_in_action)
-        toolButton.menu().addAction(self.set_cloud_project_action)
-        toolButton.menu().addAction(add_gee_layer_action)
-        self.iface.pluginToolBar().addWidget(toolButton)
-        self.toolButton = toolButton
+        self.iface.pluginToolBar().addWidget(self.toolButton)
+
+        # Add actions to the menu
+        for action in [
+            ee_user_guide_action,
+            None,
+            sign_in_action,
+            self.set_cloud_project_action,
+            None,
+            add_fc_button,
+        ]:
+            for menu in [self.menu, self.toolButton.menu()]:
+                if action:
+                    menu.addAction(action)
+                else:
+                    menu.addSeparator()
 
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self._updateLayers)
@@ -173,10 +178,6 @@ class GoogleEarthEnginePlugin(object):
         """Get the text for the project button."""
         return f"Set Project: {self.ee_config.project or '...'}"
 
-    def _handle_updated_config(self):
-        """Refresh the text for the project button."""
-        self.set_cloud_project_action.setText(self.tr(self._project_button_text))
-
     def _run_cmd_ee_user_guide(self):
         # open user guide in external web browser
         webbrowser.open_new("http://qgis-ee-plugin.appspot.com/user-guide")
@@ -191,8 +192,6 @@ class GoogleEarthEnginePlugin(object):
         self.run_cmd_set_cloud_project()
 
     def _run_cmd_set_cloud_project(self):
-        from ee_plugin import ee_auth  # type: ignore
-
         ee_auth.ee_initialize_with_project(self.ee_config, force=True)
 
     def check_version(self):
@@ -227,10 +226,6 @@ class GoogleEarthEnginePlugin(object):
             version_checked = True
 
     def _updateLayers(self):
-        import ee
-
-        from .utils import add_or_update_ee_layer
-
         layers = QgsProject.instance().mapLayers().values()
 
         for layer in filter(lambda layer: layer.customProperty("ee-layer"), layers):
@@ -263,71 +258,4 @@ class GoogleEarthEnginePlugin(object):
             )
             opacity = layer.renderer().opacity()
 
-            add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)
-
-    def _test_dock_widget(self):
-        dialog = build_vbox_dialog(
-            windowTitle="Add Feature Collection",
-            widgets=[
-                build_form_group_box(
-                    title="Source",
-                    rows=[
-                        (
-                            QtWidgets.QLabel(
-                                text="Add GEE Feature Collection to Map",
-                                toolTip="This is a tooltip!",
-                                whatsThis='This is "WhatsThis"! <a href="http://google.com">Link</a>',
-                            ),
-                            QtWidgets.QLineEdit(objectName="featureCollectionId"),
-                        )
-                    ],
-                ),
-                build_form_group_box(
-                    title="Filter by Properties",
-                    collapsable=True,
-                    collapsed=True,
-                    rows=[
-                        (
-                            "Name",
-                            QtWidgets.QLineEdit(objectName="filterName"),
-                        ),
-                        (
-                            "Value",
-                            QtWidgets.QLineEdit(objectName="filterValue"),
-                        ),
-                    ],
-                ),
-                build_form_group_box(
-                    title="Filter by Dates",
-                    collapsable=True,
-                    collapsed=True,
-                    rows=[
-                        (
-                            "Start",
-                            QtWidgets.QDateEdit(objectName="startDate"),
-                        ),
-                        (
-                            "End",
-                            QtWidgets.QDateEdit(objectName="endDate"),
-                        ),
-                    ],
-                ),
-                gui.QgsExtentGroupBox(
-                    objectName="extent",
-                    title="Filter by Coordinates",
-                    collapsed=True,
-                ),
-                build_form_group_box(
-                    title="Visualization",
-                    collapsable=True,
-                    collapsed=True,
-                    rows=[
-                        ("Color", gui.QgsColorButton(objectName="vizColorHex")),
-                    ],
-                ),
-            ],
-            accepted=lambda: self.iface.messageBar().pushMessage(
-                f"Accepted {get_values(dialog)=}"
-            ),
-            rejected=lambda: self.iface.messageBar().pushMessage("Cancelled"),
-        )
+            utils.add_or_update_ee_layer(ee_object, ee_object_vis, name, shown, opacity)

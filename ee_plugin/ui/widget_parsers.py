@@ -1,6 +1,6 @@
 from typing import Optional
 
-from qgis.PyQt.QtWidgets import QCheckBox, QDateEdit, QDialog, QLineEdit
+from qgis.PyQt.QtWidgets import QCheckBox, QDateEdit, QDialog, QLineEdit, QTextEdit
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 from qgis.gui import QgsColorButton, QgsDateEdit, QgsExtentGroupBox
 
@@ -47,6 +47,7 @@ def get_dialog_values(dialog: QDialog) -> dict:
         QLineEdit: lambda w: w.text(),
         QDateEdit: lambda w: w.date().toString("yyyy-MM-dd"),
         QgsDateEdit: lambda w: None if w.isNull() else w.findChild(QLineEdit).text(),
+        QTextEdit: lambda w: w.toPlainText(),
         QCheckBox: lambda w: w.isChecked(),
         QgsColorButton: lambda w: w.color().name(),
         QgsExtentGroupBox: qgs_extent_to_bbox,

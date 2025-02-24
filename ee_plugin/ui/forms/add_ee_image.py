@@ -49,7 +49,7 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
     )
 
     if accepted:
-        (dialog.accepted.connect(lambda: call_func_with_values(accepted, dialog)),)
+        dialog.accepted.connect(lambda: call_func_with_values(accepted, dialog))
     return dialog
 
 

@@ -4,12 +4,9 @@ from qgis.PyQt import QtWidgets
 import ee
 
 from ..utils import (
-    build_form_group_box,
-    build_vbox_dialog,
     call_func_with_values,
-    DefaultNullQgsDateEdit,
 )
-
+from .. import widgets
 from ... import Map, utils
 from ...utils import translate as _
 
@@ -20,10 +17,10 @@ def form(
     **dialog_kwargs,
 ) -> QtWidgets.QDialog:
     """Add a GEE Feature Collection to the map."""
-    dialog = build_vbox_dialog(
+    dialog = widgets.build_vbox_dialog(
         windowTitle=_("Add Feature Collection"),
         widgets=[
-            build_form_group_box(
+            widgets.build_form_group_box(
                 title=_("Source"),
                 rows=[
                     (
@@ -59,7 +56,7 @@ def form(
                     ),
                 ],
             ),
-            build_form_group_box(
+            widgets.build_form_group_box(
                 title=_("Filter by Properties"),
                 collapsable=True,
                 collapsed=True,
@@ -74,18 +71,18 @@ def form(
                     ),
                 ],
             ),
-            build_form_group_box(
+            widgets.build_form_group_box(
                 title=_("Filter by Dates"),
                 collapsable=True,
                 collapsed=True,
                 rows=[
                     (
                         "Start",
-                        DefaultNullQgsDateEdit(objectName="start_date"),
+                        widgets.DefaultNullQgsDateEdit(objectName="start_date"),
                     ),
                     (
                         "End",
-                        DefaultNullQgsDateEdit(objectName="end_date"),
+                        widgets.DefaultNullQgsDateEdit(objectName="end_date"),
                     ),
                 ],
             ),
@@ -94,7 +91,7 @@ def form(
                 title=_("Filter by Coordinates"),
                 collapsed=True,
             ),
-            build_form_group_box(
+            widgets.build_form_group_box(
                 title=_("Visualization"),
                 collapsable=True,
                 collapsed=True,
@@ -110,6 +107,7 @@ def form(
         **dialog_kwargs,
     )
 
+    # If a callback function passed, call it with the values from the dialog
     if accepted:
         dialog.accepted.connect(lambda: call_func_with_values(accepted, dialog))
     return dialog

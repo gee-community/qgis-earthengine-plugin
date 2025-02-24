@@ -3,10 +3,7 @@ from qgis import gui
 from qgis.PyQt import QtWidgets
 import ee
 
-from ..utils import (
-    call_func_with_values,
-)
-from .. import widgets
+from .. import widgets, utils as ui_utils
 from ... import Map, utils
 from ...utils import translate as _
 
@@ -109,7 +106,9 @@ def form(
 
     # If a callback function passed, call it with the values from the dialog
     if accepted:
-        dialog.accepted.connect(lambda: call_func_with_values(accepted, dialog))
+        dialog.accepted.connect(
+            lambda: ui_utils.call_func_with_values(accepted, dialog)
+        )
     return dialog
 
 

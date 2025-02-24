@@ -21,6 +21,7 @@ from qgis.PyQt.QtGui import QIcon
 import ee
 
 from . import provider, config, ee_auth, utils
+from .ui import menus
 from .ui.forms import add_feature_collection, add_ee_image
 
 
@@ -156,21 +157,25 @@ class GoogleEarthEnginePlugin(object):
         )
         self.iface.pluginToolBar().addWidget(self.toolButton)
 
-        # Add actions to the menu
-        for action in [
-            ee_user_guide_action,
-            None,
-            sign_in_action,
-            self.set_cloud_project_action,
-            None,
-            add_fc_button,
-            add_ee_image_button,
-        ]:
-            for menu in [self.menu, self.toolButton.menu()]:
-                if action:
-                    menu.addAction(action)
-                else:
-                    menu.addSeparator()
+        # Populate menus
+        for m in (self.menu, self.toolButton.menu()):
+            menus.populate_menu(
+                menu=m,
+                items=[
+                    menus.Action(action=ee_user_guide_action),
+                    menus.Separator(),
+                    menus.Action(action=sign_in_action),
+                    menus.Action(action=self.set_cloud_project_action),
+                    menus.Separator(),
+                    menus.SubMenu(
+                        label=self.tr("Add Layer"),
+                        subitems=[
+                            menus.Action(action=add_fc_button),
+                            menus.Action(action=add_ee_image_button),
+                        ],
+                    ),
+                ],
+            )
 
         # Register signal to initialize EE layers on project load
         self.iface.projectRead.connect(self._updateLayers)

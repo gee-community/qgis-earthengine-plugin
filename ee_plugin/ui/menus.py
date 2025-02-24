@@ -23,7 +23,7 @@ class SubMenu:
 
 @dataclass
 class Action:
-    """A  action in a menu."""
+    """An action in a menu."""
 
     action: Optional[QAction] = None
 

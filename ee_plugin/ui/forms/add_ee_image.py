@@ -7,11 +7,8 @@ from qgis.PyQt import QtWidgets
 from qgis.core import QgsMessageLog, Qgis
 
 from ...Map import addLayer
-from ..utils import (
-    build_form_group_box,
-    build_vbox_dialog,
-    call_func_with_values,
-)
+from ..widgets import build_form_group_box, build_vbox_dialog
+from ..utils import call_func_with_values
 
 
 # TODO: iface is not used

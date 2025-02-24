@@ -2,16 +2,17 @@ import datetime
 from unittest.mock import create_autospec
 
 import pytest
-from ee_plugin.ui.forms import add_feature_collection
 from qgis import gui
 from qgis.PyQt import QtWidgets, QtGui
-from ee_plugin.ui import utils
+
+from ee_plugin.ui.forms import add_feature_collection
+from ee_plugin.ui import widgets
 
 
 def test_get_values():
-    dialog = utils.build_vbox_dialog(
+    dialog = widgets.build_vbox_dialog(
         widgets=[
-            utils.build_form_group_box(
+            widgets.build_form_group_box(
                 rows=[
                     (
                         "Label",
@@ -30,7 +31,7 @@ def test_get_values():
     dialog.findChild(QtWidgets.QLineEdit, "line_edit").setText("test")
     dialog.findChild(QtWidgets.QCheckBox, "check_box").setChecked(True)
 
-    assert utils.get_dialog_values(dialog) == {
+    assert widgets.get_dialog_values(dialog) == {
         "line_edit": "test",
         "check_box": True,
     }

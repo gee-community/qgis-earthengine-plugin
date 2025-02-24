@@ -6,7 +6,7 @@ from qgis import gui
 from qgis.PyQt import QtWidgets, QtGui
 
 from ee_plugin.ui.forms import add_feature_collection
-from ee_plugin.ui import widgets
+from ee_plugin.ui import widgets, widget_parsers
 
 
 def test_get_values():
@@ -31,7 +31,7 @@ def test_get_values():
     dialog.findChild(QtWidgets.QLineEdit, "line_edit").setText("test")
     dialog.findChild(QtWidgets.QCheckBox, "check_box").setChecked(True)
 
-    assert widgets.get_dialog_values(dialog) == {
+    assert widget_parsers.get_dialog_values(dialog) == {
         "line_edit": "test",
         "check_box": True,
     }

@@ -84,9 +84,9 @@ def test_get_values():
         ),
     ],
 )
-def test_add_feature_collection_form(qgis_iface, form_input, expected_form_output):
+def test_add_feature_collection_form(form_input, expected_form_output):
     mock_callback = create_autospec(add_feature_collection.callback)
-    dialog = add_feature_collection.form(iface=qgis_iface, accepted=mock_callback)
+    dialog = add_feature_collection.form(accepted=mock_callback)
 
     # Populate dialog with form_input
     for key, value in form_input.items():

@@ -121,17 +121,13 @@ class GoogleEarthEnginePlugin(object):
             text=self.tr("Add Feature Collection"),
             parent=self.iface.mainWindow(),
             triggered=lambda: add_feature_collection.form(
-                self.iface,
-                accepted=add_feature_collection.callback,
+                accepted=add_feature_collection.callback
             ),
         )
         add_ee_image_button = QtWidgets.QAction(
             text=self.tr("Add Image"),
             parent=self.iface.mainWindow(),
-            triggered=lambda: add_ee_image.form(
-                self.iface,
-                accepted=add_ee_image.callback,
-            ),
+            triggered=lambda: add_ee_image.form(accepted=add_ee_image.callback),
         )
 
         # Initialize plugin menu

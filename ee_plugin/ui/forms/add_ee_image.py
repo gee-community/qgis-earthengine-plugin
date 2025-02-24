@@ -2,7 +2,6 @@ import json
 from typing import Callable, Optional
 
 import ee
-from qgis import gui
 from qgis.PyQt import QtWidgets
 from qgis.core import QgsMessageLog, Qgis
 
@@ -11,10 +10,7 @@ from ..widgets import build_form_group_box, build_vbox_dialog
 from ..utils import call_func_with_values
 
 
-# TODO: iface is not used
-def form(
-    iface: gui.QgisInterface, accepted: Optional[Callable] = None, **dialog_kwargs
-) -> QtWidgets.QDialog:
+def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDialog:
     """Display a dialog to add a GEE dataset to the QGIS map."""
     dialog = build_vbox_dialog(
         windowTitle="Add Google Earth Engine Image",
@@ -49,6 +45,7 @@ def form(
                 ],
             ),
         ],
+        **dialog_kwargs,
     )
 
     if accepted:

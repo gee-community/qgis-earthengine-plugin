@@ -5,7 +5,7 @@ from ee_plugin.ui.forms.add_ee_image import form, callback
 
 
 def test_add_gee_layer_dialog(clean_qgis_iface):
-    dialog = form(clean_qgis_iface)
+    dialog = form()
     dialog.findChild(QtWidgets.QLineEdit, "image_id").setText("COPERNICUS/S2")
 
     dialog.findChild(QtWidgets.QTextEdit, "viz_params").setText(
@@ -19,7 +19,7 @@ def test_add_gee_layer_dialog(clean_qgis_iface):
 
 
 def test_load_gee_layer_srtm(clean_qgis_iface):
-    dialog = form(clean_qgis_iface)
+    dialog = form()
     dialog.findChild(QtWidgets.QLineEdit, "image_id").setText("USGS/SRTMGL1_003")
 
     dialog.findChild(QtWidgets.QTextEdit, "viz_params").setText(
@@ -39,7 +39,7 @@ def test_load_gee_layer_srtm(clean_qgis_iface):
 
 
 def test_converting_viz_params_json(clean_qgis_iface):
-    dialog = form(clean_qgis_iface)
+    dialog = form()
     dialog.findChild(QtWidgets.QLineEdit, "image_id").setText("USGS/SRTMGL1_003")
 
     # single quotes should get replaced to double quotes
@@ -56,7 +56,7 @@ def test_converting_viz_params_json(clean_qgis_iface):
 
 
 def test_invalid_viz_params(clean_qgis_iface):
-    dialog = form(clean_qgis_iface)
+    dialog = form()
     dialog.findChild(QtWidgets.QLineEdit, "image_id").setText("USGS/SRTMGL1_003")
 
     dialog.findChild(QtWidgets.QTextEdit, "viz_params").setText(
@@ -69,7 +69,7 @@ def test_invalid_viz_params(clean_qgis_iface):
 
 
 def test_empty_viz_params(clean_qgis_iface):
-    dialog = form(clean_qgis_iface)
+    dialog = form()
     dialog.findChild(QtWidgets.QLineEdit, "image_id").setText("USGS/SRTMGL1_003")
 
     dialog.findChild(QtWidgets.QTextEdit, "viz_params").setText("")

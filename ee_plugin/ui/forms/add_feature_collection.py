@@ -9,7 +9,6 @@ from ...utils import translate as _
 
 
 def form(
-    iface: gui.QgisInterface,
     accepted: Optional[Callable] = None,
     **dialog_kwargs,
 ) -> QtWidgets.QDialog:
@@ -100,7 +99,6 @@ def form(
                 ],
             ),
         ],
-        parent=iface.mainWindow(),
         **dialog_kwargs,
     )
 

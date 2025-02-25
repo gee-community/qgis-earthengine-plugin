@@ -8,12 +8,13 @@ from qgis.core import QgsMessageLog, Qgis
 from ...Map import addLayer
 from ..widgets import build_form_group_box, build_vbox_dialog
 from ..utils import call_func_with_values
+from ...utils import translate as _
 
 
 def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDialog:
     """Display a dialog to add a GEE dataset to the QGIS map."""
     dialog = build_vbox_dialog(
-        windowTitle="Add Google Earth Engine Image",
+        windowTitle=_("Add Google Earth Engine Image"),
         widgets=[
             build_form_group_box(
                 title="Dataset",

@@ -21,7 +21,12 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
                 rows=[
                     (
                         QtWidgets.QLabel(
-                            text="Enter GEE Image Name (e.g., COPERNICUS/S2, USGS/SRTMGL1_003)",
+                            text=text="<br />".join(
+                                [
+                                    _("GEE Image Name"),
+                                    "e.g. <code>COPERNICUS/S2, USGS/SRTMGL1_003</code>",
+                                ]
+                            ),
                             toolTip="Provide the full Earth Engine ID.",
                         ),
                         QtWidgets.QLineEdit(objectName="image_id"),

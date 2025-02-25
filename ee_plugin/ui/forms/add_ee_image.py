@@ -17,11 +17,11 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
         windowTitle=_("Add Google Earth Engine Image"),
         widgets=[
             build_form_group_box(
-                title="Dataset",
+                title=_("Source"),
                 rows=[
                     (
                         QtWidgets.QLabel(
-                            text=text="<br />".join(
+                            text="<br />".join(
                                 [
                                     _("GEE Image Name"),
                                     "e.g. <code>COPERNICUS/S2, USGS/SRTMGL1_003</code>",
@@ -59,7 +59,6 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
     return dialog
 
 
-# TODO: message logging
 def callback(image_id: str = None, viz_params: dict = None):
     """Fetch and add the selected Earth Engine dataset to the map with user-defined visualization parameters."""
     if not image_id:

@@ -8,11 +8,11 @@ from .. import widgets, utils as ui_utils
 from ... import Map
 from ...utils import translate as _
 
-# Define a list of common EPSG projections
+# TODO: don't use hardcoded values
 PROJECTIONS = [
-    ("EPSG:4326 (WGS 84)", "EPSG:4326"),
-    ("EPSG:3857 (Web Mercator)", "EPSG:3857"),
-    ("EPSG:32633 (UTM Zone 33N)", "EPSG:32633"),
+    "EPSG:4326",
+    "EPSG:3857",
+    "EPSG:32633",
 ]
 
 
@@ -29,46 +29,49 @@ def form(
         if layer.providerType() == "EE"
     ]
 
+    # Define widgets at the top level
+    ee_image_dropdown = widgets.DropdownWidget(
+        object_name="ee_img", options=raster_layers
+    )
+
+    extent_box = gui.QgsExtentGroupBox(
+        objectName="extent",
+        title=_("Filter by Coordinates"),
+        collapsed=True,
+    )
+
+    scale_spinbox = QtWidgets.QSpinBox(
+        objectName="scale", minimum=10, maximum=10000, value=1000
+    )
+
+    projection_dropdown = widgets.DropdownWidget(
+        object_name="projection", options=PROJECTIONS
+    )
+
+    output_file_selector = widgets.FileSelectionWidget(
+        object_name="out_path",
+        caption=_("Select Output File"),
+        filter="GeoTIFF (*.tif);;All Files (*)",
+        save_mode=True,
+    )
+
+    # Build the dialog using top-level widgets
     dialog = widgets.build_vbox_dialog(
         windowTitle=_("Export GeoTIFF"),
         widgets=[
             widgets.build_form_group_box(
                 title=_("Source"),
                 rows=[
-                    (
-                        QtWidgets.QLabel(_("Select EE Image")),
-                        widgets.DropdownWidget("ee_img", raster_layers),
-                    ),
+                    (QtWidgets.QLabel(_("Select EE Image")), ee_image_dropdown),
                 ],
             ),
-            gui.QgsExtentGroupBox(
-                objectName="extent",
-                title=_("Filter by Coordinates"),
-                collapsed=True,
-            ),
+            extent_box,
             widgets.build_form_group_box(
-                title=_("Export Settings"),
+                title=_("Settings"),
                 rows=[
-                    (
-                        QtWidgets.QLabel(_("Scale (meters per pixel)")),
-                        QtWidgets.QSpinBox(
-                            objectName="scale", minimum=10, maximum=10000, value=1000
-                        ),
-                    ),
-                    (
-                        QtWidgets.QLabel(_("Projection")),
-                        QtWidgets.QComboBox(
-                            objectName="projection",
-                        ).addItems([name for name, _ in PROJECTIONS]),
-                    ),
-                    (
-                        QtWidgets.QLabel(_("Output File")),
-                        widgets.FileSelectionWidget(
-                            caption=_("Select Output File"),
-                            filter="GeoTIFF (*.tif);;All Files (*)",
-                            save_mode=True,
-                        ),
-                    ),
+                    (QtWidgets.QLabel(_("Scale (meters per pixel)")), scale_spinbox),
+                    (QtWidgets.QLabel(_("Projection")), projection_dropdown),
+                    (QtWidgets.QLabel(_("Output File")), output_file_selector),
                 ],
             ),
         ],

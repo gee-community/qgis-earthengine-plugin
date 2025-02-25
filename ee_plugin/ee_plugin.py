@@ -181,6 +181,10 @@ class GoogleEarthEnginePlugin(object):
                             menus.Action(action=add_ee_image_button),
                         ],
                     ),
+                    menus.SubMenu(
+                        label=self.tr("Export"),
+                        subitems=[menus.Action(action=export_geotiff_button)],
+                    ),
                 ],
             )
 

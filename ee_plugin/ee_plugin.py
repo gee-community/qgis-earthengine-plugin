@@ -22,7 +22,7 @@ import ee
 
 from . import provider, config, ee_auth, utils
 from .ui import menus
-from .ui.forms import add_feature_collection, add_ee_image
+from .ui.forms import add_feature_collection, add_ee_image, export_geotiff
 
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -130,6 +130,12 @@ class GoogleEarthEnginePlugin(object):
             triggered=lambda: add_ee_image.form(accepted=add_ee_image.callback),
         )
 
+        export_geotiff_button = QtWidgets.QAction(
+            text=self.tr("Export GeoTIFF"),
+            parent=self.iface.mainWindow(),
+            triggered=lambda: export_geotiff.form(accepted=export_geotiff.callback),
+        )
+
         # Initialize plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
         self.menu = plugin_menu.addMenu(
@@ -169,6 +175,10 @@ class GoogleEarthEnginePlugin(object):
                             menus.Action(action=add_fc_button),
                             menus.Action(action=add_ee_image_button),
                         ],
+                    ),
+                    menus.SubMenu(
+                        label=self.tr("Export"),
+                        subitems=[menus.Action(action=export_geotiff_button)],
                     ),
                 ],
             )

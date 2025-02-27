@@ -1,8 +1,11 @@
 from typing import Optional, Callable
-from qgis import gui
-from qgis.PyQt import QtWidgets
+
 import ee
 import xarray as xr
+import rasterio as rio
+from qgis import gui
+from qgis.core import QgsMessageLog, Qgis
+from qgis.PyQt import QtWidgets
 
 from .. import widgets, utils as ui_utils
 from ... import Map
@@ -119,13 +122,12 @@ def callback(
     )
 
     if not layer:
-        Map.get_iface().messageBar().pushMessage(
-            "Error", "Selected layer not found.", level=gui.Qgis.Critical
+        QgsMessageLog.logMessage(
+            f"Layer {ee_img} not found", "GEE Plugin", level=Qgis.Critical
         )
         return
 
-    # Convert layer to EE Image
-    ee_image = ee.Image(layer.source())
+    ee_image = layer.dataProvider().ee_object
 
     # If no region is specified, use the full bounds
     if extent:
@@ -136,26 +138,47 @@ def callback(
     # Export EE Image to GeoTIFF
     try:
         ix = xr.open_dataset(
-            ee.ImageCollection(ee_image),
+            ee_image,
             engine="ee",
             scale=scale,
             projection=projection,
             geometry=region,
         )
 
-        out_ds = (
-            ix.isel(time=0)
-            .rio.write_crs(ix.attrs["crs"])
-            .rename({"lon": "x", "lat": "y"})
+        # Remove time dimension if it exists
+        if "time" in ix.dims:
+            ix = ix.isel(time=0, drop=True)
+
+        # Identify first data variable (e.g., "elevation") and extract it
+        data_var = list(ix.data_vars.keys())[0]  # Get the first variable name
+        ix = ix[data_var]  # Extract the variable as a DataArray
+
+        # Ensure spatial dimensions are set correctly
+        ix = ix.rename({"lon": "x", "lat": "y"})
+        ix.rio.set_spatial_dims(x_dim="x", y_dim="y", inplace=True)
+        ix = ix.transpose("y", "x")
+        ix.rio.write_crs("EPSG:4326", inplace=True)
+
+        # Define geotransform from bounding box
+        transform = rio.transform.from_bounds(
+            west=extent[0],
+            east=extent[2],
+            south=extent[1],
+            north=extent[3],
+            width=ix.sizes["x"],
+            height=ix.sizes["y"],
         )
+        ix.rio.write_transform(transform, inplace=True)
 
-        out_ds.rio.to_raster(out_path, windowed=True)
+        # Export GeoTIFF
+        ix.rio.to_raster(out_path, windowed=True)
 
-        Map.get_iface().messageBar().pushMessage(
-            "Success", "Export complete.", level=gui.Qgis.Success
+        QgsMessageLog.logMessage(
+            f"Successfully exported {ee_img}", "GEE Plugin", level=Qgis.Success
         )
 
     except Exception as e:
-        Map.get_iface().messageBar().pushMessage(
-            "Error", str(e), level=gui.Qgis.Critical
+        QgsMessageLog.logMessage(
+            f"Error exporting {ee_img}: {str(e)}", "GEE Plugin", level=Qgis.Critical
         )
+        return

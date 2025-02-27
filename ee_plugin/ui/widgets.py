@@ -20,60 +20,61 @@ from qgis.PyQt.QtWidgets import (
 from qgis.gui import QgsCollapsibleGroupBox
 
 
-class FileSelectionWidget(QWidget):
+def FileSelectionWidget(
+    object_name: str = "file_path",
+    caption: str = "Select File",
+    filter: str = "All Files (*)",
+    save_mode: bool = False,
+) -> QWidget:
     """
-    A reusable widget for selecting a file using QFileDialog.
+    Creates a reusable file selection widget using QFileDialog.
     Displays the selected file path in a QLineEdit.
+
+    Args:
+        object_name (str): The name of the object for referencing in dialogs.
+        caption (str): The dialog title.
+        filter (str): The file filter for selection.
+        save_mode (bool): If True, opens a Save File dialog; otherwise, opens an Open File dialog.
+
+    Returns:
+        QWidget: A widget containing a line edit and a browse button.
     """
+    widget = QWidget()
+    widget.setObjectName(object_name)
+    layout = QHBoxLayout(widget)
 
-    def __init__(
-        self,
-        object_name: str = "file_path",
-        caption: str = "Select File",
-        filter: str = "All Files (*)",
-        save_mode: bool = False,
-        parent: QWidget = None,
-    ) -> None:
-        super().__init__(parent)
-        self.setObjectName(object_name)
-        self.layout = QHBoxLayout(self)
+    # Line edit to show selected file
+    line_edit = QLineEdit()
+    line_edit.setReadOnly(True)  # Prevent manual edits if needed
 
-        # Line edit to show selected file
-        self.line_edit = QLineEdit(self)
-        self.line_edit.setReadOnly(True)  # Prevent manual edits if needed
+    # Browse button
+    button = QPushButton("Browse...")
 
-        # Browse button
-        self.button = QPushButton("Browse...", self)
-        self.button.clicked.connect(self.open_file_dialog)
-
-        # Add widgets to layout
-        self.layout.addWidget(self.line_edit)
-        self.layout.addWidget(self.button)
-
-        # File dialog parameters
-        self.caption = caption
-        self.filter = filter
-        self.save_mode = save_mode
-
-    def open_file_dialog(self) -> None:
+    def open_file_dialog():
         """Open a file selection dialog without closing the parent form."""
-        dialog = QFileDialog(self)
-        dialog.setWindowTitle(self.caption)
+        dialog = QFileDialog()
+        dialog.setWindowTitle(caption)
         dialog.setFileMode(QFileDialog.AnyFile)
-        dialog.setAcceptMode(QFileDialog.AcceptSave)  # Ensure it's a save dialog
+        dialog.setAcceptMode(
+            QFileDialog.AcceptSave if save_mode else QFileDialog.AcceptOpen
+        )
         dialog.setOption(
             QFileDialog.DontUseNativeDialog, True
         )  # Ensure it doesn't auto-close
-        dialog.setNameFilter(self.filter)
+        dialog.setNameFilter(filter)
 
         if dialog.exec_():  # Run file dialog and check if confirmed
             selected_files = dialog.selectedFiles()
             if selected_files:
-                self.line_edit.setText(selected_files[0])
+                line_edit.setText(selected_files[0])
 
-    def get_selected_file(self) -> str:
-        """Returns the selected file path"""
-        return self.line_edit.text()
+    button.clicked.connect(open_file_dialog)
+
+    # Add widgets to layout
+    layout.addWidget(line_edit)
+    layout.addWidget(button)
+
+    return widget
 
 
 def DropdownWidget(object_name: str, options: list[str]) -> QComboBox:

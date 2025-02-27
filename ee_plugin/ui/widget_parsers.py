@@ -1,8 +1,21 @@
 from typing import Optional
 
-from qgis.PyQt.QtWidgets import QCheckBox, QDateEdit, QDialog, QLineEdit, QTextEdit
+from qgis.PyQt.QtWidgets import (
+    QCheckBox,
+    QDateEdit,
+    QDialog,
+    QLineEdit,
+    QTextEdit,
+    QWidget,
+)
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 from qgis.gui import QgsColorButton, QgsDateEdit, QgsExtentGroupBox
+
+
+def parse_file_selection(w: QWidget) -> Optional[str]:
+    """Retrieve file path from QLineEdit associated with QFileDialog."""
+    line_edit = w.findChild(QLineEdit)
+    return line_edit.text() if line_edit else None
 
 
 def qgs_extent_to_bbox(
@@ -56,5 +69,14 @@ def get_dialog_values(dialog: QDialog) -> dict:
     for cls, formatter in parsers.items():
         for widget in dialog.findChildren(cls):
             values[widget.objectName()] = formatter(widget)
+
+    file_selection_widgets = dialog.findChildren(
+        QWidget
+    )  # Look for all QWidget-based file selectors
+    for widget in file_selection_widgets:
+        if widget.objectName():  # Ensure it has an object name
+            file_path = parse_file_selection(widget)  # Extract file path
+            if file_path:
+                values[widget.objectName()] = file_path
 
     return values

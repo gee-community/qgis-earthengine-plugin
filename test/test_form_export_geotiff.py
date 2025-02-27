@@ -6,7 +6,7 @@ from ee_plugin.ui.utils import get_dialog_values
 from ee_plugin.ui.forms.export_geotiff import form
 
 
-def test_add_gee_layer_dialog(clean_qgis_iface):
+def test_export_dialog_values():
     image = ee.Image("USGS/SRTMGL1_003")
     Map.addLayer(image, {}, "DEM")
     dialog = form()
@@ -21,9 +21,11 @@ def test_add_gee_layer_dialog(clean_qgis_iface):
         "ee_img": "DEM",
         "extent": None,
         "projection": "EPSG:4326",
-        "scale": "30",
+        "scale": 30,
         "out_path": "test.tif",
     }
     print(exp_values)
     print(get_dialog_values(dialog))
+
+    ## expected values is a subset of the dialog values
     assert exp_values.items() <= get_dialog_values(dialog).items()

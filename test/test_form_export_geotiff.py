@@ -52,9 +52,11 @@ def test_callback_layer_not_found():
     "crs, scale, extent",
     [
         ("EPSG:4326", 0.01, (-123.5, 49.5, -122.5, 50.5)),  # WGS 84, small scale
-        ("EPSG:4326", 0.25, (-123.5, 49.5, -122.5, 50.5)),  # WGS 84, small scale
+        ("EPSG:4326", 0.25, None),  # WGS 84, auto extent
         ("EPSG:3857", 1000, (-13733500, 6305000, -13675000, 6420000)),  # Web Mercator
+        ("EPSG:3857", 1000, None),  # Web Mercator, auto extent
         ("EPSG:32610", 1000, (500000, 5475000, 600000, 5575000)),  # UTM Zone 10N
+        ("EPSG:32610", 1000, None),  # UTM, auto extent
     ],
 )
 def test_callback_varied_params(crs, scale, extent):
@@ -80,6 +82,3 @@ def test_callback_varied_params(crs, scale, extent):
         assert ds.width > 0 and ds.height > 0, "Invalid raster size"
 
     os.remove(out_path)
-
-
-# TODO: test without extent

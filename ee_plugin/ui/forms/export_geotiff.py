@@ -2,7 +2,6 @@ from typing import Optional, Callable
 
 import ee
 import xarray as xr
-import rasterio as rio
 from qgis import gui
 from qgis.core import QgsMessageLog, Qgis
 from qgis.PyQt import QtWidgets
@@ -134,7 +133,7 @@ def callback(
         # geodesic=False is important for non-WGS84 projections
         region = ee.Geometry.Rectangle(extent, proj=projection, geodesic=False)
     else:
-        region = ee_image.geometry().bounds().project(projection)
+        region = ee_image.geometry().bounds()
 
     # Export EE Image to GeoTIFF
     try:
@@ -165,17 +164,6 @@ def callback(
         ix.rio.set_spatial_dims(x_dim="x", y_dim="y", inplace=True)
         ix = ix.transpose("y", "x")
         ix = ix.rio.write_crs(projection, inplace=True)
-
-        # Define geotransform from bounding box
-        transform = rio.transform.from_bounds(
-            west=extent[0],
-            east=extent[2],
-            south=extent[1],
-            north=extent[3],
-            width=ix.sizes["x"],
-            height=ix.sizes["y"],
-        )
-        ix.rio.write_transform(transform, inplace=True)
 
         # Export GeoTIFF
         ix.rio.to_raster(out_path, windowed=True, projection=projection)

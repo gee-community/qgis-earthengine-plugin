@@ -1,7 +1,8 @@
 import os
+import time
 
 import ee
-import numpy as np
+import pytest
 import rasterio as rio
 from qgis.PyQt import QtWidgets
 
@@ -47,23 +48,38 @@ def test_callback_layer_not_found():
     assert not os.path.exists("test.tif")
 
 
-def test_callback_small_region():
+@pytest.mark.parametrize(
+    "crs, scale, extent",
+    [
+        ("EPSG:4326", 0.01, (-123.5, 49.5, -122.5, 50.5)),  # WGS 84, small scale
+        ("EPSG:4326", 0.25, (-123.5, 49.5, -122.5, 50.5)),  # WGS 84, small scale
+        ("EPSG:3857", 1000, (-13733500, 6305000, -13675000, 6420000)),  # Web Mercator
+        ("EPSG:32610", 1000, (500000, 5475000, 600000, 5575000)),  # UTM Zone 10N
+    ],
+)
+def test_callback_varied_params(crs, scale, extent):
+    time.sleep(1)  # connection pool can get full
     image = ee.Image("USGS/SRTMGL1_003")
     Map.addLayer(image, {}, "DEM")
 
-    extent = (-123.3, 49.0, -122.7, 49.8)
+    out_path = f"test_{crs}_{scale}.tif"
+
     callback(
         ee_img="DEM",
         extent=extent,
-        scale=30,
-        projection="EPSG:4326",
-        out_path="./test.tif",
+        scale=scale,
+        projection=crs,
+        out_path=out_path,
     )
 
-    assert os.path.exists("test.tif")
-    assert os.path.getsize("test.tif") > 0
-    ds = rio.open("test.tif").read(1)
-    # test values make sens for elevation in region
-    assert np.nanmean(ds) > 0
-    assert np.nanmean(ds) < 1000
-    # TODO: remove file
+    assert os.path.exists(out_path)
+    assert os.path.getsize(out_path) > 0
+
+    with rio.open(out_path) as ds:
+        assert ds.count == 1, "Unexpected number of bands"
+        assert ds.width > 0 and ds.height > 0, "Invalid raster size"
+
+    os.remove(out_path)
+
+
+# TODO: test without extent

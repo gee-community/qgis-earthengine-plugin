@@ -131,9 +131,10 @@ def callback(
 
     # If no region is specified, use the full bounds
     if extent:
-        region = ee.Geometry.Rectangle(extent)
+        # geodesic=False is important for non-WGS84 projections
+        region = ee.Geometry.Rectangle(extent, proj=projection, geodesic=False)
     else:
-        region = ee_image.geometry().bounds()
+        region = ee_image.geometry().bounds().project(projection)
 
     # Export EE Image to GeoTIFF
     try:
@@ -141,7 +142,7 @@ def callback(
             ee_image,
             engine="ee",
             scale=scale,
-            projection=projection,
+            crs=projection,
             geometry=region,
         )
 
@@ -154,10 +155,16 @@ def callback(
         ix = ix[data_var]  # Extract the variable as a DataArray
 
         # Ensure spatial dimensions are set correctly
-        ix = ix.rename({"lon": "x", "lat": "y"})
+        try:
+            ix = ix.rename({"lon": "x", "lat": "y"})
+        except ValueError:
+            # dimensions are capitalized
+            # Non WGS84 projections already have x, y dimensions
+            ix = ix.rename({"X": "x", "Y": "y"})
+
         ix.rio.set_spatial_dims(x_dim="x", y_dim="y", inplace=True)
         ix = ix.transpose("y", "x")
-        ix.rio.write_crs("EPSG:4326", inplace=True)
+        ix = ix.rio.write_crs(projection, inplace=True)
 
         # Define geotransform from bounding box
         transform = rio.transform.from_bounds(
@@ -171,7 +178,7 @@ def callback(
         ix.rio.write_transform(transform, inplace=True)
 
         # Export GeoTIFF
-        ix.rio.to_raster(out_path, windowed=True)
+        ix.rio.to_raster(out_path, windowed=True, projection=projection)
 
         QgsMessageLog.logMessage(
             f"Successfully exported {ee_img}", "GEE Plugin", level=Qgis.Success

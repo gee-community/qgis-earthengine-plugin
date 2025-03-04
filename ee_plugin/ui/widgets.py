@@ -11,8 +11,83 @@ from qgis.PyQt.QtWidgets import (
     QLayout,
     QVBoxLayout,
     QWidget,
+    QFileDialog,
+    QPushButton,
+    QHBoxLayout,
+    QLineEdit,
+    QComboBox,
 )
 from qgis.gui import QgsCollapsibleGroupBox
+
+
+class FileSelectionWidget(QWidget):
+    """
+    A reusable widget for selecting a file using QFileDialog.
+    Displays the selected file path in a QLineEdit.
+    """
+
+    def __init__(
+        self,
+        object_name: str = "file_path",
+        caption: str = "Select File",
+        filter: str = "All Files (*)",
+        save_mode: bool = False,
+        parent: QWidget = None,
+        toolTip: str = None,
+    ):
+        super().__init__(parent)
+        self.setObjectName(object_name)
+        self.setToolTip(toolTip)
+        layout = QHBoxLayout(self)
+
+        # Line edit to show selected file
+        self.line_edit = QLineEdit(self)
+        self.line_edit.setReadOnly(True)
+
+        # Browse button
+        self.button = QPushButton("Browse...", self)
+        self.button.clicked.connect(self.open_file_dialog)
+
+        # Add widgets to layout
+        layout.addWidget(self.line_edit)
+        layout.addWidget(self.button)
+        self.setLayout(layout)
+
+        # File dialog parameters
+        self.caption = caption
+        self.filter = filter
+        self.save_mode = save_mode
+
+    def open_file_dialog(self):
+        """Open file dialog and update QLineEdit"""
+        file_path, _ = (
+            QFileDialog.getSaveFileName(None, self.caption, "", self.filter)
+            if self.save_mode
+            else QFileDialog.getOpenFileName(None, self.caption, "", self.filter)
+        )
+        if file_path:
+            self.line_edit.setText(file_path)
+
+    def get_selected_file(self) -> str:
+        """Returns the selected file path"""
+        return self.line_edit.text()
+
+
+def DropdownWidget(
+    object_name: str, options: list[str], toolTip: str = None
+) -> QComboBox:
+    """Creates a reusable dropdown (QComboBox) widget.
+
+    Args:
+        object_name (str): The name of the object (for referencing in dialogs).
+        options (list[str]): A list of selectable options for the dropdown.
+
+    Returns:
+        QtWidgets.QComboBox: A populated dropdown widget.
+    """
+    dropdown = QComboBox(objectName=object_name, toolTip=toolTip)
+    dropdown.addItems(options)
+    return dropdown
 
 
 def DefaultNullQgsDateEdit(

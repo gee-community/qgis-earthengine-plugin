@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Callable
 from qgis import gui
 from qgis.PyQt import QtWidgets
@@ -6,6 +7,9 @@ import ee
 from .. import widgets, utils as ui_utils
 from ... import Map, utils
 from ...utils import translate as _
+
+
+logger = logging.getLogger(__name__)
 
 
 def form(
@@ -153,11 +157,7 @@ def callback(
         try:
             utils.add_ee_vector_layer(fc, layer_name)
         except ee.ee_exception.EEException as e:
-            Map.get_iface().messageBar().pushMessage(
-                "Error",
-                f"Failed to load the Feature Collection: {e}",
-                level=gui.Qgis.Critical,
-            )
+            logger.error(f"Failed to load the Feature Collection: {e}")
     else:
         Map.addLayer(fc, {"palette": viz_color_hex}, layer_name)
     return fc

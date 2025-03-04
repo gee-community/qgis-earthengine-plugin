@@ -3,6 +3,7 @@
 Create and init the Earth Engine Qgis data provider
 """
 
+import logging
 import json
 
 import ee
@@ -10,7 +11,6 @@ from qgis.core import (
     Qgis,
     QgsCoordinateReferenceSystem,
     QgsDataProvider,
-    QgsMessageLog,
     QgsProviderMetadata,
     QgsProviderRegistry,
     QgsRaster,
@@ -37,6 +37,8 @@ BAND_TYPES = {
     "float": Qgis.Float32,
     "double": Qgis.Float64,
 }
+
+logger = logging.getLogger(__name__)
 
 
 class EarthEngineRasterDataProvider(QgsRasterDataProvider):
@@ -394,4 +396,4 @@ def register_data_provider():
     )
     registry = QgsProviderRegistry.instance()
     registry.registerProvider(metadata)
-    QgsMessageLog.logMessage("EE provider registered")
+    logger.info("EE provider registered")

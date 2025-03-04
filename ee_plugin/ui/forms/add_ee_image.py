@@ -1,14 +1,16 @@
+import logging
 import json
 from typing import Callable, Optional
 
 import ee
 from qgis.PyQt import QtWidgets
-from qgis.core import QgsMessageLog, Qgis
 
 from ...Map import addLayer
 from ..widgets import build_form_group_box, build_vbox_dialog
 from ..utils import call_func_with_values
 from ...utils import translate as _
+
+logger = logging.getLogger(__name__)
 
 
 def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDialog:
@@ -62,8 +64,7 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
 def callback(image_id: str = None, viz_params: dict = None):
     """Fetch and add the selected Earth Engine dataset to the map with user-defined visualization parameters."""
     if not image_id:
-        message = "Image ID is required."
-        QgsMessageLog.logMessage(message, "GEE Plugin", level=Qgis.Critical)
+        logger.error("Image ID is required.")
         return
 
     try:
@@ -88,19 +89,15 @@ def callback(image_id: str = None, viz_params: dict = None):
         # Add the dataset to QGIS map
         addLayer(ee_object, viz_params, image_id)
 
-        success_message = (
+        logger.info(
             f"Successfully added {image_id} to the map with custom visualization."
         )
-        QgsMessageLog.logMessage(success_message, "GEE Plugin", level=Qgis.Success)
 
     except ee.EEException as e:
-        error_message = f"Earth Engine Error: {str(e)}"
-        QgsMessageLog.logMessage(error_message, "GEE Plugin", level=Qgis.Critical)
+        logger.exception(f"Earth Engine Error: {str(e)}")
 
     except ValueError as e:
-        error_message = str(e)
-        QgsMessageLog.logMessage(error_message, "GEE Plugin", level=Qgis.Critical)
+        logger.exception(str(e))
 
     except Exception as e:
-        error_message = f"Unexpected error: {str(e)}"
-        QgsMessageLog.logMessage(error_message, "GEE Plugin", level=Qgis.Critical)
+        logger.exception(f"Unexpected error: {str(e)}")

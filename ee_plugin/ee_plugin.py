@@ -20,7 +20,7 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion,
 from qgis.PyQt.QtGui import QIcon
 import ee
 
-from . import provider, config, ee_auth, utils
+from . import provider, config, ee_auth, utils, logging
 from .ui import menus
 from .ui.forms import add_feature_collection, add_ee_image
 
@@ -81,6 +81,8 @@ class GoogleEarthEnginePlugin(object):
                 self.tr(self._project_button_text)
             )
         )
+
+        logging.setup_logger(plugin_name="Google Earth Engine Plugin")
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -182,6 +184,8 @@ class GoogleEarthEnginePlugin(object):
 
         if self.toolButton:
             self.toolButton.deleteLater()
+
+        logging.teardown_logger()
 
     @property
     def _project_button_text(self):

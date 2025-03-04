@@ -48,15 +48,17 @@ def test_callback_layer_not_found():
     assert not os.path.exists("test.tif")
 
 
+# quotas on EE can be exceeded
+# using very low scale for large extents
 @pytest.mark.parametrize(
     "crs, scale, extent",
     [
         ("EPSG:4326", 0.01, (-123.5, 49.5, -122.5, 50.5)),  # WGS 84, small scale
         ("EPSG:4326", 40, None),  # WGS 84, auto extent
         ("EPSG:3857", 1000, (-13733500, 6305000, -13675000, 6420000)),  # Web Mercator
-        ("EPSG:3857", 100000000, None),  # Web Mercator, auto extent
+        ("EPSG:3857", 10000000, None),  # Web Mercator, auto extent
         ("EPSG:32610", 1000, (500000, 5475000, 600000, 5575000)),  # UTM Zone 10N
-        ("EPSG:32610", 100000000, None),  # UTM, auto extent
+        ("EPSG:32610", 10000000, None),  # UTM, auto extent
     ],
 )
 def test_callback_varied_params(crs, scale, extent):

@@ -19,8 +19,7 @@ def test_export_dialog_values():
         QtWidgets.QLineEdit
     ).setText("test.tif")
     dialog.findChild(QtWidgets.QComboBox, "ee_img").setCurrentIndex(0)
-    dialog.findChild(QtWidgets.QComboBox, "projection").setCurrentIndex(0)
-    dialog.findChild(QtWidgets.QSpinBox, "scale").setValue(30)
+    dialog.findChild(QtWidgets.QDoubleSpinBox, "scale").setValue(30)
 
     exp_values = {
         "ee_img": "DEM",

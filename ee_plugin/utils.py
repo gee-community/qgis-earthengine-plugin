@@ -9,6 +9,7 @@ from typing import Optional, TypedDict, Any
 
 import ee
 import qgis
+import xarray as xr
 from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, QgsMapLayer
 from qgis.PyQt.QtCore import QCoreApplication
 
@@ -296,3 +297,39 @@ def translate(message: str) -> str:
     Helper to translate messages.
     """
     return QCoreApplication.translate("GoogleEarthEngine", message)
+
+
+def ee_image_to_geotiff(
+    ee_image: ee.Image,
+    out_path: str,
+    scale: int,
+    projection: str,
+    extent: Optional[tuple[float, float, float, float]] = None,
+) -> None:
+    """
+    Export an EE Image to a GeoTIFF file.
+    """
+    ix = xr.open_dataset(
+        ee_image,
+        engine="ee",
+        scale=scale,
+        crs=projection,
+        geometry=extent,
+    )
+
+    if "time" in ix.dims:
+        ix = ix.isel(time=0, drop=True)
+
+    data_var = list(ix.data_vars.keys())[0]
+    ix = ix[data_var]
+
+    try:
+        ix = ix.rename({"lon": "x", "lat": "y"})
+    except ValueError:
+        ix = ix.rename({"X": "x", "Y": "y"})
+
+    ix.rio.set_spatial_dims(x_dim="x", y_dim="y", inplace=True)
+    ix = ix.transpose("y", "x")
+    ix = ix.rio.write_crs(projection, inplace=True)
+
+    ix.rio.to_raster(out_path, windowed=True, projection=projection)

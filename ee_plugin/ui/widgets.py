@@ -33,9 +33,11 @@ class FileSelectionWidget(QWidget):
         filter: str = "All Files (*)",
         save_mode: bool = False,
         parent: QWidget = None,
+        toolTip: str = None,
     ):
         super().__init__(parent)
         self.setObjectName(object_name)
+        self.setToolTip(toolTip)
         layout = QHBoxLayout(self)
 
         # Line edit to show selected file
@@ -71,7 +73,9 @@ class FileSelectionWidget(QWidget):
         return self.line_edit.text()
 
 
-def DropdownWidget(object_name: str, options: list[str]) -> QComboBox:
+def DropdownWidget(
+    object_name: str, options: list[str], toolTip: str = None
+) -> QComboBox:
     """Creates a reusable dropdown (QComboBox) widget.
 
     Args:
@@ -81,8 +85,7 @@ def DropdownWidget(object_name: str, options: list[str]) -> QComboBox:
     Returns:
         QtWidgets.QComboBox: A populated dropdown widget.
     """
-    dropdown = QComboBox()
-    dropdown.setObjectName(object_name)
+    dropdown = QComboBox(objectName=object_name, toolTip=toolTip)
     dropdown.addItems(options)
     return dropdown
 

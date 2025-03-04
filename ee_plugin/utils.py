@@ -315,6 +315,7 @@ def ee_image_to_geotiff(
         scale=scale,
         crs=projection,
         geometry=extent,
+        decode_times=False,
     )
 
     if "time" in ix.dims:

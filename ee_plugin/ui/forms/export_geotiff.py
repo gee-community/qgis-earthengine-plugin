@@ -22,29 +22,39 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
         if layer.providerType() == "EE"
     ]
 
+    ee_img_msg = _("Select an Earth Engine image to export.")
     ee_image_dropdown = widgets.DropdownWidget(
-        object_name="ee_img", options=raster_layers
+        object_name="ee_img", options=raster_layers, toolTip=ee_img_msg
     )
 
+    extent_msg = _(
+        "The bounding box to filter the image by coordinates in the selected projection units."
+    )
     extent_box = gui.QgsExtentGroupBox(
         objectName="extent",
         title=_("Filter by Coordinates"),
         collapsed=True,
+        toolTip=extent_msg,
     )
 
     scale_msg = _("The scale of the exported image in projection units per pixel.")
     scale_spinbox = QtWidgets.QDoubleSpinBox(
-        objectName="scale", minimum=10, maximum=10000, value=1000, toolTip=scale_msg
+        objectName="scale", minimum=0.01, maximum=10000, toolTip=scale_msg
     )
 
-    projection_dropdown = gui.QgsProjectionSelectionWidget(objectName="projection")
+    projection_msg = _("The projection of the exported image.")
+    projection_dropdown = gui.QgsProjectionSelectionWidget(
+        objectName="projection", toolTip=projection_msg
+    )
     projection_dropdown.setCrs(QgsCoordinateReferenceSystem.fromEpsgId(4326))
 
+    output_file_msg = _("The file path to save the exported GeoTIFF.")
     output_file_selector = widgets.FileSelectionWidget(
         object_name="out_path",
         caption=_("Select Output File"),
         filter="GeoTIFF (*.tif);;All Files (*)",
         save_mode=True,
+        toolTip=output_file_msg,
     )
 
     dialog = widgets.build_vbox_dialog(
@@ -53,7 +63,10 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
             widgets.build_form_group_box(
                 title=_("Source"),
                 rows=[
-                    (QtWidgets.QLabel(_("Select EE Image")), ee_image_dropdown),
+                    (
+                        QtWidgets.QLabel(_("Select EE Image"), toolTip=ee_img_msg),
+                        ee_image_dropdown,
+                    ),
                 ],
             ),
             extent_box,
@@ -61,8 +74,14 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
                 title=_("Settings"),
                 rows=[
                     (QtWidgets.QLabel(_("Scale"), toolTip=scale_msg), scale_spinbox),
-                    (QtWidgets.QLabel(_("Projection")), projection_dropdown),
-                    (QtWidgets.QLabel(_("Output File")), output_file_selector),
+                    (
+                        QtWidgets.QLabel(_("Projection"), toolTip=projection_msg),
+                        projection_dropdown,
+                    ),
+                    (
+                        QtWidgets.QLabel(_("Output File"), toolTip=output_file_msg),
+                        output_file_selector,
+                    ),
                 ],
             ),
         ],

@@ -9,9 +9,15 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
     QComboBox,
     QSpinBox,
+    QDoubleSpinBox,
 )
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
-from qgis.gui import QgsColorButton, QgsDateEdit, QgsExtentGroupBox
+from qgis.gui import (
+    QgsColorButton,
+    QgsDateEdit,
+    QgsExtentGroupBox,
+    QgsProjectionSelectionWidget,
+)
 
 from .widgets import FileSelectionWidget
 
@@ -72,9 +78,11 @@ def get_dialog_values(dialog: QDialog) -> dict:
         QTextEdit: lambda w: w.toPlainText(),
         QCheckBox: lambda w: w.isChecked(),
         QSpinBox: lambda w: w.value(),
+        QDoubleSpinBox: lambda w: w.value(),
         QgsColorButton: lambda w: w.color().name(),
         QComboBox: parse_dropdown_selection,
         QgsExtentGroupBox: qgs_extent_to_bbox,
+        QgsProjectionSelectionWidget: lambda w: w.crs().authid(),
     }
     values = {}
     for cls, formatter in parsers.items():

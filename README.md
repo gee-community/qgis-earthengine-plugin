@@ -2,7 +2,7 @@
 
 # Google Earth Engine Plugin for QGIS
 
-The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthengine.google.com) with [QGIS](https://qgis.org/) using the [EE Python API](https://github.com/google/earthengine-api/tree/master/python). 
+The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthengine.google.com) with [QGIS](https://qgis.org/) using the [EE Python API](https://github.com/google/earthengine-api/tree/master/python).
 
 📖 **[User Guide](https://gee-community.github.io/qgis-earthengine-plugin/)**
 💬 **[Discussions & Support](https://github.com/gee-community/qgis-earthengine-plugin/discussions)**
@@ -15,10 +15,12 @@ The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthen
 ## 🚀 Quickstart Guide
 
 ### 1️⃣ Install the Plugin
+
 - Open **QGIS Plugin Manager** (`Plugins > Manage and Install Plugins`).
 - Search for **"Google Earth Engine"** and install it.
 
 ### 2️⃣ Find Your Google Cloud Project ID
+
 Google Earth Engine requires a **Google Cloud Project**. To find your Project ID:
 
 - Go to the [Google Cloud Console](https://console.cloud.google.com/).
@@ -31,6 +33,7 @@ Google Earth Engine requires a **Google Cloud Project**. To find your Project ID
 - Follow prompts to enter your project ID.
 
 ### 4️⃣ Use Earth Engine Directly in QGIS 🎉
+
 Once the plugin is set up, you can start using Earth Engine within QGIS! Try adding a dataset:
 
 ```python
@@ -50,22 +53,23 @@ vis_params = {
 Map.addLayer(image, vis_params, 'Digital Elevation Model')
 Map.setCenter(-121.753, 46.855, 9)
 ```
+
 ---
 
 ## 🗺️ Map Functions
 
 The plugin supports several **Map API functions** similar to the Earth Engine Code Editor:
 
-| Function | Description |
-|----------|------------|
-| `Map.addLayer(eeObject, visParams, name, shown, opacity)` | Adds a dataset to QGIS. |
-| `Map.centerObject(object, zoom)` | Centers the map on an object. |
-| `Map.getBounds(asGeoJSON)` | Returns map bounds. |
-| `Map.getCenter()` | Gets the current center of the map. |
-| `Map.setCenter(lon, lat, zoom)` | Moves the center of the map. |
-| `Map.getScale()` | Returns the current map scale. |
-| `Map.getZoom()` | Returns the current zoom level. |
-| `Map.setZoom(zoom)` | Sets a new zoom level. |
+| Function                                                  | Description                         |
+| --------------------------------------------------------- | ----------------------------------- |
+| `Map.addLayer(eeObject, visParams, name, shown, opacity)` | Adds a dataset to QGIS.             |
+| `Map.centerObject(object, zoom)`                          | Centers the map on an object.       |
+| `Map.getBounds(asGeoJSON)`                                | Returns map bounds.                 |
+| `Map.getCenter()`                                         | Gets the current center of the map. |
+| `Map.setCenter(lon, lat, zoom)`                           | Moves the center of the map.        |
+| `Map.getScale()`                                          | Returns the current map scale.      |
+| `Map.getZoom()`                                           | Returns the current zoom level.     |
+| `Map.setZoom(zoom)`                                       | Sets a new zoom level.              |
 
 For more details, check the [EE API Documentation](https://developers.google.com/earth-engine/getstarted#adding-data-to-the-map).
 
@@ -74,7 +78,9 @@ For more details, check the [EE API Documentation](https://developers.google.com
 ## ❓ Troubleshooting
 
 ### Resetting Authentication
+
 If you experience authentication issues:
+
 - Run `earthengine authenticate` again.
 - Delete the credentials file and restart QGIS:
   - **Windows:** `C:\Users\<USER>\.config\earthengine\credentials`
@@ -85,18 +91,19 @@ More on authentication troubleshooting: [Earth Engine Guide](https://developers.
 
 ### Common Errors
 
-| Error | Solution |
-|--------|------------|
-| `ModuleNotFoundError: No module named 'ee_plugin'` | Ensure the plugin is installed via QGIS Plugin Manager. |
-| `earthengine authenticate` fails | Run `earthengine authenticate --quiet` and restart QGIS. |
-| `ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED]` | On MacOS, run `/Applications/Python 3.x/Install Certificates.command`. |
-| Plugin crashes after authentication | Ensure your IP is not blocked by a firewall. Check [code.earthengine.google.com](http://code.earthengine.google.com). |
+| Error                                              | Solution                                                                                                              |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `ModuleNotFoundError: No module named 'ee_plugin'` | Ensure the plugin is installed via QGIS Plugin Manager.                                                               |
+| `earthengine authenticate` fails                   | Run `earthengine authenticate --quiet` and restart QGIS.                                                              |
+| `ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED]`   | On MacOS, run `/Applications/Python 3.x/Install Certificates.command`.                                                |
+| Plugin crashes after authentication                | Ensure your IP is not blocked by a firewall. Check [code.earthengine.google.com](http://code.earthengine.google.com). |
 
 ---
 
 ## 🤝 Contributing
 
 We warmly welcome contributions! If you'd like to contribute:
+
 1. Check out [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions.
 2. Ensure your contribution relates to an existing [issue](https://github.com/gee-community/qgis-earthengine-plugin/issues) or discussion.
 3. Open a pull request or issue before starting major changes.

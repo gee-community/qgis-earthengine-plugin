@@ -33,18 +33,22 @@ jobs:
         run: |
           mkdir -p ~/.config/earthengine  
           echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials
+      
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
 
       - name: Install dependencies
         run: |
-          pip install -r requirements-dev.txt
+          uv sync --dev --locked
 
       - name: Run pre-commit checks
         run: |
-          pre-commit run --all-files
+          uv run pre-commit run --all-files
 
       - name: Run tests with coverage
         run: |
-          python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
+          uv run pytest --cov=. --cov-report=html --cov-report=term-missing test/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

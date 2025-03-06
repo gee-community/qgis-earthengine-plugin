@@ -54,21 +54,8 @@ def setup():
     if clean:
         ext_libs.rmtree()
     ext_libs.makedirs()
-    reqs = read_requirements()
     os.environ["PYTHONPATH"] = ext_libs.abspath()
-    for req in reqs:
-        if platform.system() == "Windows":
-            sh(
-                'pip install -U -t "{ext_libs}" "{dep}"'.format(
-                    ext_libs=ext_libs.abspath(), dep=req
-                )
-            )
-        else:
-            sh(
-                'pip3 install -U -t "{ext_libs}" "{dep}"'.format(
-                    ext_libs=ext_libs.abspath(), dep=req
-                )
-            )
+    sh(f"uv pip install -U --target {ext_libs.abspath()} -r pyproject.toml")
     clean_extlibs()
 
 
@@ -105,16 +92,6 @@ def install(options):
         src.copytree(dst)
     elif not dst.exists():
         src.symlink(dst)
-
-
-def read_requirements():
-    """return a list of packages in requirements file"""
-    with open("requirements.txt") as f:
-        return [
-            line.strip("\n")
-            for line in f
-            if line.strip("\n") and not line.startswith("#")
-        ]
 
 
 @task

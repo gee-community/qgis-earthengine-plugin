@@ -11,6 +11,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      UV_SYSTEM_PYTHON: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

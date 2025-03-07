@@ -122,27 +122,35 @@ def callback(
     """
     ic = ee.ImageCollection(image_collection_id)
 
-    # Apply property filters if specified
     if filters:
+        # Define a dictionary to map operators to corresponding ee.Filter functions
+        filter_functions = {
+            "Equals (==)": ee.Filter.eq,
+            "Not Equals (!=)": ee.Filter.neq,
+            "Less Than (<)": ee.Filter.lt,
+            "Greater Than (>)": ee.Filter.gt,
+            "Less Than or Equal (<=)": ee.Filter.lte,
+            "Greater Than or Equal (>=)": ee.Filter.gte,
+        }
+
         for f in filters:
             filter_name, filter_operator, filter_value = f
+            # Convert filter_value to float if it's a valid number, otherwise keep as string
             filter_value = (
                 float(filter_value)
                 if filter_value.replace(".", "", 1).isdigit()
                 else filter_value
             )
-            if filter_operator == "Equals (==)":
-                ic = ic.filter(ee.Filter.eq(filter_name, filter_value))
-            elif filter_operator == "Not Equals (!=)":
-                ic = ic.filter(ee.Filter.neq(filter_name, filter_value))
-            elif filter_operator == "Less Than (<)":
-                ic = ic.filter(ee.Filter.lt(filter_name, filter_value))
-            elif filter_operator == "Greater Than (>)":
-                ic = ic.filter(ee.Filter.gt(filter_name, filter_value))
-            elif filter_operator == "Less Than or Equal (<=)":
-                ic = ic.filter(ee.Filter.lte(filter_name, filter_value))
-            elif filter_operator == "Greater Than or Equal (>=)":
-                ic = ic.filter(ee.Filter.gte(filter_name, filter_value))
+            filter_func = filter_functions.get(filter_operator)
+            if filter_func:
+                ic = ic.filter(filter_func(filter_name, filter_value))
+            else:
+                # Log an error if the filter operator is invalid
+                # somewhat hot take:
+                # do not add ImageCollection to the map
+                # if the filter operator is invalid, could lead to unexpected results for the user
+                logger.error(f"Invalid filter operator: {filter}.")
+                return
 
     # Apply date filter if specified
     if start_date and end_date:

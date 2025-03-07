@@ -34,6 +34,9 @@ def form(
                         ),
                         QtWidgets.QLineEdit(
                             objectName="image_collection_id",
+                            toolTip=_(
+                                "Enter the ID of the Earth Engine Image Collection (e.g., LANDSAT/LC09/C02/T1_L2)."
+                            ),
                         ),
                     ),
                 ],
@@ -45,17 +48,31 @@ def form(
                 rows=[
                     (
                         _("Property Name"),
-                        QtWidgets.QLineEdit(objectName="filter_name"),
+                        QtWidgets.QLineEdit(
+                            objectName="filter_name",
+                            toolTip=_(
+                                "Enter the property name to filter by (e.g., CLOUD_COVER)."
+                            ),
+                        ),
                     ),
                     (
                         _("Operator"),
                         QtWidgets.QComboBox(
-                            objectName="filter_operator", editable=False
+                            objectName="filter_operator",
+                            editable=False,
+                            toolTip=_(
+                                "Choose the operator for filtering (e.g., ==, !=, <, >)."
+                            ),
                         ),
                     ),
                     (
                         _("Value"),
-                        QtWidgets.QLineEdit(objectName="filter_value"),
+                        QtWidgets.QLineEdit(
+                            objectName="filter_value",
+                            toolTip=_(
+                                "Enter the value to filter by (can be numeric or string)."
+                            ),
+                        ),
                     ),
                 ],
             ),
@@ -66,11 +83,21 @@ def form(
                 rows=[
                     (
                         "Start",
-                        widgets.DefaultNullQgsDateEdit(objectName="start_date"),
+                        widgets.DefaultNullQgsDateEdit(
+                            objectName="start_date",
+                            toolTip=_(
+                                "Select the start date for filtering the image collection."
+                            ),
+                        ),
                     ),
                     (
                         "End",
-                        widgets.DefaultNullQgsDateEdit(objectName="end_date"),
+                        widgets.DefaultNullQgsDateEdit(
+                            objectName="end_date",
+                            toolTip=_(
+                                "Select the end date for filtering the image collection."
+                            ),
+                        ),
                     ),
                 ],
             ),
@@ -78,6 +105,9 @@ def form(
                 objectName="extent",
                 title=_("Filter by Coordinates"),
                 collapsed=True,
+                toolTip=_(
+                    "Specify the geographic extent to filter the image collection."
+                ),
             ),
         ],
         **dialog_kwargs,

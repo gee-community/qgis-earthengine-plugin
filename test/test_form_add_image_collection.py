@@ -124,3 +124,65 @@ def test_image_collection_callback_multiple_filters(clean_qgis_iface):
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2"
     assert layer.dataProvider().name() == "EE"
+
+
+def test_image_collection_dialog_with_string_and_numeric_filters(clean_qgis_iface):
+    dialog = form()
+
+    # Set image collection ID
+    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
+        "LANDSAT/LC09/C02/T1_L2"
+    )
+
+    # Simulate adding multiple filters
+    filter_widget = dialog.findChild(QtWidgets.QWidget, "filter_widget")
+    add_button = filter_widget.findChild(QtWidgets.QPushButton, "add_filter_button")
+    add_button.click()  # Add a second filter row
+
+    # Retrieve the current filter count to assign unique object names
+    current_filter_count = (
+        filter_widget.layout().count() - 1
+    )  # Subtract 1 for the add_button
+
+    # Set first filter (CLOUD_COVER < 10)
+    filter_name_0 = dialog.findChild(
+        QtWidgets.QLineEdit, f"filter_name_{current_filter_count - 2}"
+    )
+    filter_operator_0 = dialog.findChild(
+        QtWidgets.QComboBox, f"filter_operator_{current_filter_count - 2}"
+    )
+    filter_value_0 = dialog.findChild(
+        QtWidgets.QLineEdit, f"filter_value_{current_filter_count - 2}"
+    )
+
+    filter_name_0.setText("CLOUD_COVER")
+    filter_operator_0.setCurrentText("Less Than (<)")
+    filter_value_0.setText("10")
+
+    # Set second filter (PROCESSING_LEVEL == 'L2SP')
+    filter_name_1 = dialog.findChild(
+        QtWidgets.QLineEdit, f"filter_name_{current_filter_count - 1}"
+    )
+    filter_operator_1 = dialog.findChild(
+        QtWidgets.QComboBox, f"filter_operator_{current_filter_count - 1}"
+    )
+    filter_value_1 = dialog.findChild(
+        QtWidgets.QLineEdit, f"filter_value_{current_filter_count - 1}"
+    )
+
+    filter_name_1.setText("PROCESSING_LEVEL")
+    filter_operator_1.setCurrentText("Equals (==)")
+    filter_value_1.setText("L2SP")
+
+    # Set date filters
+    dialog.findChild(gui.QgsDateEdit, "start_date").setDate(QtCore.QDate(2021, 1, 1))
+    dialog.findChild(gui.QgsDateEdit, "end_date").setDate(QtCore.QDate(2021, 12, 31))
+
+    # Call the callback with the dialog values
+    call_func_with_values(callback, dialog)
+
+    # Validate that the layer was added to the map
+    assert len(clean_qgis_iface.mapCanvas().layers()) == 1
+    layer = clean_qgis_iface.mapCanvas().layers()[0]
+    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2"
+    assert layer.dataProvider().name() == "EE"

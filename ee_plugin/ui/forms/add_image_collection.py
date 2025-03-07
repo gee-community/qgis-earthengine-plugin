@@ -180,6 +180,8 @@ def callback(
             ic = ic.filter(ee.Filter.lte(filter_name, filter_value))
         elif filter_operator == "Greater Than or Equal (>=)":
             ic = ic.filter(ee.Filter.gte(filter_name, filter_value))
+        else:
+            logger.warning("Invalid filter operator. No filter applied.")
 
     # Apply date filter if specified
     if start_date and end_date:
@@ -195,5 +197,8 @@ def callback(
     # Add to map
     layer_name = f"IC: {image_collection_id}"
     Map.addLayer(composite, {}, layer_name)
+    logger.info(
+        f"Added ImageCollection {image_collection_id} to the map as {layer_name}"
+    )
 
     return ic

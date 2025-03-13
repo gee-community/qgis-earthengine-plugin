@@ -133,7 +133,7 @@ def form(
                             text="Percentile Value (if applicable)",
                             toolTip="Set the percentile value (only used if Percentile is selected).",
                         ),
-                        QtWidgets.QDoubleSpinBox(
+                        QtWidgets.QSpinBox(
                             objectName="percentile_value",
                             toolTip="Choose a percentile value (0-100).",
                             minimum=0,
@@ -242,7 +242,20 @@ def callback(
     }
     ic = compositing_dict.get(compositing_method, ic.mosaic())
 
-    layer_name = f"IC: {image_collection_id} ({compositing_method})"
+    if compositing_method == "Percentile":
+        # percentile adds pX suffix to bands, adjust viz_params accordingly
+        bands = viz_params.get("bands")
+        if bands and not bands[0].endswith(f"_p{percentile_value}"):
+            logger.info(
+                f"Adjusting visualization parameters for percentile band suffix: {bands}"
+            )
+            viz_params["bands"] = [f"{b}_p{percentile_value}" for b in bands]
+        layer_name = (
+            f"IC: {image_collection_id} ({compositing_method} {percentile_value}%)"
+        )
+    else:
+        layer_name = f"IC: {image_collection_id} ({compositing_method})"
+
     Map.addLayer(ic, viz_params, layer_name)
     logger.info(
         f"Added ImageCollection {image_collection_id} to the map as {layer_name}"

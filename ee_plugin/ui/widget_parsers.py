@@ -8,6 +8,7 @@ from qgis.PyQt.QtWidgets import (
     QTextEdit,
     QComboBox,
     QDoubleSpinBox,
+    QSpinBox,
 )
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 from qgis.gui import QgsColorButton, QgsDateEdit, QgsExtentGroupBox
@@ -60,6 +61,7 @@ def get_dialog_values(dialog: QDialog) -> dict:
         QgsColorButton: lambda w: w.color().name(),
         QgsExtentGroupBox: qgs_extent_to_bbox,
         QComboBox: lambda w: w.currentText(),
+        QSpinBox: lambda w: w.value(),
         QDoubleSpinBox: lambda w: w.value(),
     }
     values = {}

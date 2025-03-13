@@ -277,7 +277,7 @@ def test_image_collection_dialog_percentile_compositing(dialog):
     )
 
     # Set a valid percentile value
-    dialog.findChild(QtWidgets.QDoubleSpinBox, "percentile_value").setValue(75)
+    dialog.findChild(QtWidgets.QSpinBox, "percentile_value").setValue(75)
 
     values = get_dialog_values(dialog)
 
@@ -295,13 +295,13 @@ def test_max_min_percentile_compositing(dialog):
     dialog.findChild(QtWidgets.QComboBox, "compositing_method").setCurrentText(
         "Percentile"
     )
-    dialog.findChild(QtWidgets.QDoubleSpinBox, "percentile_value").setValue(105)
+    dialog.findChild(QtWidgets.QSpinBox, "percentile_value").setValue(105)
 
     values = get_dialog_values(dialog)
     assert values["compositing_method"] == "Percentile"
     assert values["percentile_value"] == 100  # Max value is 100
 
-    dialog.findChild(QtWidgets.QDoubleSpinBox, "percentile_value").setValue(-5)
+    dialog.findChild(QtWidgets.QSpinBox, "percentile_value").setValue(-5)
     values = get_dialog_values(dialog)
     assert values["compositing_method"] == "Percentile"
     assert values["percentile_value"] == 0  # Min value is 0
@@ -321,3 +321,27 @@ def test_image_collection_callback_with_compositing(dialog, clean_qgis_iface):
     assert len(clean_qgis_iface.mapCanvas().layers()) == 1
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Median)"
+
+
+def test_percentile_band_suffix_error(dialog, clean_qgis_iface):
+    """Ensure that visualization fails when percentile bands are not correctly handled."""
+    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
+        "LANDSAT/LC09/C02/T1_L2"
+    )
+
+    # Select "Percentile" compositing method
+    dialog.findChild(QtWidgets.QComboBox, "compositing_method").setCurrentText(
+        "Percentile"
+    )
+    dialog.findChild(QtWidgets.QSpinBox, "percentile_value").setValue(
+        90
+    )  # Use percentile 90
+
+    # Define visualization parameters that don't include _pXX suffix
+    dialog.findChild(QtWidgets.QTextEdit, "viz_params").setText(
+        "{'bands':['SR_B4','SR_B3','SR_B2'],'min':0,'max':30000,'gamma':1.3}"
+    )
+
+    call_func_with_values(callback, dialog)
+    layer = clean_qgis_iface.mapCanvas().layers()[0]
+    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Percentile 90%)"

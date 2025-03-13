@@ -18,6 +18,15 @@ def form(
     **dialog_kwargs,
 ) -> QtWidgets.QDialog:
     """Add a GEE Image Collection to the map."""
+    composite_combo_box = QtWidgets.QComboBox(
+        objectName="compositing_method",
+        toolTip="Choose a compositing method.",
+    )
+    composite_combo_box.addItems(
+        ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
+    )
+    composite_combo_box.setCurrentIndex(0)  # Default to Mosaic
+
     dialog = widgets.build_vbox_dialog(
         windowTitle=_("Add Image Collection"),
         widgets=[
@@ -107,6 +116,33 @@ def form(
                     )
                 ],
             ),
+            widgets.build_form_group_box(
+                title="Compositing Options",
+                collapsable=True,
+                collapsed=True,
+                rows=[
+                    (
+                        QtWidgets.QLabel(
+                            text="Compositing Method",
+                            toolTip="Select how to composite the Image Collection (e.g., Mosaic, Mean, Max, Min, Median, Percentile).",
+                        ),
+                        composite_combo_box,
+                    ),
+                    (
+                        QtWidgets.QLabel(
+                            text="Percentile Value (if applicable)",
+                            toolTip="Set the percentile value (only used if Percentile is selected).",
+                        ),
+                        QtWidgets.QDoubleSpinBox(
+                            objectName="percentile_value",
+                            toolTip="Choose a percentile value (0-100).",
+                            minimum=0,
+                            maximum=100,
+                            value=50,  # Default to median
+                        ),
+                    ),
+                ],
+            ),
         ],
         **dialog_kwargs,
     )
@@ -126,6 +162,8 @@ def callback(
     extent: Optional[tuple[float, float, float, float]],
     filters: Optional[list] = None,  # New parameter for multiple filters
     viz_params: Optional[dict] = None,
+    compositing_method: Optional[str] = "Mosaic",
+    percentile_value: Optional[int] = None,
 ):
     """
     Loads and optionally filters an ImageCollection, then adds it to the map.
@@ -195,8 +233,17 @@ def callback(
             )
 
     # Add to map
-    layer_name = f"IC: {image_collection_id}"
-    Map.addLayer(ic.mosaic(), viz_params, layer_name)
+    compositing_dict = {
+        "Mean": ic.mean(),
+        "Max": ic.max(),
+        "Min": ic.min(),
+        "Median": ic.median(),
+        "Percentile": ic.reduce(ee.Reducer.percentile([percentile_value])),
+    }
+    ic = compositing_dict.get(compositing_method, ic.mosaic())
+
+    layer_name = f"IC: {image_collection_id} ({compositing_method})"
+    Map.addLayer(ic, viz_params, layer_name)
     logger.info(
         f"Added ImageCollection {image_collection_id} to the map as {layer_name}"
     )

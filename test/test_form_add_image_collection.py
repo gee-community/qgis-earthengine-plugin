@@ -17,7 +17,7 @@ def dialog():
 def test_image_collection_dialog_values(dialog):
     # Set image collection ID
     dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
-        "LANDSAT/LC08/C01/T1"
+        "LANDSAT/LC09/C02/T1_L2"
     )
 
     # Simulate adding multiple filters
@@ -47,7 +47,7 @@ def test_image_collection_dialog_values(dialog):
 
     # Define expected values
     expected_values = {
-        "image_collection_id": "LANDSAT/LC08/C01/T1",
+        "image_collection_id": "LANDSAT/LC09/C02/T1_L2",
         "filter_name_0": "CLOUD_COVER",
         "filter_operator_0": "Less Than (<)",
         "filter_value_0": "10",
@@ -57,6 +57,7 @@ def test_image_collection_dialog_values(dialog):
         "start_date": "2021-01-01",
         "end_date": "2021-12-31",
         "extent": None,
+        "compositing_method": "Mosaic",  # Default compositing method
     }
 
     assert set(expected_values.items()).issubset(set(actual_values.items()))
@@ -87,7 +88,7 @@ def test_image_collection_callback(dialog, clean_qgis_iface):
     # Validate that the layer was added to the map
     assert len(clean_qgis_iface.mapCanvas().layers()) == 1
     layer = clean_qgis_iface.mapCanvas().layers()[0]
-    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2"
+    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Mosaic)"
     assert layer.dataProvider().name() == "EE"
 
 
@@ -125,7 +126,7 @@ def test_image_collection_callback_multiple_filters(dialog, clean_qgis_iface):
     # Validate that the layer was added to the map
     assert len(clean_qgis_iface.mapCanvas().layers()) == 1
     layer = clean_qgis_iface.mapCanvas().layers()[0]
-    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2"
+    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Mosaic)"
     assert layer.dataProvider().name() == "EE"
 
 
@@ -187,7 +188,7 @@ def test_image_collection_dialog_with_string_and_numeric_filters(
     # Validate that the layer was added to the map
     assert len(clean_qgis_iface.mapCanvas().layers()) == 1
     layer = clean_qgis_iface.mapCanvas().layers()[0]
-    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2"
+    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Mosaic)"
     assert layer.dataProvider().name() == "EE"
 
 
@@ -260,5 +261,63 @@ def test_layer_addition(clean_qgis_iface, dialog):
 
     assert len(clean_qgis_iface.mapCanvas().layers()) == 1
     layer = clean_qgis_iface.mapCanvas().layers()[0]
-    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2"
+    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Mosaic)"
     assert layer.dataProvider().name() == "EE"
+
+
+def test_image_collection_dialog_percentile_compositing(dialog):
+    """Test percentile compositing selection and value validation."""
+    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
+        "LANDSAT/LC09/C02/T1_L2"
+    )
+
+    # Select "Percentile" compositing method
+    dialog.findChild(QtWidgets.QComboBox, "compositing_method").setCurrentText(
+        "Percentile"
+    )
+
+    # Set a valid percentile value
+    dialog.findChild(QtWidgets.QDoubleSpinBox, "percentile_value").setValue(75)
+
+    values = get_dialog_values(dialog)
+
+    assert values["compositing_method"] == "Percentile"
+    assert values["percentile_value"] == 75
+
+
+def test_max_min_percentile_compositing(dialog):
+    """Ensure an invalid percentile value raises an error."""
+    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
+        "LANDSAT/LC09/C02/T1_L2"
+    )
+
+    # Select "Percentile" compositing method
+    dialog.findChild(QtWidgets.QComboBox, "compositing_method").setCurrentText(
+        "Percentile"
+    )
+    dialog.findChild(QtWidgets.QDoubleSpinBox, "percentile_value").setValue(105)
+
+    values = get_dialog_values(dialog)
+    assert values["compositing_method"] == "Percentile"
+    assert values["percentile_value"] == 100  # Max value is 100
+
+    dialog.findChild(QtWidgets.QDoubleSpinBox, "percentile_value").setValue(-5)
+    values = get_dialog_values(dialog)
+    assert values["compositing_method"] == "Percentile"
+    assert values["percentile_value"] == 0  # Min value is 0
+
+
+def test_image_collection_callback_with_compositing(dialog, clean_qgis_iface):
+    """Ensure the correct compositing method is applied when adding a layer."""
+    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
+        "LANDSAT/LC09/C02/T1_L2"
+    )
+
+    # Set compositing method
+    dialog.findChild(QtWidgets.QComboBox, "compositing_method").setCurrentText("Median")
+
+    call_func_with_values(callback, dialog)
+
+    assert len(clean_qgis_iface.mapCanvas().layers()) == 1
+    layer = clean_qgis_iface.mapCanvas().layers()[0]
+    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Median)"

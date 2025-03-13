@@ -1,8 +1,10 @@
+import json
 import logging
 from typing import Optional, Callable
+
+import ee
 from qgis import gui
 from qgis.PyQt import QtWidgets
-import ee
 
 from .. import widgets, utils as ui_utils
 from ... import Map
@@ -88,6 +90,23 @@ def form(
                     "Specify the geographic extent to filter the image collection."
                 ),
             ),
+            widgets.build_form_group_box(
+                title="Visualization Parameters (JSON)",
+                collapsable=True,
+                collapsed=True,
+                rows=[
+                    (
+                        QtWidgets.QLabel(
+                            text="Enter JSON for visualization parameters",
+                            toolTip="Example: {'bands':['SR_B4','SR_B3','SR_B2'],'min':0,'max':30000,'gamma':1.3}",
+                        ),
+                        QtWidgets.QTextEdit(
+                            objectName="viz_params",
+                            placeholderText="{'bands':['SR_B4','SR_B3','SR_B2'],'min':0,'max':30000,'gamma':1.3}",
+                        ),
+                    )
+                ],
+            ),
         ],
         **dialog_kwargs,
     )
@@ -106,6 +125,7 @@ def callback(
     end_date: Optional[str],
     extent: Optional[tuple[float, float, float, float]],
     filters: Optional[list] = None,  # New parameter for multiple filters
+    viz_params: Optional[dict] = None,
 ):
     """
     Loads and optionally filters an ImageCollection, then adds it to the map.
@@ -160,12 +180,23 @@ def callback(
     if extent:
         ic = ic.filterBounds(ee.Geometry.Rectangle(extent))
 
-    # Create a median composite for visualization
-    composite = ic.median()
+    # Get visualization parameters from user as JSON
+    if not viz_params:
+        viz_params = {}
+    elif isinstance(viz_params, str):  # Ensure it's a string before replacing quotes
+        try:
+            viz_params = json.loads(viz_params.replace("'", '"'))
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON format in visualization parameters: {str(e)}")
+            raise json.JSONDecodeError(
+                "Invalid JSON format in visualization parameters",
+                viz_params,  # The problematic string
+                0,  # Position of error (use actual error position if available)
+            )
 
     # Add to map
     layer_name = f"IC: {image_collection_id}"
-    Map.addLayer(composite, {}, layer_name)
+    Map.addLayer(ic.mosaic(), viz_params, layer_name)
     logger.info(
         f"Added ImageCollection {image_collection_id} to the map as {layer_name}"
     )

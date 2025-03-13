@@ -1,3 +1,6 @@
+import json
+
+from pytest import raises, fixture
 from qgis import gui
 from PyQt5 import QtWidgets, QtCore
 
@@ -5,9 +8,13 @@ from ee_plugin.ui.utils import get_dialog_values, call_func_with_values
 from ee_plugin.ui.forms.add_image_collection import form, callback
 
 
-def test_image_collection_dialog_values():
-    dialog = form()
+@fixture
+def dialog():
+    """Fixture to create a new dialog instance before each test."""
+    return form()
 
+
+def test_image_collection_dialog_values(dialog):
     # Set image collection ID
     dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
         "LANDSAT/LC08/C01/T1"
@@ -55,9 +62,7 @@ def test_image_collection_dialog_values():
     assert set(expected_values.items()).issubset(set(actual_values.items()))
 
 
-def test_image_collection_callback(clean_qgis_iface):
-    dialog = form()
-
+def test_image_collection_callback(dialog, clean_qgis_iface):
     # Set image collection ID
     dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
         "LANDSAT/LC09/C02/T1_L2"
@@ -86,9 +91,7 @@ def test_image_collection_callback(clean_qgis_iface):
     assert layer.dataProvider().name() == "EE"
 
 
-def test_image_collection_callback_multiple_filters(clean_qgis_iface):
-    dialog = form()
-
+def test_image_collection_callback_multiple_filters(dialog, clean_qgis_iface):
     # Set image collection ID
     dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
         "LANDSAT/LC09/C02/T1_L2"
@@ -126,9 +129,9 @@ def test_image_collection_callback_multiple_filters(clean_qgis_iface):
     assert layer.dataProvider().name() == "EE"
 
 
-def test_image_collection_dialog_with_string_and_numeric_filters(clean_qgis_iface):
-    dialog = form()
-
+def test_image_collection_dialog_with_string_and_numeric_filters(
+    dialog, clean_qgis_iface
+):
     # Set image collection ID
     dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
         "LANDSAT/LC09/C02/T1_L2"
@@ -182,6 +185,79 @@ def test_image_collection_dialog_with_string_and_numeric_filters(clean_qgis_ifac
     call_func_with_values(callback, dialog)
 
     # Validate that the layer was added to the map
+    assert len(clean_qgis_iface.mapCanvas().layers()) == 1
+    layer = clean_qgis_iface.mapCanvas().layers()[0]
+    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2"
+    assert layer.dataProvider().name() == "EE"
+
+
+def test_viz_params_valid(dialog):
+    """Test that valid viz_params JSON is correctly parsed."""
+    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
+        "LANDSAT/LC09/C02/T1_L2"
+    )
+    dialog.findChild(QtWidgets.QTextEdit, "viz_params").setPlainText(
+        '{"bands":["SR_B4","SR_B3","SR_B2"],"min":0,"max":30000,"gamma":1.3}'
+    )
+
+    values = get_dialog_values(dialog)
+    assert "viz_params" in values
+    assert '{"bands":["SR_B4","SR_B3","SR_B2"],"min":0,"max":30000,"gamma":1.3}'
+
+
+def test_missing_image_collection_id(dialog):
+    """Ensure the form does not proceed if image_collection_id is missing."""
+    values = get_dialog_values(dialog)
+    assert "image_collection_id" in values
+    assert values["image_collection_id"] == ""
+
+
+def test_filtering_logic(dialog):
+    """Test that multiple filters are correctly added."""
+    filter_widget = dialog.findChild(QtWidgets.QWidget, "filter_widget")
+    add_button = filter_widget.findChild(QtWidgets.QPushButton, "add_filter_button")
+    add_button.click()  # Add a second filter row
+
+    filter_rows = filter_widget.findChildren(QtWidgets.QHBoxLayout)
+
+    # Set filters
+    filter_rows[0].itemAt(0).widget().setText("CLOUD_COVER")
+    filter_rows[0].itemAt(1).widget().setCurrentText("Less Than (<)")
+    filter_rows[0].itemAt(2).widget().setText("10")
+
+    filter_rows[1].itemAt(0).widget().setText("SUN_ELEVATION")
+    filter_rows[1].itemAt(1).widget().setCurrentText("Greater Than (>)")
+    filter_rows[1].itemAt(2).widget().setText("0")
+
+    values = get_dialog_values(dialog)
+
+    assert values["filter_name_0"] == "CLOUD_COVER"
+    assert values["filter_operator_0"] == "Less Than (<)"
+    assert values["filter_value_0"] == "10"
+
+    assert values["filter_name_1"] == "SUN_ELEVATION"
+    assert values["filter_operator_1"] == "Greater Than (>)"
+    assert values["filter_value_1"] == "0"
+
+
+def test_invalid_json_call(dialog):
+    """Test that multiple filters are correctly added."""
+    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
+        "LANDSAT/LC09/C02/T1_L2"
+    )
+    dialog.findChild(QtWidgets.QTextEdit, "viz_params").setText("{'bad'")
+
+    with raises(json.JSONDecodeError):
+        call_func_with_values(callback, dialog)
+
+
+def test_layer_addition(clean_qgis_iface, dialog):
+    """Test that the image collection is added as a QGIS layer."""
+    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
+        "LANDSAT/LC09/C02/T1_L2"
+    )
+    call_func_with_values(callback, dialog)
+
     assert len(clean_qgis_iface.mapCanvas().layers()) == 1
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2"

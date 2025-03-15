@@ -27,6 +27,24 @@ def form(
     )
     composite_combo_box.setCurrentIndex(0)  # Default to Mosaic
 
+    percentile_slider = widgets.LabeledSlider(
+        min_value=0,
+        max_value=100,
+        default_value=50,
+        object_name="percentile_value",
+        label="Percentile Value",
+        visible=False,  # Initially hidden
+    )
+
+    def update_percentile_visibility():
+        """Show the percentile slider only when 'Percentile' is selected"""
+        is_percentile = composite_combo_box.currentText() == "Percentile"
+        percentile_slider.update_label(percentile_slider.slider.value())
+        percentile_slider.set_visibility(is_percentile)
+
+    # Connect signal to update visibility
+    composite_combo_box.currentIndexChanged.connect(update_percentile_visibility)
+
     dialog = widgets.build_vbox_dialog(
         windowTitle=_("Add Image Collection"),
         widgets=[
@@ -129,17 +147,8 @@ def form(
                         composite_combo_box,
                     ),
                     (
-                        QtWidgets.QLabel(
-                            text="Percentile Value (if applicable)",
-                            toolTip="Set the percentile value (only used if Percentile is selected).",
-                        ),
-                        QtWidgets.QSpinBox(
-                            objectName="percentile_value",
-                            toolTip="Choose a percentile value (0-100).",
-                            minimum=0,
-                            maximum=100,
-                            value=50,  # Default to median
-                        ),
+                        percentile_slider.label,
+                        percentile_slider,
                     ),
                 ],
             ),

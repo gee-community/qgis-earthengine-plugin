@@ -15,8 +15,73 @@ from qgis.PyQt.QtWidgets import (
     QComboBox,
     QWidget,
     QPushButton,
+    QSlider,
+    QLabel,
 )
 from qgis.gui import QgsCollapsibleGroupBox
+
+
+class LabeledSlider(QWidget):
+    """
+    A labeled slider widget that displays the selected value.
+
+    Args:
+        min_value (int): The minimum value of the slider.
+        max_value (int): The maximum value of the slider.
+        default_value (int): The default starting value.
+        object_name (str): The object name for the widget.
+        visible (bool): Whether the widget should be visible initially.
+    """
+
+    def __init__(
+        self,
+        min_value: int = 0,
+        max_value: int = 100,
+        default_value: int = 50,
+        object_name="slider",
+        label: str = None,
+        visible: bool = False,
+    ):
+        super().__init__()
+        self.setObjectName(object_name)
+
+        # Layout
+        layout = QVBoxLayout(self)
+
+        # Label to display the value
+        self.label = QLabel(f"{label}")
+        layout.addWidget(self.label)
+        # keep to have more visibility on value of slider
+        self.initial_label = label
+        self.update_label(default_value)
+
+        # Slider setup
+        self.slider = QSlider(QtCore.Qt.Horizontal)
+        # TODO: add min and max value to scale the slider visually
+
+        self.slider.setRange(min_value, max_value)
+        self.slider.setValue(default_value)
+        layout.addWidget(self.slider)
+
+        # Connect slider to update label
+        self.slider.valueChanged.connect(self.update_label)
+
+        # TODO: shouldn't be visibile at the start
+        # Set visibility
+        self.setVisible(visible)
+
+    def update_label(self, value):
+        """Update label text with the current slider value."""
+        self.label.setText(f"{self.initial_label}: {value}")
+
+    def set_visibility(self, visible: bool):
+        """Toggle visibility of the widget."""
+        self.setVisible(visible)
+        self.label.setVisible(visible)
+
+    def get_value(self) -> int:
+        """Get the current value of the slider."""
+        return self.slider.value()
 
 
 def create_filter_widget() -> QWidget:

@@ -66,9 +66,8 @@ class LabeledSlider(QWidget):
         # Connect slider to update label
         self.slider.valueChanged.connect(self.update_label)
 
-        # TODO: shouldn't be visibile at the start
         # Set visibility
-        self.setVisible(visible)
+        self.set_visibility(visible)
 
     def update_label(self, value):
         """Update label text with the current slider value."""
@@ -82,6 +81,10 @@ class LabeledSlider(QWidget):
     def get_value(self) -> int:
         """Get the current value of the slider."""
         return self.slider.value()
+
+    def set_value(self, value: int):
+        """Set the current value of the slider."""
+        self.slider.setValue(value)
 
 
 def create_filter_widget() -> QWidget:

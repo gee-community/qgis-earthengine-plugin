@@ -9,10 +9,11 @@ from qgis.PyQt.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
     QSpinBox,
-    QSlider,
 )
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 from qgis.gui import QgsColorButton, QgsDateEdit, QgsExtentGroupBox
+
+from ee_plugin.ui.widgets import LabeledSlider
 
 
 def qgs_extent_to_bbox(
@@ -64,7 +65,7 @@ def get_dialog_values(dialog: QDialog) -> dict:
         QComboBox: lambda w: w.currentText(),
         QSpinBox: lambda w: w.value(),
         QDoubleSpinBox: lambda w: w.value(),
-        QSlider: lambda w: w.value(),
+        LabeledSlider: lambda w: w.get_value(),
     }
     values = {}
     for cls, formatter in parsers.items():

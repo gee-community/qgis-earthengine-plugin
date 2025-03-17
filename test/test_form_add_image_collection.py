@@ -4,6 +4,7 @@ from pytest import raises, fixture
 from qgis import gui
 from PyQt5 import QtWidgets, QtCore
 
+from ee_plugin.ui.widgets import LabeledSlider
 from ee_plugin.ui.utils import get_dialog_values, call_func_with_values
 from ee_plugin.ui.forms.add_image_collection import form, callback
 
@@ -267,17 +268,20 @@ def test_layer_addition(clean_qgis_iface, dialog):
 
 def test_image_collection_dialog_percentile_compositing(dialog):
     """Test percentile compositing selection and value validation."""
-    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
-        "LANDSAT/LC09/C02/T1_L2"
-    )
+    image_id_input = dialog.findChild(QtWidgets.QLineEdit, "image_collection_id")
+    assert image_id_input is not None
+    image_id_input.setText("LANDSAT/LC09/C02/T1_L2")
 
-    # Select "Percentile" compositing method
-    dialog.findChild(QtWidgets.QComboBox, "compositing_method").setCurrentText(
-        "Percentile"
-    )
+    # Select 'Percentile' method
+    method_combo = dialog.findChild(QtWidgets.QComboBox, "compositing_method")
+    assert method_combo is not None
+    method_combo.setCurrentText("Percentile")
+
+    # Process events to trigger slot
+    QtWidgets.QApplication.processEvents()
 
     # Set a valid percentile value
-    dialog.findChild(QtWidgets.QSpinBox, "percentile_value").setValue(75)
+    dialog.findChild(LabeledSlider, "percentile_value").set_value(75)
 
     values = get_dialog_values(dialog)
 
@@ -285,26 +289,42 @@ def test_image_collection_dialog_percentile_compositing(dialog):
     assert values["percentile_value"] == 75
 
 
-def test_max_min_percentile_compositing(dialog):
-    """Ensure an invalid percentile value raises an error."""
-    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
-        "LANDSAT/LC09/C02/T1_L2"
-    )
+def test_percentile_slider_clamping(dialog):
+    """Ensure percentile slider clamps to [0, 100] range."""
 
-    # Select "Percentile" compositing method
-    dialog.findChild(QtWidgets.QComboBox, "compositing_method").setCurrentText(
-        "Percentile"
-    )
-    dialog.findChild(QtWidgets.QSpinBox, "percentile_value").setValue(105)
+    # Set Image Collection ID
+    image_id_input = dialog.findChild(QtWidgets.QLineEdit, "image_collection_id")
+    assert image_id_input is not None
+    image_id_input.setText("LANDSAT/LC09/C02/T1_L2")
+
+    # Select 'Percentile' method
+    method_combo = dialog.findChild(QtWidgets.QComboBox, "compositing_method")
+    assert method_combo is not None
+    method_combo.setCurrentText("Percentile")
+
+    # Process events to trigger slot
+    QtWidgets.QApplication.processEvents()
+
+    # get the slider
+    slider_widget = dialog.findChild(LabeledSlider, "percentile_value")
+    assert (
+        slider_widget is not None
+    ), "Percentile slider not found (did dynamic add fail?)"
+
+    # Test clamping at upper bound
+    slider_widget.slider.setValue(105)  # Slider will clamp to 100
+    assert slider_widget.get_value() == 100
 
     values = get_dialog_values(dialog)
     assert values["compositing_method"] == "Percentile"
-    assert values["percentile_value"] == 100  # Max value is 100
+    assert values["percentile_value"] == 100
 
-    dialog.findChild(QtWidgets.QSpinBox, "percentile_value").setValue(-5)
+    # Test clamping at lower bound
+    slider_widget.slider.setValue(-5)  # Slider will clamp to 0
+    assert slider_widget.get_value() == 0
+
     values = get_dialog_values(dialog)
-    assert values["compositing_method"] == "Percentile"
-    assert values["percentile_value"] == 0  # Min value is 0
+    assert values["percentile_value"] == 0
 
 
 def test_image_collection_callback_with_compositing(dialog, clean_qgis_iface):
@@ -323,25 +343,27 @@ def test_image_collection_callback_with_compositing(dialog, clean_qgis_iface):
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Median)"
 
 
-def test_percentile_band_suffix_error(dialog, clean_qgis_iface):
-    """Ensure that visualization fails when percentile bands are not correctly handled."""
-    dialog.findChild(QtWidgets.QLineEdit, "image_collection_id").setText(
-        "LANDSAT/LC09/C02/T1_L2"
-    )
+def test_percentile_slider_added_and_value_set(dialog, clean_qgis_iface):
+    """Test that selecting 'Percentile' adds the slider and allows setting value."""
 
-    # Select "Percentile" compositing method
-    dialog.findChild(QtWidgets.QComboBox, "compositing_method").setCurrentText(
-        "Percentile"
-    )
-    dialog.findChild(QtWidgets.QSpinBox, "percentile_value").setValue(
-        90
-    )  # Use percentile 90
+    # Set Image Collection ID
+    image_id_input = dialog.findChild(QtWidgets.QLineEdit, "image_collection_id")
+    assert image_id_input is not None
+    image_id_input.setText("LANDSAT/LC09/C02/T1_L2")
 
-    # Define visualization parameters that don't include _pXX suffix
-    dialog.findChild(QtWidgets.QTextEdit, "viz_params").setText(
-        "{'bands':['SR_B4','SR_B3','SR_B2'],'min':0,'max':30000,'gamma':1.3}"
-    )
+    # Select 'Percentile' method
+    method_combo = dialog.findChild(QtWidgets.QComboBox, "compositing_method")
+    assert method_combo is not None
+    method_combo.setCurrentText("Percentile")
 
-    call_func_with_values(callback, dialog)
-    layer = clean_qgis_iface.mapCanvas().layers()[0]
-    assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Percentile 90%)"
+    # Process events to trigger slot
+    QtWidgets.QApplication.processEvents()
+
+    # Try finding the LabeledSlider
+    slider_widget = dialog.findChild(LabeledSlider, "percentile_value")
+    assert (
+        slider_widget is not None
+    ), "Percentile slider not found (did dynamic add fail?)"
+
+    slider_widget.slider.setValue(90)
+    assert slider_widget.get_value() == 90

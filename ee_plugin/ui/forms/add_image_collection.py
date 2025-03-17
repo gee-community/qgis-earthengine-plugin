@@ -25,7 +25,6 @@ def form(
     composite_combo_box.addItems(
         ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
     )
-    composite_combo_box.setCurrentIndex(0)  # Default to Mosaic
 
     percentile_slider = widgets.LabeledSlider(
         min_value=0,
@@ -36,9 +35,30 @@ def form(
         visible=False,  # Initially hidden
     )
 
+    composite_group = widgets.build_form_group_box(
+        title="Compositing Options",
+        collapsable=True,
+        collapsed=True,
+        rows=[
+            (
+                QtWidgets.QLabel(
+                    text="Compositing Method",
+                    toolTip="Select how to composite the Image Collection (e.g., Mosaic, Mean, Max, Min, Median, Percentile).",
+                ),
+                composite_combo_box,
+            ),
+        ],
+    )
+
     def update_percentile_visibility():
         """Show the percentile slider only when 'Percentile' is selected"""
         is_percentile = composite_combo_box.currentText() == "Percentile"
+        if (
+            composite_group.findChild(QtWidgets.QWidget, "percentile_value") is None
+            and is_percentile
+        ):
+            composite_group.layout().addRow(percentile_slider)
+
         percentile_slider.update_label(percentile_slider.slider.value())
         percentile_slider.set_visibility(is_percentile)
 
@@ -134,27 +154,12 @@ def form(
                     )
                 ],
             ),
-            widgets.build_form_group_box(
-                title="Compositing Options",
-                collapsable=True,
-                collapsed=True,
-                rows=[
-                    (
-                        QtWidgets.QLabel(
-                            text="Compositing Method",
-                            toolTip="Select how to composite the Image Collection (e.g., Mosaic, Mean, Max, Min, Median, Percentile).",
-                        ),
-                        composite_combo_box,
-                    ),
-                    (
-                        percentile_slider.label,
-                        percentile_slider,
-                    ),
-                ],
-            ),
+            composite_group,
         ],
         **dialog_kwargs,
     )
+
+    composite_combo_box.setCurrentIndex(0)  # Default to Mosaic
 
     # If a callback function is passed, call it with the values from the dialog
     if accepted:

@@ -45,29 +45,37 @@ class LabeledSlider(QWidget):
         super().__init__()
         self.setObjectName(object_name)
 
-        # Layout
-        layout = QVBoxLayout(self)
+        # Main layout
+        main_layout = QVBoxLayout(self)
 
-        # Label to display the value
-        self.label = QLabel(f"{label}")
-        layout.addWidget(self.label)
-        # keep to have more visibility on value of slider
-        self.initial_label = label
+        # Top label showing the current value
+        self.label = QLabel()
+        self.initial_label = label or "Value"
         self.update_label(default_value)
+        main_layout.addWidget(self.label)
 
         # Slider setup
         self.slider = QSlider(QtCore.Qt.Horizontal)
-        # TODO: add min and max value to scale the slider visually
-
         self.slider.setRange(min_value, max_value)
         self.slider.setValue(default_value)
-        layout.addWidget(self.slider)
 
-        # Connect slider to update label
+        # Min/Max labels beside the slider
+        min_label = QLabel(str(min_value))
+        max_label = QLabel(str(max_value))
+
+        # Layout for slider with min/max
+        slider_layout = QHBoxLayout()
+        slider_layout.addWidget(min_label)
+        slider_layout.addWidget(self.slider)
+        slider_layout.addWidget(max_label)
+
+        main_layout.addLayout(slider_layout)
+
+        # Update value label when slider moves
         self.slider.valueChanged.connect(self.update_label)
 
-        # Set visibility
-        self.set_visibility(visible)
+        # Initial visibility
+        self.setVisible(visible)
 
     def update_label(self, value):
         """Update label text with the current slider value."""

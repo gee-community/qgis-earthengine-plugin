@@ -5,6 +5,7 @@ from typing import Optional, Callable
 import ee
 from qgis import gui
 from qgis.PyQt import QtWidgets
+from qgis.PyQt.QtCore import QDate
 
 from .. import widgets, utils as ui_utils
 from ... import Map
@@ -276,3 +277,41 @@ def callback(
     )
 
     return ic
+
+
+def test_dynamic_world_form_values(qtbot):
+    """Test that the form correctly captures values for Dynamic World dataset."""
+
+    # Setup the form
+    dialog = form()
+    qtbot.addWidget(dialog)
+
+    # Set Image Collection ID
+    ic_input = dialog.findChild(QtWidgets.QLineEdit, "image_collection_id")
+    ic_input.setText("GOOGLE/DYNAMICWORLD/V1")
+
+    # Set start and end dates
+    start_date_edit = dialog.findChild(QtWidgets.QDateEdit, "start_date")
+    end_date_edit = dialog.findChild(QtWidgets.QDateEdit, "end_date")
+
+    start_qdate = QDate(2021, 6, 1)
+    end_qdate = QDate(2021, 6, 10)
+
+    start_date_edit.setDate(start_qdate)
+    end_date_edit.setDate(end_qdate)
+
+    # Set compositing method to "Mosaic" (index 0)
+    method_combo = dialog.findChild(QtWidgets.QComboBox, "compositing_method")
+    method_combo.setCurrentIndex(0)  # Mosaic
+
+    # Process UI events
+    QtWidgets.QApplication.processEvents()
+
+    # Get values
+    values = ui_utils.get_dialog_values(dialog)
+
+    # Assertions
+    assert values["image_collection_id"] == "GOOGLE/DYNAMICWORLD/V1"
+    assert values["start_date"] == start_qdate.toString("yyyy-MM-dd")
+    assert values["end_date"] == end_qdate.toString("yyyy-MM-dd")
+    assert values["compositing_method"] == "Mosaic"

@@ -367,3 +367,71 @@ def test_percentile_slider_added_and_value_set(dialog, clean_qgis_iface):
 
     slider_widget.slider.setValue(90)
     assert slider_widget.get_value() == 90
+
+
+def test_dynamic_world_form_values(qtbot):
+    """Test that the form correctly captures values for Dynamic World dataset."""
+    # Setup the form
+    dialog = form()
+    qtbot.addWidget(dialog)
+
+    # Set Image Collection ID
+    ic_input = dialog.findChild(QtWidgets.QLineEdit, "image_collection_id")
+    ic_input.setText("GOOGLE/DYNAMICWORLD/V1")
+
+    # Set compositing method to "Mosaic" (index 0)
+    method_combo = dialog.findChild(QtWidgets.QComboBox, "compositing_method")
+    method_combo.setCurrentIndex(0)  # Mosaic
+
+    # Process UI events
+    QtWidgets.QApplication.processEvents()
+
+    # Get values
+    values = get_dialog_values(dialog)
+
+    # Assertions
+    assert values["image_collection_id"] == "GOOGLE/DYNAMICWORLD/V1"
+    assert values["compositing_method"] == "Mosaic"
+
+
+def test_methanesat_form_percentile(qtbot):
+    """Test form values for MethaneSat dataset using Percentile compositing."""
+    dialog = form()
+    qtbot.addWidget(dialog)
+
+    # Set Image Collection ID
+    ic_input = dialog.findChild(QtWidgets.QLineEdit, "image_collection_id")
+    ic_input.setText("projects/edf-methanesat-ee/assets/public-preview/L3concentration")
+
+    # Get form values
+    values = get_dialog_values(dialog)
+
+    # Assertions
+    assert (
+        values["image_collection_id"]
+        == "projects/edf-methanesat-ee/assets/public-preview/L3concentration"
+    )
+    assert values["compositing_method"] == "Mosaic"
+
+
+def test_jrc_global_forest_form_input(qtbot):
+    """Test that the form accepts JRC Global Forest V2 dataset ID."""
+    dialog = form()
+    qtbot.addWidget(dialog)
+
+    # Set Image ID (single image, but form should accept input)
+    ic_input = dialog.findChild(QtWidgets.QLineEdit, "image_collection_id")
+    ic_input.setText("JRC/GFC2020/V2/TC")
+
+    # Use default compositing method (Mosaic)
+    method_combo = dialog.findChild(QtWidgets.QComboBox, "compositing_method")
+    assert method_combo.currentText() == "Mosaic"
+
+    QtWidgets.QApplication.processEvents()
+
+    # Get form values
+    values = get_dialog_values(dialog)
+
+    # Assertions
+    assert values["image_collection_id"] == "JRC/GFC2020/V2/TC"
+    assert values["compositing_method"] == "Mosaic"

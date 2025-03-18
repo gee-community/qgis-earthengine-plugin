@@ -29,23 +29,43 @@ def test_export_dialog_values():
         "scale": 30,
         "out_path": "test.tif",
     }
-    print(exp_values)
-    print(get_dialog_values(dialog))
 
     ## expected values is a subset of the dialog values
     assert exp_values.items() <= get_dialog_values(dialog).items()
 
 
 def test_callback_layer_not_found():
-    callback(
-        ee_img="non_existent",
-        extent=None,
-        scale=1000,
-        projection="EPSG:4326",
-        out_path="test.tif",
+    # Provide dummy extent to bypass extent check
+    extent = (-123.5, 49.5, -122.5, 50.5)
+
+    with pytest.raises(ValueError) as exc_info:
+        callback(
+            ee_img="non_existent",
+            extent=extent,
+            scale=1000,
+            projection="EPSG:4326",
+            out_path="test.tif",
+        )
+
+    assert "Layer non_existent not found" in str(exc_info.value) or "Layer" in str(
+        exc_info.value
     )
 
-    assert not os.path.exists("test.tif")
+
+def test_callback_requires_extent():
+    image = ee.Image("USGS/SRTMGL1_003")
+    Map.addLayer(image, {}, "DEM")
+
+    with pytest.raises(Exception) as exc_info:
+        callback(
+            ee_img="DEM",
+            extent=None,  # Missing extent
+            scale=1000,
+            projection="EPSG:4326",
+            out_path="test_missing_extent.tif",
+        )
+
+    assert "extent" in str(exc_info.value).lower()
 
 
 # quotas on EE can be exceeded
@@ -53,12 +73,16 @@ def test_callback_layer_not_found():
 @pytest.mark.parametrize(
     "crs, scale, extent",
     [
-        ("EPSG:4326", 1000, (-123.5, 49.5, -122.5, 50.5)),  # WGS 84, small scale
-        ("EPSG:4326", 10000, None),  # WGS 84, auto extent
+        ("EPSG:4326", 1000, (-123.5, 49.5, -122.5, 50.5)),  # WGS 84, small area
+        ("EPSG:4326", 10000, (-180, -90, 180, 90)),  # WGS 84, full extent
         ("EPSG:3857", 1000, (-13733500, 6305000, -13675000, 6420000)),  # Web Mercator
-        ("EPSG:3857", 10000, None),  # Web Mercator, auto extent
+        (
+            "EPSG:3857",
+            10000,
+            (-20037508.34, -20037508.34, 20037508.34, 20037508.34),
+        ),  # Web Mercator max extent
         ("EPSG:32610", 1000, (500000, 5475000, 600000, 5575000)),  # UTM Zone 10N
-        ("EPSG:32610", 10000, None),  # UTM, auto extent
+        ("EPSG:32610", 10000, (400000, 5400000, 700000, 5600000)),  # Larger UTM
     ],
 )
 def test_callback_varied_params(crs, scale, extent):
@@ -83,7 +107,7 @@ def test_callback_varied_params(crs, scale, extent):
         assert ds.count == 1, "Unexpected number of bands"
         assert ds.width > 0 and ds.height > 0, "Invalid raster size"
 
-    # os.remove(out_path)
+    os.remove(out_path)
 
 
 @pytest.mark.parametrize(

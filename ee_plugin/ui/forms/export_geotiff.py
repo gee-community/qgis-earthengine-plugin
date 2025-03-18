@@ -32,13 +32,15 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
     extent_box = gui.QgsExtentGroupBox(
         objectName="extent",
         title=_("Filter by Coordinates"),
-        collapsed=True,
+        collapsed=False,
         toolTip=extent_msg,
     )
+    extent_box.setCheckable(False)
+    extent_box.setEnabled(True)
 
     scale_msg = _("The scale of the exported image in meters per pixel.")
     scale_spinbox = QtWidgets.QDoubleSpinBox(
-        objectName="scale", minimum=0.01, maximum=10000, toolTip=scale_msg
+        objectName="scale", minimum=1, maximum=10000, toolTip=scale_msg
     )
 
     projection_msg = _("The projection of the exported image (EPSG code).")
@@ -90,6 +92,17 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
         **dialog_kwargs,
     )
 
+    # Try to populate extent from current map canvas
+    try:
+        canvas = Map.get_iface().mapCanvas()
+        canvas_extent = canvas.extent()
+        canvas_crs = canvas.mapSettings().destinationCrs()
+        extent_box.setOriginalExtent(canvas_extent, canvas_crs)
+        extent_box.setCRS(canvas_crs)
+        logger.debug("Set extent from current map canvas")
+    except Exception as e:
+        logger.warning(f"Could not set extent from current canvas: {e}")
+
     if accepted:
         dialog.accepted.connect(
             lambda: ui_utils.call_func_with_values(accepted, dialog)
@@ -106,6 +119,10 @@ def callback(
     out_path: str,
 ):
     """Export an EE Image to a GeoTIFF file."""
+    if extent is None:
+        logger.exception("Bounding box extent is required for export")
+        raise ValueError("Bounding box extent is required for export")
+
     layer = next(
         (
             layer
@@ -116,8 +133,9 @@ def callback(
     )
 
     if not layer:
-        logger.exception(f"Layer {ee_img} not found")
-        return
+        msg = f"Layer {ee_img} not found"
+        logger.error(msg)
+        raise ValueError(msg)
 
     ee_image = layer.dataProvider().ee_object
 
@@ -131,7 +149,7 @@ def callback(
             ee_image=ee_image,
             extent=extent,
             scale=scale,
-            projection=projection,  # pass EPSG string to GEE
+            projection=projection,
             out_dir=tile_dir,
             base_name=base_name,
             merge_output=out_path,

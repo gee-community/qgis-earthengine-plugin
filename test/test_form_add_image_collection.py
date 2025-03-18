@@ -1,5 +1,3 @@
-import json
-
 from pytest import raises, fixture
 from qgis import gui
 from PyQt5 import QtWidgets, QtCore
@@ -249,7 +247,7 @@ def test_invalid_json_call(dialog):
     )
     dialog.findChild(QtWidgets.QTextEdit, "viz_params").setText("{'bad'")
 
-    with raises(json.JSONDecodeError):
+    with raises(ValueError):
         call_func_with_values(callback, dialog)
 
 

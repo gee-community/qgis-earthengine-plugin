@@ -98,7 +98,6 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
         canvas_extent = canvas.extent()
         canvas_crs = canvas.mapSettings().destinationCrs()
         extent_box.setOriginalExtent(canvas_extent, canvas_crs)
-        extent_box.setCRS(canvas_crs)
         logger.debug("Set extent from current map canvas")
     except Exception as e:
         logger.warning(f"Could not set extent from current canvas: {e}")

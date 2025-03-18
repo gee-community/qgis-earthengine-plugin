@@ -1,7 +1,7 @@
+import os
 import logging
 from typing import Optional, Callable
 
-import ee
 from qgis import gui
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.PyQt import QtWidgets
@@ -9,7 +9,6 @@ from qgis.PyQt import QtWidgets
 from .. import widgets, utils as ui_utils
 from ... import Map
 from ...utils import translate as _, ee_image_to_geotiff
-
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +36,12 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
         toolTip=extent_msg,
     )
 
-    scale_msg = _("The scale of the exported image in projection units per pixel.")
+    scale_msg = _("The scale of the exported image in meters per pixel.")
     scale_spinbox = QtWidgets.QDoubleSpinBox(
         objectName="scale", minimum=0.01, maximum=10000, toolTip=scale_msg
     )
 
-    projection_msg = _("The projection of the exported image.")
+    projection_msg = _("The projection of the exported image (EPSG code).")
     projection_dropdown = gui.QgsProjectionSelectionWidget(
         objectName="projection", toolTip=projection_msg
     )
@@ -66,14 +65,17 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
                     (
                         QtWidgets.QLabel(_("Select EE Image"), toolTip=ee_img_msg),
                         ee_image_dropdown,
-                    ),
+                    )
                 ],
             ),
             extent_box,
             widgets.build_form_group_box(
                 title=_("Settings"),
                 rows=[
-                    (QtWidgets.QLabel(_("Scale"), toolTip=scale_msg), scale_spinbox),
+                    (
+                        QtWidgets.QLabel(_("Scale (meters)"), toolTip=scale_msg),
+                        scale_spinbox,
+                    ),
                     (
                         QtWidgets.QLabel(_("Projection"), toolTip=projection_msg),
                         projection_dropdown,
@@ -99,18 +101,11 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
 def callback(
     ee_img: str,
     extent: Optional[tuple[float, float, float, float]],
-    scale: int,
+    scale: float,
     projection: str,
     out_path: str,
 ):
     """Export an EE Image to a GeoTIFF file."""
-    # Error handling for unsupported EPSG codes
-    try:
-        ee.Projection(projection)
-    except ee.EEException:
-        logger.exception(f"Unsupported EPSG code: {projection}")
-        return
-
     layer = next(
         (
             layer
@@ -126,14 +121,23 @@ def callback(
 
     ee_image = layer.dataProvider().ee_object
 
-    if extent:
-        region = ee.Geometry.Rectangle(extent, proj=projection, geodesic=False)
-    else:
-        region = ee_image.geometry().bounds()
-
     try:
-        ee_image_to_geotiff(ee_image, out_path, scale, projection, region)
+        tile_dir = os.path.dirname(out_path)
+        if tile_dir == "":
+            tile_dir = os.getcwd()
+        base_name = os.path.splitext(os.path.basename(out_path))[0]
+
+        ee_image_to_geotiff(
+            ee_image=ee_image,
+            extent=extent,
+            scale=scale,
+            projection=projection,  # pass EPSG string to GEE
+            out_dir=tile_dir,
+            base_name=base_name,
+            merge_output=out_path,
+        )
         logger.info(f"GeoTIFF exported to {out_path}")
 
     except Exception as e:
+        print(e)
         logger.exception(f"Error exporting GeoTIFF: {e}")

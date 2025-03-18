@@ -101,7 +101,7 @@ def form(
                             text=_("Filters:"),
                             toolTip=_("Add multiple filters by clicking 'Add Filter'."),
                         ),
-                        widgets.create_filter_widget(),  # Updated: Ensure object name is set
+                        widgets.create_filter_widget(),
                     ),
                 ],
             ),
@@ -240,12 +240,8 @@ def callback(
         try:
             viz_params = json.loads(viz_params.replace("'", '"'))
         except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON format in visualization parameters: {str(e)}")
-            raise json.JSONDecodeError(
-                "Invalid JSON format in visualization parameters",
-                viz_params,  # The problematic string
-                0,  # Position of error (use actual error position if available)
-            )
+            logger.error(f"Invalid JSON in viz_params: {viz_params}")
+            raise ValueError(f"Invalid JSON in viz_params: {viz_params}") from e
 
     # Add to map
     compositing_dict = {

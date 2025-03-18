@@ -14,7 +14,15 @@ import ee
 import qgis
 import requests
 from osgeo import gdal
-from qgis.core import QgsProject, QgsRasterLayer, QgsVectorLayer, QgsMapLayer
+from qgis.core import (
+    QgsProject,
+    QgsRasterLayer,
+    QgsVectorLayer,
+    QgsMapLayer,
+    QgsRectangle,
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+)
 from qgis.PyQt.QtCore import QCoreApplication
 
 logger = logging.getLogger(__name__)
@@ -269,11 +277,9 @@ def ee_image_to_geotiff(
     os.makedirs(out_dir, exist_ok=True)
 
     if extent is None:
-        bbox = ee_image.geometry().bounds().getInfo()["coordinates"][0]
-        xmin, ymin = bbox[0]
-        xmax, ymax = bbox[2]
-        extent = (xmin, ymin, xmax, ymax)
-        logger.debug(f"Computed extent from image bounds: {extent}")
+        extent = get_projected_extent(ee_image, projection)
+
+    logger.debug(f"Computed projected extent from image bounds: {extent}")
 
     tiles = tile_extent(extent, scale)
     logger.info(f"Generated {len(tiles)} tiles for export.")
@@ -292,6 +298,78 @@ def ee_image_to_geotiff(
     # remove tiles
     for tile in tile_paths:
         os.remove(tile)
+
+
+def get_global_extent(projection: str) -> tuple[float, float, float, float]:
+    logger.debug(f"Computing QGIS-derived global extent for {projection}")
+    try:
+        # Define WGS84 global extent
+        wgs84_rect = QgsRectangle(-180, -90, 180, 90)
+
+        # Define source and destination CRS
+        src_crs = QgsCoordinateReferenceSystem("EPSG:4326")
+        dest_crs = QgsCoordinateReferenceSystem(projection)
+
+        if not dest_crs.isValid():
+            raise ValueError(f"Invalid CRS: {projection}")
+
+        transform = QgsCoordinateTransform(src_crs, dest_crs, QgsProject.instance())
+        transformed_rect = transform.transformBoundingBox(wgs84_rect)
+
+        xmin = transformed_rect.xMinimum()
+        ymin = transformed_rect.yMinimum()
+        xmax = transformed_rect.xMaximum()
+        ymax = transformed_rect.yMaximum()
+
+        if any(math.isinf(val) or math.isnan(val) for val in (xmin, ymin, xmax, ymax)):
+            raise ValueError(f"Non-finite extent values computed for CRS: {projection}")
+
+        logger.debug(
+            f"QGIS-derived global extent for {projection}: {(xmin, ymin, xmax, ymax)}"
+        )
+        return (xmin, ymin, xmax, ymax)
+
+    except Exception as e:
+        logger.error(
+            f"Failed to compute QGIS global extent for projection {projection}: {e}"
+        )
+        raise ValueError(f"Could not compute global extent for projection {projection}")
+
+
+def get_projected_extent(
+    ee_image: ee.Image, projection: str
+) -> Tuple[float, float, float, float]:
+    """Get the bounding box of the EE image projected into the target CRS.
+
+    Falls back to QGIS-projected global extent if EE geometry transform fails.
+    """
+    logger.debug("Computing projected extent using EE geometry().transform().bounds()")
+    try:
+        ee_proj = ee.Projection(projection)
+        # Attempt EE geometry transformation
+        transformed_geom = ee_image.geometry().transform(proj=ee_proj, maxError=1)
+        extent_coords = transformed_geom.bounds().coordinates().getInfo()[0]
+        xmin_proj, ymin_proj = extent_coords[0]
+        xmax_proj, ymax_proj = extent_coords[2]
+
+        # Check for invalid values
+        if any(
+            val in ("-Infinity", "Infinity", float("inf"), float("-inf"))
+            for val in (xmin_proj, ymin_proj, xmax_proj, ymax_proj)
+        ):
+            raise ValueError("Infinite extent from EE transformation.")
+
+        projected_extent = (xmin_proj, ymin_proj, xmax_proj, ymax_proj)
+        logger.debug(f"Projected extent from EE: {projected_extent}")
+        return projected_extent
+
+    except Exception as e:
+        logger.warning(
+            f"Failed to compute projected extent via EE for projection {projection}: {e}. "
+            "Falling back to QGIS global extent."
+        )
+        # Fallback to QGIS to compute global extent in target CRS
+        return get_global_extent(projection)
 
 
 def merge_geotiffs_gdal(in_files: List[str], out_file: str) -> None:
@@ -349,14 +427,15 @@ def download_tile(
     logger.debug(
         f"Downloading tile {tile_extent} with scale {scale}, projection {projection}"
     )
-    xmin, ymin, xmax, ymax = tile_extent
-    region_coords = [[xmin, ymin], [xmax, ymax]]
+    # handle extent which are in projection's units
+    ee_proj = ee.Projection(projection)
+    region_geom = ee.Geometry.Rectangle(tile_extent, proj=ee_proj, geodesic=False)
 
     download_params = {
         "image": ee_image,
         "scale": scale,
         "crs": projection,
-        "region": region_coords,
+        "region": region_geom.coordinates().getInfo(),
         "format": "GEO_TIFF",
     }
 

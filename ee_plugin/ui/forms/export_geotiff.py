@@ -139,5 +139,4 @@ def callback(
         logger.info(f"GeoTIFF exported to {out_path}")
 
     except Exception as e:
-        print(e)
         logger.exception(f"Error exporting GeoTIFF: {e}")

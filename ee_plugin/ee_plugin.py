@@ -14,7 +14,7 @@ from typing import cast
 
 import requests  # type: ignore
 from qgis import gui
-from qgis.core import QgsProject
+from qgis.core import QgsProject, QgsApplication
 from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion, Qt
 from qgis.PyQt.QtGui import QIcon
@@ -23,6 +23,7 @@ import ee
 from . import provider, config, ee_auth, utils, logging
 from .ui import menus
 from .ui.forms import add_feature_collection, add_ee_image
+from .processing.processing_provider import EEProcessingProvider
 
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -100,6 +101,10 @@ class GoogleEarthEnginePlugin(object):
 
     def initGui(self):
         """Initialize the plugin GUI."""
+
+        self.provider = EEProcessingProvider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+
         # Build actions
         ee_user_guide_action = QtWidgets.QAction(
             icon=icon("earth-engine.svg"),
@@ -184,6 +189,8 @@ class GoogleEarthEnginePlugin(object):
 
         if self.toolButton:
             self.toolButton.deleteLater()
+
+        QgsApplication.processingRegistry().removeProvider(self.provider)
 
         logging.teardown_logger()
 

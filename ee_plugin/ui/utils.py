@@ -15,4 +15,5 @@ def call_func_with_values(func: Callable, dialog: QDialog):
     func_kwargs = set(func_signature.parameters.keys())
     dialog_values = get_dialog_values(dialog)
     kwargs = {k: v for k, v in dialog_values.items() if k in func_kwargs}
+    kwargs["dialog"] = dialog
     return func(**kwargs)

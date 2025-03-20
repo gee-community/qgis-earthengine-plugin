@@ -58,11 +58,13 @@ def form(accepted: Optional[Callable] = None, **dialog_kwargs) -> QtWidgets.QDia
 
     if accepted:
         dialog.accepted.connect(lambda: call_func_with_values(accepted, dialog))
+
     return dialog
 
 
-def callback(image_id: str = None, viz_params: dict = None):
+def callback(image_id: str = None, viz_params: dict = None, dialog=None):
     """Fetch and add the selected Earth Engine dataset to the map with user-defined visualization parameters."""
+    logger.info(f"Callback invoked. image_id: {image_id}, viz_params: {viz_params}")
     if not image_id:
         logger.error("Image ID is required.")
         return
@@ -87,7 +89,11 @@ def callback(image_id: str = None, viz_params: dict = None):
                 raise ValueError("Invalid JSON format in visualization parameters.")
 
         # Add the dataset to QGIS map
-        addLayer(ee_object, viz_params, image_id)
+        layer = addLayer(ee_object, viz_params, image_id)
+        logger.info(f"Layer added: {layer}")
+        if dialog is not None:
+            dialog.added_layer = layer
+            logger.info("Layer stored in dialog.added_layer")
 
         logger.info(
             f"Successfully added {image_id} to the map with custom visualization."

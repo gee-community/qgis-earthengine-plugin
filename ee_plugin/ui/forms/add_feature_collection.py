@@ -20,87 +20,102 @@ def form(
     dialog = widgets.build_vbox_dialog(
         windowTitle=_("Add Feature Collection"),
         widgets=[
-            widgets.build_form_group_box(
-                title=_("Source"),
-                rows=[
-                    (
-                        QtWidgets.QLabel(
-                            toolTip=_("The Earth Engine Feature Collection ID."),
-                            text="<br />".join(
-                                [
-                                    _("Feature Collection ID"),
-                                    "e.g. <code>USGS/WBD/2017/HUC06</code>",
-                                ]
+            widgets.build_hbox_layout(
+                widgets=[
+                    widgets.build_form_group_box(
+                        title=_("Source"),
+                        rows=[
+                            widgets.build_form_group_box(
+                                title=_("Source"),
+                                rows=[
+                                    (
+                                        QtWidgets.QLabel(
+                                            toolTip=_(
+                                                "The Earth Engine Feature Collection ID."
+                                            ),
+                                            text="<br />".join(
+                                                [
+                                                    _("Feature Collection ID"),
+                                                    "e.g. <code>USGS/WBD/2017/HUC06</code>",
+                                                ]
+                                            ),
+                                        ),
+                                        QtWidgets.QLineEdit(
+                                            objectName="feature_collection_id",
+                                        ),
+                                    ),
+                                    (
+                                        QtWidgets.QLabel(
+                                            _("Retain as a vector layer"),
+                                            toolTip=_(
+                                                "Store as a vector layer rather than WMS Raster layer."
+                                            ),
+                                            whatsThis=_(
+                                                "Attempt to retain the layer as a vector layer, running "
+                                                "the risk of encountering Earth Engine API limitations if "
+                                                "the layer is large. Otherwise, the layer will be added as "
+                                                "a WMS raster layer."
+                                            ),
+                                        ),
+                                        QtWidgets.QCheckBox(
+                                            objectName="as_vector",
+                                        ),
+                                    ),
+                                ],
                             ),
-                        ),
-                        QtWidgets.QLineEdit(
-                            objectName="feature_collection_id",
-                        ),
-                    ),
-                    (
-                        QtWidgets.QLabel(
-                            _("Retain as a vector layer"),
-                            toolTip=_(
-                                "Store as a vector layer rather than WMS Raster layer."
+                            widgets.build_form_group_box(
+                                title=_("Filter by Properties"),
+                                collapsable=True,
+                                collapsed=True,
+                                rows=[
+                                    (
+                                        _("Name"),
+                                        QtWidgets.QLineEdit(objectName="filter_name"),
+                                    ),
+                                    (
+                                        _("Value"),
+                                        QtWidgets.QLineEdit(objectName="filter_value"),
+                                    ),
+                                ],
                             ),
-                            whatsThis=_(
-                                "Attempt to retain the layer as a vector layer, running "
-                                "the risk of encountering Earth Engine API limitations if "
-                                "the layer is large. Otherwise, the layer will be added as "
-                                "a WMS raster layer."
+                            widgets.build_form_group_box(
+                                title=_("Filter by Dates"),
+                                collapsable=True,
+                                collapsed=True,
+                                rows=[
+                                    (
+                                        "Start",
+                                        widgets.DefaultNullQgsDateEdit(
+                                            objectName="start_date"
+                                        ),
+                                    ),
+                                    (
+                                        "End",
+                                        widgets.DefaultNullQgsDateEdit(
+                                            objectName="end_date"
+                                        ),
+                                    ),
+                                ],
                             ),
-                        ),
-                        QtWidgets.QCheckBox(
-                            objectName="as_vector",
-                        ),
-                    ),
-                ],
-            ),
-            widgets.build_form_group_box(
-                title=_("Filter by Properties"),
-                collapsable=True,
-                collapsed=True,
-                rows=[
-                    (
-                        _("Name"),
-                        QtWidgets.QLineEdit(objectName="filter_name"),
-                    ),
-                    (
-                        _("Value"),
-                        QtWidgets.QLineEdit(objectName="filter_value"),
-                    ),
-                ],
-            ),
-            widgets.build_form_group_box(
-                title=_("Filter by Dates"),
-                collapsable=True,
-                collapsed=True,
-                rows=[
-                    (
-                        "Start",
-                        widgets.DefaultNullQgsDateEdit(objectName="start_date"),
-                    ),
-                    (
-                        "End",
-                        widgets.DefaultNullQgsDateEdit(objectName="end_date"),
-                    ),
-                ],
-            ),
-            gui.QgsExtentGroupBox(
-                objectName="extent",
-                title=_("Filter by Coordinates"),
-                collapsed=True,
-            ),
-            widgets.build_form_group_box(
-                title=_("Visualization"),
-                collapsable=True,
-                collapsed=True,
-                rows=[
-                    (
-                        _("Color"),
-                        gui.QgsColorButton(objectName="viz_color_hex"),
-                    ),
-                ],
+                            gui.QgsExtentGroupBox(
+                                objectName="extent",
+                                title=_("Filter by Coordinates"),
+                                collapsed=True,
+                            ),
+                            widgets.build_form_group_box(
+                                title=_("Visualization"),
+                                collapsable=True,
+                                collapsed=True,
+                                rows=[
+                                    (
+                                        _("Color"),
+                                        gui.QgsColorButton(objectName="viz_color_hex"),
+                                    ),
+                                ],
+                            ),
+                        ],
+                    )
+                ]
             ),
         ],
         **dialog_kwargs,

@@ -8,6 +8,7 @@ from qgis.PyQt.QtWidgets import (
     QDialogButtonBox,
     QFormLayout,
     QGroupBox,
+    QHBoxLayout,
     QLayout,
     QVBoxLayout,
     QWidget,
@@ -87,3 +88,14 @@ def build_vbox_dialog(
         dialog.show()
 
     return dialog
+
+
+def build_hbox_layout(
+    widgets: List[QWidget] = field(default_factory=list),
+    **kwargs,
+) -> QHBoxLayout:
+    """Build a horizontal layout with a list of widgets."""
+    layout = QHBoxLayout(**kwargs)
+    for widget in widgets:
+        layout.addWidget(widget)
+    return layout

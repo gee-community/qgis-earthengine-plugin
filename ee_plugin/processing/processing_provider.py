@@ -1,4 +1,3 @@
-import os
 import logging
 
 from qgis.PyQt.QtGui import QIcon
@@ -11,6 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class EEProcessingProvider(QgsProcessingProvider):
+    def __init__(self, icon: QIcon, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._icon = icon
+
     def loadAlgorithms(self):
         self.addAlgorithm(AddEEImageAlgorithm())
         self.addAlgorithm(AddFeatureCollectionAlgorithm())
@@ -24,20 +27,5 @@ class EEProcessingProvider(QgsProcessingProvider):
     def longName(self):
         return "Google Earth Engine Plugin"
 
-    # TODO: fix icon not appearing in the processing toolbox
     def icon(self) -> QIcon:
-        icon_path = self.svgIconPath()
-
-        if not os.path.exists(icon_path):
-            logging.error(f"[GEE Plugin] Icon file not found at: {icon_path}")
-        else:
-            logging.info(f"[GEE Plugin] Loading icon from: {icon_path}")
-
-        return QIcon(icon_path)
-
-    def svgIconPath(self) -> str:
-        plugin_dir = os.path.dirname(os.path.abspath(__file__))
-        icon_path = os.path.join(plugin_dir, "..", "icons", "earth_engine.svg")
-        icon_path = os.path.normpath(icon_path)
-
-        return icon_path
+        return self._icon

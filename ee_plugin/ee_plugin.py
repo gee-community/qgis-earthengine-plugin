@@ -102,7 +102,7 @@ class GoogleEarthEnginePlugin(object):
     def initGui(self):
         """Initialize the plugin GUI."""
 
-        self.provider = EEProcessingProvider()
+        self.provider = EEProcessingProvider(icon=icon("earth-engine.svg"))
         QgsApplication.processingRegistry().addProvider(self.provider)
 
         # Build actions

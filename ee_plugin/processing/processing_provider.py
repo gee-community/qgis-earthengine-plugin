@@ -3,7 +3,7 @@ import logging
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProcessingProvider
 
-from .algorithms import AddEEImageAlgorithm, AddFeatureCollectionAlgorithm
+from .add_ee_image import AddEEImageAlgorithm
 
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,6 @@ class EEProcessingProvider(QgsProcessingProvider):
 
     def loadAlgorithms(self):
         self.addAlgorithm(AddEEImageAlgorithm())
-        self.addAlgorithm(AddFeatureCollectionAlgorithm())
 
     def id(self):
         return "ee"

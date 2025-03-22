@@ -26,6 +26,13 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
         )
         pass
 
+    def shortHelpString(self):
+        return (
+            "Loads a Google Earth Engine image into QGIS.\n\n"
+            "Provide the Earth Engine Image ID and optional visualization parameters (as JSON) "
+            "to display the image using Earth Engine's data directly in your map."
+        )
+
     def processAlgorithm(self, parameters, context, feedback):
         form = AddEEImageDialog(accepted=AddEEImageCallback)
         form.exec_()

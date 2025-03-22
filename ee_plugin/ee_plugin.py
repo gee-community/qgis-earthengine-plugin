@@ -13,7 +13,7 @@ from builtins import object
 from typing import cast
 
 import requests  # type: ignore
-from qgis import gui
+from qgis import gui, processing
 from qgis.core import QgsProject, QgsApplication
 from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion, Qt
@@ -22,7 +22,7 @@ import ee
 
 from . import provider, config, ee_auth, utils, logging
 from .ui import menus
-from .ui.forms import add_feature_collection, add_ee_image
+from .ui.forms import add_feature_collection
 from .processing.processing_provider import EEProcessingProvider
 
 
@@ -131,10 +131,14 @@ class GoogleEarthEnginePlugin(object):
                 accepted=add_feature_collection.callback
             ),
         )
+
+        def open_add_ee_image_dialog():
+            processing.execAlgorithmDialog("ee:add_ee_image")
+
         add_ee_image_button = QtWidgets.QAction(
             text=self.tr("Add Image"),
             parent=self.iface.mainWindow(),
-            triggered=lambda: add_ee_image.form(accepted=add_ee_image.callback),
+            triggered=open_add_ee_image_dialog,
         )
 
         # Initialize plugin menu

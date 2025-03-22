@@ -10,6 +10,7 @@ from qgis.core import (
     QgsProcessingContext,
     QgsProcessingFeedback,
     QgsProcessingOutputRasterLayer,
+    QgsProcessingOutputString,
 )
 
 from ..Map import addLayer
@@ -34,6 +35,7 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
             )
         )
         self.addOutput(QgsProcessingOutputRasterLayer("OUTPUT", "EE Image"))
+        self.addOutput(QgsProcessingOutputString("LAYER_NAME", "Layer Name"))
 
     def processAlgorithm(
         self,
@@ -74,7 +76,7 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
             if not layer:
                 raise QgsProcessingException("Failed to add EE layer to map.")
 
-            return {"OUTPUT": layer.id()}
+            return {"OUTPUT": layer.id(), "LAYER_NAME": layer.name()}
 
         except ee.EEException as e:
             raise QgsProcessingException(f"Earth Engine Error: {str(e)}")

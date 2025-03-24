@@ -113,11 +113,6 @@ def add_ee_image_layer(
     if opacity is not None and layer.renderer():
         layer.renderer().setOpacity(opacity)
 
-    if shown is not None:
-        QgsProject.instance().layerTreeRoot().findLayer(
-            layer.id()
-        ).setItemVisibilityChecked(shown)
-
     return layer
 
 

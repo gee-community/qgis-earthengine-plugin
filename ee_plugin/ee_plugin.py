@@ -141,6 +141,15 @@ class GoogleEarthEnginePlugin(object):
             triggered=open_add_ee_image_dialog,
         )
 
+        def open_export_geotiff_dialog():
+            processing.execAlgorithmDialog("ee:export_geotiff")
+
+        export_geotiff_button = QtWidgets.QAction(
+            text=self.tr("Export GeoTIFF"),
+            parent=self.iface.mainWindow(),
+            triggered=open_export_geotiff_dialog,
+        )
+
         # Initialize plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
         self.menu = plugin_menu.addMenu(

@@ -4,6 +4,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsProcessingProvider
 
 from .add_ee_image import AddEEImageAlgorithm
+from .export_geotiff import ExportEEGeoTIFFAlgorithm
 
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ class EEProcessingProvider(QgsProcessingProvider):
 
     def loadAlgorithms(self):
         self.addAlgorithm(AddEEImageAlgorithm())
+        self.addAlgorithm(ExportEEGeoTIFFAlgorithm())
 
     def id(self):
         return "ee"

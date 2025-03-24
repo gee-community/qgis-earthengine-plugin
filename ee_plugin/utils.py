@@ -275,7 +275,7 @@ def ee_image_to_geotiff(
 
     logger.debug(f"Provided extent for export: {extent}")
 
-    tiles = tile_extent(extent, scale)
+    tiles = tile_extent(ee_image, extent, scale)
     logger.info(f"Generated {len(tiles)} tiles for export.")
     tile_paths = []
 
@@ -285,10 +285,8 @@ def ee_image_to_geotiff(
         download_tile(ee_image, tile, scale, projection, out_path)
         tile_paths.append(out_path)
 
-    if merge_output:
-        logger.info(f"Merging {len(tile_paths)} tiles into {merge_output}")
-        merge_geotiffs_gdal(tile_paths, merge_output)
-
+    logger.info(f"Merging {len(tile_paths)} tiles into {merge_output}")
+    merge_geotiffs_gdal(tile_paths, merge_output)
     for tile in tile_paths:
         os.remove(tile)
 
@@ -307,23 +305,33 @@ def merge_geotiffs_gdal(in_files: List[str], out_file: str) -> None:
 
 
 def tile_extent(
-    extent: Tuple[float, float, float, float], scale: float, max_pixels: int = 32768
+    ee_image: ee.Image,
+    extent: Tuple[float, float, float, float],
+    scale: float,
 ) -> List[Tuple[float, float, float, float]]:
-    logger.debug(
-        f"Tiling extent {extent} with scale {scale} and max_pixels {max_pixels}"
-    )
+    logger.debug(f"Tiling extent {extent} with scale {scale}")
+    num_bands = ee_image.bandNames().size().getInfo()
+    bytes_per_pixel = num_bands * 2
+    max_bytes = 30 * 1024 * 1024  # Apply safety margin to avoid exceeding EE limit
+    max_pixels = max_bytes // bytes_per_pixel
+
     xmin, ymin, xmax, ymax = extent
     width = xmax - xmin
     height = ymax - ymin
 
-    pixels_x = width / scale
-    pixels_y = height / scale
+    # Calculate tile dimensions in degrees
+    tile_side_meters = math.sqrt(max_pixels) * scale
+    tile_side_degrees = tile_side_meters / 111320
+    tile_width = tile_side_degrees
+    tile_height = tile_side_degrees
 
-    tiles_x = max(1, math.ceil(pixels_x / max_pixels))
-    tiles_y = max(1, math.ceil(pixels_y / max_pixels))
+    # Recalculate number of tiles
+    tiles_x = math.ceil(width / tile_width)
+    tiles_y = math.ceil(height / tile_height)
 
-    tile_width = width / tiles_x
-    tile_height = height / tiles_y
+    logger.debug(
+        f"Tile width: {tile_width}, Tile height: {tile_height}, Tiles in X: {tiles_x}, Tiles in Y: {tiles_y}"
+    )
 
     tiles = []
     for i in range(tiles_x):

@@ -6,20 +6,17 @@ from qgis.PyQt.QtWidgets import (
     QDialog,
     QLineEdit,
     QTextEdit,
-    QWidget,
     QComboBox,
-    QSpinBox,
     QDoubleSpinBox,
+    QSpinBox,
+    QWidget,
 )
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 from qgis.gui import (
     QgsColorButton,
     QgsDateEdit,
     QgsExtentGroupBox,
-    QgsProjectionSelectionWidget,
 )
-
-from .widgets import FileSelectionWidget
 
 
 def parse_file_selection(w: QWidget) -> Optional[str]:
@@ -78,20 +75,13 @@ def get_dialog_values(dialog: QDialog) -> dict:
         QTextEdit: lambda w: w.toPlainText(),
         QCheckBox: lambda w: w.isChecked(),
         QSpinBox: lambda w: w.value(),
-        QDoubleSpinBox: lambda w: w.value(),
         QgsColorButton: lambda w: w.color().name(),
         QComboBox: parse_dropdown_selection,
         QgsExtentGroupBox: qgs_extent_to_bbox,
-        QgsProjectionSelectionWidget: lambda w: w.crs().authid(),
+        QDoubleSpinBox: lambda w: w.value(),
     }
     values = {}
     for cls, formatter in parsers.items():
         for widget in dialog.findChildren(cls):
             values[widget.objectName()] = formatter(widget)
-
-    file_selection_widgets = dialog.findChildren(FileSelectionWidget)
-    for widget in file_selection_widgets:
-        if widget.objectName():
-            values[widget.objectName()] = widget.get_selected_file()
-
     return values

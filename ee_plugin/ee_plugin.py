@@ -132,22 +132,22 @@ class GoogleEarthEnginePlugin(object):
             ),
         )
 
-        def open_add_ee_image_dialog():
-            processing.execAlgorithmDialog("ee:add_ee_image")
-
         add_ee_image_button = QtWidgets.QAction(
             text=self.tr("Add Image"),
             parent=self.iface.mainWindow(),
-            triggered=open_add_ee_image_dialog,
+            triggered=lambda: processing.execAlgorithmDialog("ee:add_ee_image"),
         )
 
-        def open_export_geotiff_dialog():
-            processing.execAlgorithmDialog("ee:export_geotiff")
+        add_image_collection_button = QtWidgets.QAction(
+            text=self.tr("Add Image Collection"),
+            parent=self.iface.mainWindow(),
+            triggered=lambda: processing.execAlgorithmDialog("ee:add_image_collection"),
+        )
 
         export_geotiff_button = QtWidgets.QAction(
-            text=self.tr("Export GeoTIFF"),
+            text=self.tr("Export as GeoTIFF"),
             parent=self.iface.mainWindow(),
-            triggered=open_export_geotiff_dialog,
+            triggered=lambda: processing.execAlgorithmDialog("ee:export_geotiff"),
         )
 
         # Initialize plugin menu
@@ -188,6 +188,7 @@ class GoogleEarthEnginePlugin(object):
                         subitems=[
                             menus.Action(action=add_fc_button),
                             menus.Action(action=add_ee_image_button),
+                            menus.Action(action=add_image_collection_button),
                         ],
                     ),
                     menus.SubMenu(

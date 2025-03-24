@@ -78,6 +78,11 @@ def add_or_update_ee_layer(
         return add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
     if isinstance(eeObject, ee.Geometry):
         return add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+
+    if isinstance(eeObject, ee.ImageCollection):
+        reduce_image = eeObject.reduce(ee.Reducer.median())
+        return add_or_update_ee_raster_layer(reduce_image, name, vis_params, shown)
+
     raise TypeError("Unsupported EE object type")
 
 

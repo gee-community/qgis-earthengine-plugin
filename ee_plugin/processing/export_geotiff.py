@@ -15,7 +15,7 @@ from .. import Map
 from ..utils import ee_image_to_geotiff
 
 
-class ExportEEGeoTIFFAlgorithm(QgsProcessingAlgorithm):
+class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
     """Export an EE Image to a GeoTIFF file."""
 
     OUTPUT = "OUTPUT"
@@ -112,7 +112,7 @@ class ExportEEGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         return "export"
 
     def createInstance(self) -> QgsProcessingAlgorithm:
-        return ExportEEGeoTIFFAlgorithm()
+        return ExportGeoTIFFAlgorithm()
 
     def shortHelpString(self) -> str:
         return (

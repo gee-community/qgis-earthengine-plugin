@@ -22,12 +22,8 @@ import ee
 
 from . import provider, config, ee_auth, utils, logging
 from .ui import menus
-<<<<<<< HEAD
 from .ui.forms import add_feature_collection
 from .processing.processing_provider import EEProcessingProvider
-=======
-from .ui.forms import add_feature_collection, add_ee_image, add_image_collection
->>>>>>> 69b5dfb (wip)
 
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -144,12 +140,14 @@ class GoogleEarthEnginePlugin(object):
             parent=self.iface.mainWindow(),
             triggered=open_add_ee_image_dialog,
         )
+
+        def open_add_image_collection_dialog():
+            processing.execAlgorithmDialog("ee:add_image_collection")
+
         add_image_collection_button = QtWidgets.QAction(
             text=self.tr("Add Image Collection"),
             parent=self.iface.mainWindow(),
-            triggered=lambda: add_image_collection.form(
-                accepted=add_image_collection.callback
-            ),
+            triggered=open_add_image_collection_dialog,
         )
 
         # Initialize plugin menu

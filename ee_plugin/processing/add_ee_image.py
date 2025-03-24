@@ -94,7 +94,7 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
         return "Add Layer"
 
     def groupId(self) -> str:
-        return "gee"
+        return "add_layer"
 
     def shortHelpString(self) -> str:
         return (

@@ -9,11 +9,25 @@ from qgis.PyQt.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
     QSpinBox,
+    QWidget,
 )
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
-from qgis.gui import QgsColorButton, QgsDateEdit, QgsExtentGroupBox
+from qgis.gui import (
+    QgsColorButton,
+    QgsDateEdit,
+    QgsExtentGroupBox,
+)
 
-from ee_plugin.ui.widgets import LabeledSlider
+
+def parse_file_selection(w: QWidget) -> Optional[str]:
+    """Retrieve file path from QLineEdit associated with QFileDialog."""
+    line_edit = w.findChild(QLineEdit)
+    return line_edit.text() if line_edit else None
+
+
+def parse_dropdown_selection(w: QComboBox) -> Optional[str]:
+    """Retrieve the currently selected value from a QComboBox."""
+    return w.currentText() if w.currentIndex() >= 0 else None
 
 
 def qgs_extent_to_bbox(
@@ -60,16 +74,14 @@ def get_dialog_values(dialog: QDialog) -> dict:
         QgsDateEdit: lambda w: None if w.isNull() else w.findChild(QLineEdit).text(),
         QTextEdit: lambda w: w.toPlainText(),
         QCheckBox: lambda w: w.isChecked(),
-        QgsColorButton: lambda w: w.color().name(),
-        QgsExtentGroupBox: qgs_extent_to_bbox,
-        QComboBox: lambda w: w.currentText(),
         QSpinBox: lambda w: w.value(),
+        QgsColorButton: lambda w: w.color().name(),
+        QComboBox: parse_dropdown_selection,
+        QgsExtentGroupBox: qgs_extent_to_bbox,
         QDoubleSpinBox: lambda w: w.value(),
-        LabeledSlider: lambda w: w.get_value(),
     }
     values = {}
     for cls, formatter in parsers.items():
         for widget in dialog.findChildren(cls):
             values[widget.objectName()] = formatter(widget)
-
     return values

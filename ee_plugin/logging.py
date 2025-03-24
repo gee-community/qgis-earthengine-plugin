@@ -68,12 +68,14 @@ class QGISMessageBarHandler(logging.Handler):
         msg = self.format(record)
 
         # Push the message to the QGIS Message Bar
-        get_iface().messageBar().pushMessage(
-            f"{self.plugin_name}",
-            msg,
-            level=qgis_level,
-            duration=self.duration,
-        )
+        iface = get_iface()
+        if iface:
+            iface.messageBar().pushMessage(
+                f"{self.plugin_name}",
+                msg,
+                level=qgis_level,
+                duration=self.duration,
+            )
 
 
 def setup_logger(plugin_name: str, logger_name: str = MODULE_NAME) -> None:

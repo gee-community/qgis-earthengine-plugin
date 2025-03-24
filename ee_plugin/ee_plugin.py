@@ -141,6 +141,15 @@ class GoogleEarthEnginePlugin(object):
             triggered=open_add_ee_image_dialog,
         )
 
+        def open_add_image_collection_dialog():
+            processing.execAlgorithmDialog("ee:add_image_collection")
+
+        add_image_collection_button = QtWidgets.QAction(
+            text=self.tr("Add Image Collection"),
+            parent=self.iface.mainWindow(),
+            triggered=open_add_image_collection_dialog,
+        )
+
         # Initialize plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
         self.menu = plugin_menu.addMenu(
@@ -179,6 +188,7 @@ class GoogleEarthEnginePlugin(object):
                         subitems=[
                             menus.Action(action=add_fc_button),
                             menus.Action(action=add_ee_image_button),
+                            menus.Action(action=add_image_collection_button),
                         ],
                     ),
                 ],

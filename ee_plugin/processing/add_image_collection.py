@@ -157,12 +157,18 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             ic = ic.filterBounds(ee_extent)
 
         # Apply the filters if provided
-        filters = self._get_filters(filters)
-        for filter in filters:
-            filter_property, filter_operator, filter_value = filter
-            filter_func = filter_functions.get(f"{filter_operator} ({filter_property})")
-            if filter_func:
-                ic = ic.filter(filter_func["operator"](filter_property, filter_value))
+        if filters:
+            filters = self._get_filters(filters)
+
+            for filter in filters:
+                filter_property, filter_operator, filter_value = filter
+                filter_func = filter_functions.get(
+                    f"{filter_operator} ({filter_property})"
+                )
+                if filter_func:
+                    ic = ic.filter(
+                        filter_func["operator"](filter_property, filter_value)
+                    )
 
         # Apply compositing logic
         compositing_dict = {
@@ -176,8 +182,23 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         ic = compositing_dict.get(compositing_method, ic.mosaic())
 
         # Add the image collection to the map
-        layer = Map.addLayer(
-            ic, {}, f"IC: {image_collection_id} ({compositing_method})"
-        )
+        if compositing_method == "Percentile" and not percentile_value:
+            raise ValueError("Percentile value is required for 'Percentile' method.")
+
+        if (
+            compositing_method == "Percentile"
+            and percentile_value < 0
+            or percentile_value > 100
+        ):
+            raise ValueError("Percentile value must be between 0 and 100.")
+
+        if compositing_method == "Percentile":
+            name = (
+                f"IC: {image_collection_id} ({compositing_method} {percentile_value}%)"
+            )
+        else:
+            name = f"IC: {image_collection_id} ({compositing_method})"
+
+        layer = Map.addLayer(ic, {}, name)
 
         return {"OUTPUT": layer, "LAYER_NAME": layer.name()}

@@ -38,7 +38,8 @@ def addLayer(eeObject, visParams=None, name=None, shown=True, opacity=1.0):
         >>> from ee_plugin import Map
         >>> Map.addLayer(.....)
     """
-    utils.add_or_update_ee_layer(eeObject, visParams, name, shown, opacity)
+    layer = utils.add_or_update_ee_layer(eeObject, visParams, name, shown, opacity)
+    return layer
 
 
 def centerObject(feature, zoom=None):

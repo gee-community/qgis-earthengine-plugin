@@ -1,8 +1,19 @@
 from typing import Optional
 
-from qgis.PyQt.QtWidgets import QCheckBox, QDateEdit, QDialog, QLineEdit, QTextEdit
+from qgis.PyQt.QtWidgets import (
+    QCheckBox,
+    QDateEdit,
+    QDialog,
+    QLineEdit,
+    QTextEdit,
+    QComboBox,
+    QDoubleSpinBox,
+    QSpinBox,
+)
 from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
 from qgis.gui import QgsColorButton, QgsDateEdit, QgsExtentGroupBox
+
+from ee_plugin.ui.widgets import LabeledSlider
 
 
 def qgs_extent_to_bbox(
@@ -51,6 +62,10 @@ def get_dialog_values(dialog: QDialog) -> dict:
         QCheckBox: lambda w: w.isChecked(),
         QgsColorButton: lambda w: w.color().name(),
         QgsExtentGroupBox: qgs_extent_to_bbox,
+        QComboBox: lambda w: w.currentText(),
+        QSpinBox: lambda w: w.value(),
+        QDoubleSpinBox: lambda w: w.value(),
+        LabeledSlider: lambda w: w.get_value(),
     }
     values = {}
     for cls, formatter in parsers.items():

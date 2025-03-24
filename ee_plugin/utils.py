@@ -70,6 +70,11 @@ def add_or_update_ee_layer(
     if isinstance(eeObject, ee.Geometry):
         return add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
 
+    if isinstance(eeObject, ee.ImageCollection):
+        # TODO: is median a fair assumption?
+        reduce_image = eeObject.reduce(ee.Reducer.median())
+        return add_or_update_ee_raster_layer(reduce_image, name, vis_params, shown)
+
     raise TypeError("Unsupported EE object type")
 
 
@@ -117,11 +122,6 @@ def add_ee_image_layer(
 
     if opacity is not None and layer.renderer():
         layer.renderer().setOpacity(opacity)
-
-    if shown is not None:
-        qgis_instance.layerTreeRoot().findLayer(layer.id()).setItemVisibilityChecked(
-            shown
-        )
 
     return layer
 

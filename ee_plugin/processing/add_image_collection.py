@@ -1,5 +1,5 @@
 from typing import List
-
+import json
 import ee
 from qgis.core import (
     QgsProcessingAlgorithm,
@@ -11,9 +11,7 @@ from qgis.core import (
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
 )
-
 from .. import Map
-
 
 filter_functions = {
     "==": {"operator": ee.Filter.eq, "symbol": "=="},
@@ -57,6 +55,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             <li><b>End date for filtering:</b> The end date for filtering the Image Collection.</li>
             <li><b>Compositing Method:</b> The compositing method to use for the Image Collection.</li>
             <li><b>Percentile Value:</b> The percentile value to use for the 'Percentile' compositing method if selected.</li>
+            <li><b>Visualization Parameters:</b> JSON string for visualization parameters.</li>
         </ul>
 
         <b>Earth Engine Data Catalog:</b><br>
@@ -106,6 +105,14 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
                 "percentile_value", "Percentile Value", optional=True
             )
         )
+        self.addParameter(
+            QgsProcessingParameterString(
+                "viz_params",
+                "Visualization Parameters (JSON)",
+                "Enter JSON for visualization parameters",
+                optional=True,
+            )
+        )
 
         self.addOutput(QgsProcessingOutputRasterLayer("OUTPUT", "EE Image"))
         self.addOutput(QgsProcessingOutputString("LAYER_NAME", "Layer Name"))
@@ -132,7 +139,12 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         end_date = parameters["end_date"]
         extent = parameters["extent"]  # This is the extent parameter as a string
         compositing_method = parameters["compositing_method"]
-        percentile_value = parameters["percentile_value"]
+        percentile_value = (
+            int(parameters["percentile_value"])
+            if parameters["percentile_value"]
+            else None
+        )
+        viz_params = parameters.get("viz_params", None)
 
         # Initialize Earth Engine ImageCollection
         ic = ee.ImageCollection(image_collection_id)
@@ -182,15 +194,21 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         ic = compositing_dict.get(compositing_method, ic.mosaic())
 
         # Add the image collection to the map
-        if compositing_method == "Percentile" and not percentile_value:
-            raise ValueError("Percentile value is required for 'Percentile' method.")
+        if compositing_method == "Percentile":
+            if percentile_value is None:
+                raise ValueError(
+                    "Percentile value is required for 'Percentile' method."
+                )
+            if percentile_value < 0 or percentile_value > 100:
+                raise ValueError("Percentile value must be between 0 and 100.")
 
-        if (
-            compositing_method == "Percentile"
-            and percentile_value < 0
-            or percentile_value > 100
-        ):
-            raise ValueError("Percentile value must be between 0 and 100.")
+        if viz_params:
+            try:
+                viz_params = json.loads(viz_params)  # Parse the JSON string
+            except json.JSONDecodeError:
+                raise ValueError("Invalid JSON for visualization parameters.")
+        else:
+            viz_params = {}
 
         if compositing_method == "Percentile":
             name = (
@@ -199,6 +217,6 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         else:
             name = f"IC: {image_collection_id} ({compositing_method})"
 
-        layer = Map.addLayer(ic, {}, name)
+        layer = Map.addLayer(ic, viz_params, name)
 
         return {"OUTPUT": layer, "LAYER_NAME": layer.name()}

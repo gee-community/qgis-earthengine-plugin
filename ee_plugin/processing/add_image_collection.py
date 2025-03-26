@@ -10,6 +10,7 @@ from qgis.core import (
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
+    QgsRectangle,
 )
 
 from qgis.PyQt.QtWidgets import (
@@ -374,6 +375,15 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             )
 
         # If extent is provided, convert it to a QgsRectangle and then to ee.Geometry
+        if isinstance(extent, str):
+            # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
+            try:
+                coords = extent.split(" [")[0]  # Drop CRS info
+                xmin, ymin, xmax, ymax = map(float, coords.split(","))
+                extent = QgsRectangle(xmin, ymin, xmax, ymax)
+            except Exception as e:
+                raise ValueError(f"Invalid extent format: {extent}") from e
+
         if extent:
             min_lon = extent.xMinimum()
             max_lon = extent.xMaximum()

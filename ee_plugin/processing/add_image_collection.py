@@ -42,7 +42,7 @@ filter_functions = {
 }
 
 
-class AddImageCollectionAlgorithmDialogDef(gui.QgsProcessingAlgorithmDialogBase):
+class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
     def __init__(self, algorithm, parent=None):
         super().__init__(
             parent,
@@ -59,7 +59,6 @@ class AddImageCollectionAlgorithmDialogDef(gui.QgsProcessingAlgorithmDialogBase)
         self.panel.setLayout(layout)
         self.setMainWidget(self.panel)
 
-        self.runButton().clicked.connect(self.accept)
         self.cancelButton().clicked.connect(self.reject)
 
     def _build_dialog(self) -> QWidget:
@@ -82,7 +81,7 @@ class AddImageCollectionAlgorithmDialogDef(gui.QgsProcessingAlgorithmDialogBase)
         layout.addLayout(source_form)
 
         # --- Filter by Properties ---
-        filter_group = gui.QgsCollapsibleGroupBox(_("Filter by Properties"))
+        filter_group = gui.QgsCollapsibleGroupBox(_("Filter by Image Properties"))
         filter_group.setCollapsed(True)
 
         self.filter_rows_layout = QVBoxLayout()
@@ -219,86 +218,26 @@ class AddImageCollectionAlgorithmDialogDef(gui.QgsProcessingAlgorithmDialogBase)
         return QgsProcessingContext()
 
     def createFeedback(self) -> QgsProcessingFeedback:
-        return QgsProcessingFeedback()
+        return super().createFeedback()
 
-    def accept(self):
-        filters = []
-        for i in range(self.filter_rows_layout.count()):
-            row_layout = self.filter_rows_layout.itemAt(i)
-            if isinstance(row_layout, QHBoxLayout):
-                name_input = row_layout.itemAt(0).widget()
-                operator_input = row_layout.itemAt(1).widget()
-                value_input = row_layout.itemAt(2).widget()
-                if (
-                    name_input
-                    and value_input
-                    and name_input.text()
-                    and value_input.text()
-                ):
-                    op = operator_input.currentText()
-                    filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
-        filters_str = ";".join(filters)
-        self.setParameters(
-            {
-                "image_collection_id": self.image_collection_id.text(),
-                "filters": filters_str,
-                "start_date": self.start_date.dateTime(),
-                "end_date": self.end_date.dateTime(),
-                "extent": self.extent_group.outputExtent(),
-                "compositing_method": self.compositing_method.currentIndex(),
-                "percentile_value": self.percentile_value.value(),
-                "viz_params": "{}",
-            }
-        )
-        self.runAlgorithm()
-        super().accept()
+    def pushInfo(self, info: str):
+        super().pushInfo(info)
+        self.messageBar().pushMessage("Info", info, level=0)
+
+    def pushWarning(self, warning: str):
+        super().pushWarning(warning)
+        self.messageBar().pushMessage("Warning", warning, level=1)
+
+    def reportError(self, error: str, fatalError: bool):
+        super().reportError(error, fatalError)
+        self.messageBar().pushMessage("Error", error, level=2)
 
     def runAlgorithm(self):
         params = self.getParameters()
         self.algorithm().processAlgorithm(
             params, QgsProcessingContext(), QgsProcessingFeedback()
         )
-
-    def unserializeParameters(self):
-        try:
-            filters = []
-            for i in range(self.filter_rows_layout.count()):
-                row_layout = self.filter_rows_layout.itemAt(i)
-                if isinstance(row_layout, QHBoxLayout):
-                    name_input = row_layout.itemAt(0).widget()
-                    operator_input = row_layout.itemAt(1).widget()
-                    value_input = row_layout.itemAt(2).widget()
-                    if (
-                        name_input
-                        and value_input
-                        and name_input.text()
-                        and value_input.text()
-                    ):
-                        op = operator_input.currentText()
-                        filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
-            filters_str = ";".join(filters)
-
-            # Sanitize date
-            start_dt = self.start_date.dateTime().toString(Qt.ISODate)
-            end_dt = self.end_date.dateTime().toString(Qt.ISODate)
-
-            # Sanitize extent
-            extent_rect = self.extent_group.outputExtent()
-            extent_str = f"{extent_rect.xMinimum()},{extent_rect.yMinimum()},{extent_rect.xMaximum()},{extent_rect.yMaximum()} [EPSG:4326]"
-
-            return {
-                "image_collection_id": self.image_collection_id.text(),
-                "filters": filters_str,
-                "start_date": start_dt,
-                "end_date": end_dt,
-                "extent": extent_str,
-                "compositing_method": self.compositing_method.currentIndex(),
-                "percentile_value": self.percentile_value.value(),
-                "viz_params": "{}",
-            }
-
-        except Exception as e:
-            raise ValueError(f"Invalid parameters: {e}")
+        self.showLog()
 
     def getParameters(self):
         try:
@@ -368,7 +307,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         <h3>Parameters:</h3>
         <ul>
             <li><b>Image Collection ID:</b> The Earth Engine Image Collection ID to add to the map.</li>
-            <li><b>Filters:</b> The filter type to apply to the Image Collection. Example: "cloud_coverage:&lt;:10;sun_elevation:&gt;:0" for non-cloudy daytime Landsat images.</li>
+            <li><b>Filter Image Properties:</b> Image Property filter Filters to apply to the Image Collection. Image properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details. Example for LANDSAT/LC09/C02/T1_L2: "cloud_coverage:&lt;:10;sun_elevation:&gt;:0" for non-cloudy daytime Landsat images.</li>
             <li><b>Start date for filtering:</b> The start date for filtering the Image Collection.</li>
             <li><b>End date for filtering:</b> The end date for filtering the Image Collection.</li>
             <li><b>Compositing Method:</b> The compositing method to use for the Image Collection.</li>
@@ -376,7 +315,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             <li><b>Visualization Parameters:</b> JSON string for visualization parameters.</li>
         </ul>
 
-        <b>Earth Engine Data Catalog:</b><br>
+        <b>Earth Engine Data Catalog:</b>
             <a href='https://developers.google.com/earth-engine/datasets'>https://developers.google.com/earth-engine/datasets</a>
         </html>
         """
@@ -394,7 +333,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterString(
                 "filters",
-                "Filter Expression",
+                "Filter Image Properties",
                 "Enter filters as property_0:operator_0:value_0;property_1:operator_1:value_1",
                 optional=True,
             )
@@ -451,7 +390,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         return parsed_filters
 
     def createCustomParametersWidget(self, parent=...):
-        return AddImageCollectionAlgorithmDialogDef(algorithm=self, parent=parent)
+        return AddImageCollectionAlgorithmDialog(algorithm=self, parent=parent)
 
     def processAlgorithm(self, parameters, context, feedback):
         image_collection_id = parameters["image_collection_id"]

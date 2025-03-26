@@ -547,7 +547,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         # compositing method is an index
         compositing_options = ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
         compositing_name = compositing_options[compositing_method]
-        if compositing_method == "Percentile":
+        if compositing_name == "Percentile":
             name = f"IC: {image_collection_id} ({compositing_name} {percentile_value}%)"
         else:
             name = f"IC: {image_collection_id} ({compositing_name})"

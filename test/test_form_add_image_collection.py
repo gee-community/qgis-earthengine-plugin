@@ -22,7 +22,7 @@ def test_add_image_collection_algorithm_with_filters(clean_qgis_iface):
         "start_date": start_date,
         "end_date": end_date,
         "extent": None,
-        "compositing_method": "Mosaic",
+        "compositing_method": 0,  # Mosaic index
         "percentile_value": None,
     }
 
@@ -45,7 +45,7 @@ def test_add_image_collection_algorithm_multiple_filters(clean_qgis_iface):
         "start_date": start_date,
         "end_date": end_date,
         "extent": None,
-        "compositing_method": "Mosaic",
+        "compositing_method": 0,  # Mosaic index
         "percentile_value": None,
     }
 
@@ -92,7 +92,7 @@ def test_add_image_collection_algorithm_empty_filters(clean_qgis_iface):
         "start_date": start_date,
         "end_date": end_date,
         "extent": None,
-        "compositing_method": "Mosaic",
+        "compositing_method": 0,  # Mosaic index
         "percentile_value": None,
     }
 
@@ -115,7 +115,7 @@ def test_add_image_collection_algorithm_percentile_compositing(clean_qgis_iface)
         "start_date": start_date,
         "end_date": end_date,
         "extent": None,
-        "compositing_method": "Percentile",
+        "compositing_method": 5,  # Percentile index
         "percentile_value": 90,
     }
 
@@ -162,7 +162,7 @@ def test_empty_viz_params(clean_qgis_iface):
         "start_date": start_date,
         "end_date": end_date,
         "extent": None,
-        "compositing_method": "Mosaic",
+        "compositing_method": 0,  # Mosaic index
         "percentile_value": None,
         "viz_params": "",
     }

@@ -243,3 +243,29 @@ def build_vbox_dialog(
         dialog.show()
 
     return dialog
+
+
+def build_vbox_widget(
+    widgets: List[QWidget] = field(default_factory=list),
+    **kwargs,
+) -> QWidget:
+    """
+    Build a widget with a vertical layout and configured standard buttons.
+    """
+    container = QWidget(**kwargs)
+
+    # Configure layout
+    main_layout = QVBoxLayout(container)
+
+    # Add widgets to the layout
+    for widget in widgets:
+        main_layout.addWidget(widget)
+
+    # Add OK/Cancel buttons
+    main_layout.addWidget(
+        QDialogButtonBox(
+            standardButtons=QDialogButtonBox.Cancel | QDialogButtonBox.Ok,
+        )
+    )
+
+    return container

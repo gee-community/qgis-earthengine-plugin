@@ -13,25 +13,24 @@ from qgis.core import (
     QgsRectangle,
 )
 
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (
-    QDialog,
     QVBoxLayout,
     QFormLayout,
     QLabel,
     QLineEdit,
     QComboBox,
-    QDialogButtonBox,
     QSlider,
     QHBoxLayout,
     QWidget,
     QPushButton,
 )
-from qgis.core import QgsProject
+from qgis.core import QgsProcessingContext, QgsProcessingFeedback
 from qgis import gui
-from qgis import processing
 from ..utils import translate as _
 
 from .. import Map
+
 
 filter_functions = {
     "==": {"operator": ee.Filter.eq, "symbol": "=="},
@@ -43,11 +42,28 @@ filter_functions = {
 }
 
 
-class AddImageCollectionAlgorithmDialog(QDialog):
-    def __init__(self, alg, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle(_("Add Image Collection"))
-        self.alg = alg
+class AddImageCollectionAlgorithmDialogDef(gui.QgsProcessingAlgorithmDialogBase):
+    def __init__(self, algorithm, parent=None):
+        super().__init__(
+            parent,
+            flags=Qt.WindowFlags(),
+            mode=gui.QgsProcessingAlgorithmDialogBase.DialogMode.Single,
+        )
+        self.setAlgorithm(algorithm)
+        self.setModal(True)
+        self.setWindowTitle("Add Image Collection")
+
+        # Hook up layout
+        self.panel = gui.QgsPanelWidget()
+        layout = self._build_dialog()
+        self.panel.setLayout(layout)
+        self.setMainWidget(self.panel)
+
+        self.runButton().clicked.connect(self.accept)
+        self.cancelButton().clicked.connect(self.reject)
+
+    def _build_dialog(self) -> QWidget:
+        # Build your custom layout
         layout = QVBoxLayout(self)
 
         # --- Source Group ---
@@ -194,14 +210,18 @@ class AddImageCollectionAlgorithmDialog(QDialog):
         self.extent_group.setToolTip(_("Specify the geographic extent."))
         layout.addWidget(self.extent_group)
 
-        # --- Dialog Buttons ---
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self.run_algorithm)  # Connect to new method
-        button_box.rejected.connect(self.reject)
-        layout.addWidget(button_box)
+        return layout
 
-    def run_algorithm(self):
-        # Collect parameters from form widgets
+    def processingContext(self) -> QgsProcessingContext:
+        return QgsProcessingContext()
+
+    def createContext(self) -> QgsProcessingContext:
+        return QgsProcessingContext()
+
+    def createFeedback(self) -> QgsProcessingFeedback:
+        return QgsProcessingFeedback()
+
+    def accept(self):
         filters = []
         for i in range(self.filter_rows_layout.count()):
             row_layout = self.filter_rows_layout.itemAt(i)
@@ -218,23 +238,107 @@ class AddImageCollectionAlgorithmDialog(QDialog):
                     op = operator_input.currentText()
                     filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
         filters_str = ";".join(filters)
+        self.setParameters(
+            {
+                "image_collection_id": self.image_collection_id.text(),
+                "filters": filters_str,
+                "start_date": self.start_date.dateTime(),
+                "end_date": self.end_date.dateTime(),
+                "extent": self.extent_group.outputExtent(),
+                "compositing_method": self.compositing_method.currentIndex(),
+                "percentile_value": self.percentile_value.value(),
+                "viz_params": "{}",
+            }
+        )
+        self.runAlgorithm()
+        super().accept()
 
-        params = {
-            "image_collection_id": self.image_collection_id.text(),
-            "filters": filters_str,
-            "start_date": self.start_date.dateTime(),
-            "end_date": self.end_date.dateTime(),
-            "extent": self.extent_group.outputExtent(),
-            "compositing_method": self.compositing_method.currentIndex(),
-            "percentile_value": self.percentile_value.value(),
-            "viz_params": "{}",  # optionally make this a field in the UI
-        }
+    def runAlgorithm(self):
+        params = self.getParameters()
+        self.algorithm().processAlgorithm(
+            params, QgsProcessingContext(), QgsProcessingFeedback()
+        )
 
-        # Run the algorithm
-        result = processing.run("ee:add_image_collection", params)
-        if result:
-            QgsProject.instance().layerTreeRoot().addLayer(result["OUTPUT"])
-            self.accept()
+    def unserializeParameters(self):
+        try:
+            filters = []
+            for i in range(self.filter_rows_layout.count()):
+                row_layout = self.filter_rows_layout.itemAt(i)
+                if isinstance(row_layout, QHBoxLayout):
+                    name_input = row_layout.itemAt(0).widget()
+                    operator_input = row_layout.itemAt(1).widget()
+                    value_input = row_layout.itemAt(2).widget()
+                    if (
+                        name_input
+                        and value_input
+                        and name_input.text()
+                        and value_input.text()
+                    ):
+                        op = operator_input.currentText()
+                        filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
+            filters_str = ";".join(filters)
+
+            # Sanitize date
+            start_dt = self.start_date.dateTime().toString(Qt.ISODate)
+            end_dt = self.end_date.dateTime().toString(Qt.ISODate)
+
+            # Sanitize extent
+            extent_rect = self.extent_group.outputExtent()
+            extent_str = f"{extent_rect.xMinimum()},{extent_rect.yMinimum()},{extent_rect.xMaximum()},{extent_rect.yMaximum()} [EPSG:4326]"
+
+            return {
+                "image_collection_id": self.image_collection_id.text(),
+                "filters": filters_str,
+                "start_date": start_dt,
+                "end_date": end_dt,
+                "extent": extent_str,
+                "compositing_method": self.compositing_method.currentIndex(),
+                "percentile_value": self.percentile_value.value(),
+                "viz_params": "{}",
+            }
+
+        except Exception as e:
+            raise ValueError(f"Invalid parameters: {e}")
+
+    def getParameters(self):
+        try:
+            filters = []
+            for i in range(self.filter_rows_layout.count()):
+                row_layout = self.filter_rows_layout.itemAt(i)
+                if isinstance(row_layout, QHBoxLayout):
+                    name_input = row_layout.itemAt(0).widget()
+                    operator_input = row_layout.itemAt(1).widget()
+                    value_input = row_layout.itemAt(2).widget()
+                    if (
+                        name_input
+                        and value_input
+                        and name_input.text()
+                        and value_input.text()
+                    ):
+                        op = operator_input.currentText()
+                        filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
+            filters_str = ";".join(filters)
+            params = {
+                "image_collection_id": self.image_collection_id.text(),
+                "filters": filters_str,
+                "start_date": self.start_date.dateTime(),
+                "end_date": self.end_date.dateTime(),
+                "extent": self.extent_group.outputExtent(),
+                "compositing_method": self.compositing_method.currentIndex(),
+                "percentile_value": self.percentile_value.value(),
+                "viz_params": "{}",
+            }
+            return params
+
+        except Exception as e:
+            raise ValueError(f"Invalid parameters: {e}")
+
+    def algExecuted(self, successful, results):
+        return super().algExecuted(successful, results)
+
+    def createProcessingParameters(self, context):
+        # TODO: some nested error happening when copying json parameters or qgis_process
+        return self.unserializeParameters()
 
 
 class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
@@ -347,7 +451,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         return parsed_filters
 
     def createCustomParametersWidget(self, parent=...):
-        return AddImageCollectionAlgorithmDialog(self, parent)
+        return AddImageCollectionAlgorithmDialogDef(algorithm=self, parent=parent)
 
     def processAlgorithm(self, parameters, context, feedback):
         image_collection_id = parameters["image_collection_id"]

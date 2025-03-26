@@ -4,7 +4,6 @@ from qgis.core import QgsProcessingProvider
 from .add_ee_image import AddEEImageAlgorithm
 from .add_image_collection import AddImageCollectionAlgorithm
 from .export_geotiff import ExportGeoTIFFAlgorithm
-from .dummy_alg import DummyReverseAlgorithm
 
 
 class EEProcessingProvider(QgsProcessingProvider):
@@ -16,7 +15,6 @@ class EEProcessingProvider(QgsProcessingProvider):
         self.addAlgorithm(AddEEImageAlgorithm())
         self.addAlgorithm(AddImageCollectionAlgorithm())
         self.addAlgorithm(ExportGeoTIFFAlgorithm())
-        self.addAlgorithm(DummyReverseAlgorithm())
 
     def id(self):
         return "ee"

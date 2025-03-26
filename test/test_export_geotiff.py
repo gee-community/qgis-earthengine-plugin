@@ -11,11 +11,11 @@ from qgis.core import (
 )
 
 from ee_plugin import Map
-from ee_plugin.processing.export_geotiff import ExportEEGeoTIFFAlgorithm
+from ee_plugin.processing.export_geotiff import ExportGeoTIFFAlgorithm
 
 
 def test_layer_not_found():
-    alg = ExportEEGeoTIFFAlgorithm()
+    alg = ExportGeoTIFFAlgorithm()
     alg.initAlgorithm(config=None)
     alg.raster_layers = []  # Ensure no layers exist for selection
     params = {
@@ -36,7 +36,7 @@ def test_requires_extent():
     img = ee.Image("USGS/SRTMGL1_003")
     Map.addLayer(img, {}, "DEM")  # Add a layer to the map
 
-    alg = ExportEEGeoTIFFAlgorithm()
+    alg = ExportGeoTIFFAlgorithm()
     alg.initAlgorithm(config=None)
 
     out_path = "test.tif"
@@ -70,7 +70,7 @@ def test_varied_params_export(crs, scale, extent):
     time.sleep(1)  # connection pool can get full
     img = ee.Image("USGS/SRTMGL1_003")
     Map.addLayer(img, {}, "DEM")  # Add a layer to the map
-    alg = ExportEEGeoTIFFAlgorithm()
+    alg = ExportGeoTIFFAlgorithm()
     alg.initAlgorithm(config=None)
 
     context = QgsProcessingContext()

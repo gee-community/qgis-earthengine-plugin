@@ -98,6 +98,7 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
             out_dir=tile_dir,
             base_name=base_name,
             merge_output=out_path,
+            feedback=feedback,
         )
 
         return {self.OUTPUT: out_path}

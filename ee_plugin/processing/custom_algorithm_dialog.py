@@ -4,8 +4,8 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, Dict
 
+from qgis import processing
 from osgeo import gdal
-import processing
 from qgis.core import (
     Qgis,
     QgsProcessingContext,

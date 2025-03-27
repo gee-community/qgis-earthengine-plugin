@@ -15,6 +15,7 @@ import qgis
 import requests
 from osgeo import gdal
 from qgis.core import (
+    QgsFeedback,
     QgsProject,
     QgsRasterLayer,
     QgsVectorLayer,
@@ -267,6 +268,7 @@ def ee_image_to_geotiff(
     out_dir: str = "/vsimem/",
     base_name: str = "tiles_",
     merge_output: Optional[str] = None,
+    feedback: QgsFeedback = None,
 ) -> None:
     logger.info(
         f"Exporting EE image to GeoTIFF with scale {scale}, projection {projection}"
@@ -284,16 +286,21 @@ def ee_image_to_geotiff(
         )
     tile_paths = []
 
-    for idx, tile in enumerate(tiles):
-        out_path = os.path.join(out_dir, f"{base_name}_tile{idx}.tif")
-        logger.info(f"Downloading tile {idx + 1}/{len(tiles)} to {out_path}")
-        download_tile(ee_image, tile, scale, projection, out_path)
-        tile_paths.append(out_path)
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for idx, tile in enumerate(tiles):
+                if feedback and feedback.isCanceled():
+                    logger.info("Export cancelled by user.")
+                    raise StopIteration("Export cancelled by user.")
+                out_path = os.path.join(temp_dir, f"{base_name}_tile{idx}.tif")
+                logger.info(f"Downloading tile {idx + 1}/{len(tiles)} to {out_path}")
+                download_tile(ee_image, tile, scale, projection, out_path)
+                tile_paths.append(out_path)
 
-    logger.info(f"Merging {len(tile_paths)} tiles into {merge_output}")
-    merge_geotiffs_gdal(tile_paths, merge_output)
-    for tile in tile_paths:
-        os.remove(tile)
+            logger.info(f"Merging {len(tile_paths)} tiles into {merge_output}")
+            merge_geotiffs_gdal(tile_paths, merge_output)
+    except StopIteration:
+        pass
 
 
 def merge_geotiffs_gdal(in_files: List[str], out_file: str) -> None:

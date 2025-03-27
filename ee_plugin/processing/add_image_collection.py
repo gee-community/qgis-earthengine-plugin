@@ -1,7 +1,12 @@
-from typing import List
 import json
+from datetime import datetime
+from typing import List
+
 import ee
+import processing
+from osgeo import gdal
 from qgis.core import (
+    Qgis,
     QgsProcessingAlgorithm,
     QgsProcessingParameterString,
     QgsProcessingParameterEnum,
@@ -11,9 +16,10 @@ from qgis.core import (
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
     QgsRectangle,
+    QgsProcessingContext,
+    QgsProcessingFeedback,
 )
-
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, QT_VERSION_STR
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
@@ -25,7 +31,6 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
     QPushButton,
 )
-from qgis.core import QgsProcessingContext, QgsProcessingFeedback
 from qgis import gui
 
 from ..feedback_context import set_feedback
@@ -223,21 +228,37 @@ class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
     def pushInfo(self, info: str):
         super().pushInfo(info)
-        self.messageBar().pushMessage("Info", info, level=0)
 
     def pushWarning(self, warning: str):
         super().pushWarning(warning)
-        self.messageBar().pushMessage("Warning", warning, level=1)
 
     def reportError(self, error: str, fatalError: bool):
         super().reportError(error, fatalError)
-        self.messageBar().pushMessage("Error", error, level=2)
 
     def runAlgorithm(self):
+        context = self.processingContext()
+        feedback = self.createFeedback()
+
+        set_feedback(feedback)
+
         params = self.getParameters()
-        self.algorithm().processAlgorithm(
-            params, QgsProcessingContext(), QgsProcessingFeedback()
+
+        self.pushInfo(f"QGIS version: {Qgis.QGIS_VERSION}")
+        self.pushInfo(f"QGIS code revision: {Qgis.QGIS_DEV_VERSION}")
+        self.pushInfo(f"Qt version: {QT_VERSION_STR}")
+        self.pushInfo(f"GDAL version: {gdal.VersionInfo('--version')}")
+        self.pushInfo(
+            f"Algorithm started at: {datetime.now().isoformat(timespec='seconds')}"
         )
+        self.pushInfo(f"Algorithm '{self.algorithm().displayName()}' starting…")
+        self.pushInfo("Input parameters:")
+        for k, v in params.items():
+            self.pushInfo(f"  {k}: {v}")
+        results = processing.run(
+            self.algorithm(), params, context=context, feedback=feedback
+        )
+
+        self.setResults(results)
         self.showLog()
 
     def getParameters(self):
@@ -394,8 +415,6 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         return AddImageCollectionAlgorithmDialog(algorithm=self, parent=parent)
 
     def processAlgorithm(self, parameters, context, feedback):
-        # add logs to algorithm dialog
-        set_feedback(feedback)
         image_collection_id = parameters["image_collection_id"]
         filters = parameters["filters"]
         start_date = parameters["start_date"]

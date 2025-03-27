@@ -11,6 +11,7 @@ from qgis.core import (
     QgsProcessingParameterEnum,
 )
 
+from ..feedback_context import set_feedback
 from .. import Map
 from ..utils import ee_image_to_geotiff
 
@@ -57,6 +58,8 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         context: QgsProcessingContext,
         feedback: QgsProcessingFeedback,
     ) -> dict:
+        # add logs to algorithm dialog
+        set_feedback(feedback)
         selected_index = self.parameterAsEnum(parameters, "EE_IMAGE", context)
         ee_img = self.raster_layers[selected_index]
         rect = self.parameterAsExtent(parameters, "EXTENT", context)
@@ -103,7 +106,7 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         return "export_geotiff"
 
     def displayName(self) -> str:
-        return "Export EE Image to GeoTIFF"
+        return "Export Image to GeoTIFF"
 
     def group(self) -> str:
         return "Export"

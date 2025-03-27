@@ -277,6 +277,11 @@ def ee_image_to_geotiff(
 
     tiles = tile_extent(ee_image, extent, scale)
     logger.info(f"Generated {len(tiles)} tiles for export.")
+    # TODO: review threshold and messaging
+    if len(tiles) > 5:
+        logger.warning(
+            "Exporting large number of tiles. Consider reducing scale or extent."
+        )
     tile_paths = []
 
     for idx, tile in enumerate(tiles):

@@ -1,5 +1,6 @@
 import logging
 
+from .feedback_context import get_feedback
 from qgis.core import Qgis, QgsMessageLog
 
 from .Map import get_iface
@@ -43,6 +44,15 @@ class QGISMessageLogHandler(logging.Handler):
             notifyUser=notify_user,
         )
 
+        # Also push the message to the QGIS Processing Feedback
+        feedback = get_feedback()
+        if feedback:
+            msg = self.format(record)
+            if record.levelno >= logging.WARNING:
+                feedback.pushWarning(msg)
+            else:
+                feedback.pushInfo(msg)
+
 
 class QGISMessageBarHandler(logging.Handler):
     """
@@ -69,13 +79,35 @@ class QGISMessageBarHandler(logging.Handler):
 
         # Push the message to the QGIS Message Bar
         iface = get_iface()
-        if iface:
-            iface.messageBar().pushMessage(
-                f"{self.plugin_name}",
-                msg,
-                level=qgis_level,
-                duration=self.duration,
-            )
+        if iface and iface.messageBar():
+            try:
+                iface.messageBar().pushMessage(
+                    f"{self.plugin_name}",
+                    msg,
+                    level=qgis_level,
+                    duration=self.duration,
+                )
+            except Exception as e:
+                # If we can't push the message, log it to the QGIS Message Log
+                QgsMessageLog.logMessage(
+                    message=f"Error pushing message to QGIS Message Bar: {str(e)}",
+                    tag=self.plugin_name,
+                    level=Qgis.Critical,
+                    notifyUser=True,
+                )
+
+
+class QGISFeedbackHandler(logging.Handler):
+    """Sends logs to the active processing feedback, if available."""
+
+    def emit(self, record):
+        feedback = get_feedback()
+        if feedback:
+            msg = self.format(record)
+            if record.levelno >= logging.WARNING:
+                feedback.pushWarning(msg)
+            else:
+                feedback.pushInfo(msg)
 
 
 def setup_logger(plugin_name: str, logger_name: str = MODULE_NAME) -> None:
@@ -94,6 +126,11 @@ def setup_logger(plugin_name: str, logger_name: str = MODULE_NAME) -> None:
     qgis_bar_handler.setLevel(logging.WARNING)
     qgis_bar_handler.setFormatter(logging.Formatter("%(message)s"))
     logger.addHandler(qgis_bar_handler)
+
+    feedback_handler = QGISFeedbackHandler()
+    feedback_handler.setLevel(logging.INFO)
+    feedback_handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(feedback_handler)
 
 
 def teardown_logger(logger_name: str = MODULE_NAME) -> None:

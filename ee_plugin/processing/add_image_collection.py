@@ -27,9 +27,10 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.core import QgsProcessingContext, QgsProcessingFeedback
 from qgis import gui
-from ..utils import translate as _
 
+from ..feedback_context import set_feedback
 from .. import Map
+from ..utils import translate as _
 
 
 filter_functions = {
@@ -393,6 +394,8 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         return AddImageCollectionAlgorithmDialog(algorithm=self, parent=parent)
 
     def processAlgorithm(self, parameters, context, feedback):
+        # add logs to algorithm dialog
+        set_feedback(feedback)
         image_collection_id = parameters["image_collection_id"]
         filters = parameters["filters"]
         start_date = parameters["start_date"]

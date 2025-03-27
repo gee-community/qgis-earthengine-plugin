@@ -49,7 +49,7 @@ filter_functions = {
 
 
 class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
-    def __init__(self, algorithm, parent=None):
+    def __init__(self, algorithm: QgsProcessingAlgorithm, parent: QWidget = None):
         super().__init__(
             parent,
             flags=Qt.WindowFlags(),
@@ -226,16 +226,16 @@ class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
     def createFeedback(self) -> QgsProcessingFeedback:
         return super().createFeedback()
 
-    def pushInfo(self, info: str):
+    def pushInfo(self, info: str) -> None:
         super().pushInfo(info)
 
-    def pushWarning(self, warning: str):
+    def pushWarning(self, warning: str) -> None:
         super().pushWarning(warning)
 
-    def reportError(self, error: str, fatalError: bool):
+    def reportError(self, error: str, fatalError: bool) -> None:
         super().reportError(error, fatalError)
 
-    def runAlgorithm(self):
+    def runAlgorithm(self) -> None:
         context = self.processingContext()
         feedback = self.createFeedback()
 
@@ -261,7 +261,7 @@ class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         self.setResults(results)
         self.showLog()
 
-    def getParameters(self):
+    def getParameters(self) -> dict:
         try:
             filters = []
             for i in range(self.filter_rows_layout.count()):
@@ -294,10 +294,10 @@ class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         except Exception as e:
             raise ValueError(f"Invalid parameters: {e}")
 
-    def algExecuted(self, successful, results):
+    def algExecuted(self, successful: bool, results: dict) -> None:
         return super().algExecuted(successful, results)
 
-    def createProcessingParameters(self, context):
+    def createProcessingParameters(self, context: QgsProcessingContext) -> dict:
         # TODO: some nested error happening when copying json parameters or qgis_process
         return self.unserializeParameters()
 

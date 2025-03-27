@@ -312,7 +312,19 @@ def merge_geotiffs_gdal(in_files: List[str], out_file: str) -> None:
         vrt = None
     else:
         vrt = gdal.BuildVRT("/vsimem/temp.vrt", in_files)
-        gdal.Translate(out_file, vrt)
+        gdal.Translate(
+            out_file,
+            vrt,
+            options=gdal.TranslateOptions(
+                format="COG",
+                creationOptions=[
+                    "COMPRESS=DEFLATE",
+                    "TILING=YES",
+                    "BLOCKXSIZE=512",
+                    "BLOCKYSIZE=512",
+                ],
+            ),
+        )
         vrt = None
 
 

@@ -1,3 +1,4 @@
+import typing
 from abc import abstractmethod
 
 from datetime import datetime
@@ -107,3 +108,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
     def algExecuted(self, successful: bool, results: Dict) -> None:
         return super().algExecuted(successful, results)
+
+    def createProcessingParameters(self, flags) -> typing.Dict[str, typing.Any]:
+        # TODO: We are currently unable to copy parameters
+        #   from the algorithm to the dialog.
+        return {}

@@ -14,7 +14,8 @@ from qgis.core import (
 )
 
 from ..Map import addLayer
-from ..feedback_context import set_feedback
+from ..logging import local_context
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
         feedback: QgsProcessingFeedback,
     ) -> Dict[str, Any]:
         # add logs to algorithm dialog
-        set_feedback(feedback)
+        local_context.set_feedback(feedback)
         image_id = self.parameterAsString(parameters, "IMAGE_ID", context)
         viz_params_raw = self.parameterAsString(parameters, "VIZ_PARAMS", context)
         logger.info(

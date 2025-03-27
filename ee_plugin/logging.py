@@ -1,12 +1,28 @@
 import logging
+from typing import Optional
+import threading
+from dataclasses import dataclass, field
 
-from .feedback_context import get_feedback
-from qgis.core import Qgis, QgsMessageLog
+from qgis.core import Qgis, QgsMessageLog, QgsFeedback
 
 from .Map import get_iface
 
 
 MODULE_NAME = __name__.split(".")[0]
+
+
+@dataclass
+class LocalContext:
+    _state: threading.local = field(default_factory=threading.local)
+
+    def set_feedback(self, feedback: QgsFeedback) -> None:
+        self._state.feedback = feedback
+
+    def get_feedback(self) -> Optional[QgsFeedback]:
+        return getattr(self._state, "feedback", None)
+
+
+local_context = LocalContext()
 
 
 class QGISMessageLogHandler(logging.Handler):
@@ -43,15 +59,6 @@ class QGISMessageLogHandler(logging.Handler):
             level=qgis_level,
             notifyUser=notify_user,
         )
-
-        # Also push the message to the QGIS Processing Feedback
-        feedback = get_feedback()
-        if feedback:
-            msg = self.format(record)
-            if record.levelno >= logging.WARNING:
-                feedback.pushWarning(msg)
-            else:
-                feedback.pushInfo(msg)
 
 
 class QGISMessageBarHandler(logging.Handler):
@@ -101,11 +108,17 @@ class QGISFeedbackHandler(logging.Handler):
     """Sends logs to the active processing feedback, if available."""
 
     def emit(self, record):
-        feedback = get_feedback()
+        feedback = local_context.get_feedback()
         if feedback:
             msg = self.format(record)
-            if record.levelno >= logging.WARNING:
+            if record.levelno >= logging.ERROR:
+                feedback.reportError(msg, True)
+            elif record.levelno >= logging.WARNING:
                 feedback.pushWarning(msg)
+            elif record.levelno >= logging.INFO:
+                feedback.pushInfo(msg)
+            elif record.levelno >= logging.DEBUG:
+                feedback.pushDebugInfo(msg)
             else:
                 feedback.pushInfo(msg)
 

@@ -1,12 +1,8 @@
 import json
-from datetime import datetime
 from typing import List
 
 import ee
-import processing
-from osgeo import gdal
 from qgis.core import (
-    Qgis,
     QgsProcessingAlgorithm,
     QgsProcessingParameterString,
     QgsProcessingParameterEnum,
@@ -16,10 +12,7 @@ from qgis.core import (
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
     QgsRectangle,
-    QgsProcessingContext,
-    QgsProcessingFeedback,
 )
-from qgis.PyQt.QtCore import Qt, QT_VERSION_STR
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
@@ -33,7 +26,7 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis import gui
 
-from ..feedback_context import set_feedback
+from .custom_algorithm_dialog import BaseAlgorithmDialog
 from .. import Map
 from ..utils import translate as _
 
@@ -48,26 +41,11 @@ filter_functions = {
 }
 
 
-class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
+class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
     def __init__(self, algorithm: QgsProcessingAlgorithm, parent: QWidget = None):
-        super().__init__(
-            parent,
-            flags=Qt.WindowFlags(),
-            mode=gui.QgsProcessingAlgorithmDialogBase.DialogMode.Single,
-        )
-        self.setAlgorithm(algorithm)
-        self.setModal(True)
-        self.setWindowTitle("Add Image Collection")
+        super().__init__(algorithm, parent=parent, title="Add Image Collection")
 
-        # Hook up layout
-        self.panel = gui.QgsPanelWidget()
-        layout = self._build_dialog()
-        self.panel.setLayout(layout)
-        self.setMainWidget(self.panel)
-
-        self.cancelButton().clicked.connect(self.reject)
-
-    def _build_dialog(self) -> QWidget:
+    def buildDialog(self) -> QWidget:
         # Build your custom layout
         layout = QVBoxLayout(self)
 
@@ -217,50 +195,6 @@ class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
         return layout
 
-    def processingContext(self) -> QgsProcessingContext:
-        return QgsProcessingContext()
-
-    def createContext(self) -> QgsProcessingContext:
-        return QgsProcessingContext()
-
-    def createFeedback(self) -> QgsProcessingFeedback:
-        return super().createFeedback()
-
-    def pushInfo(self, info: str) -> None:
-        super().pushInfo(info)
-
-    def pushWarning(self, warning: str) -> None:
-        super().pushWarning(warning)
-
-    def reportError(self, error: str, fatalError: bool) -> None:
-        super().reportError(error, fatalError)
-
-    def runAlgorithm(self) -> None:
-        context = self.processingContext()
-        feedback = self.createFeedback()
-
-        set_feedback(feedback)
-
-        params = self.getParameters()
-
-        self.pushInfo(f"QGIS version: {Qgis.QGIS_VERSION}")
-        self.pushInfo(f"QGIS code revision: {Qgis.QGIS_DEV_VERSION}")
-        self.pushInfo(f"Qt version: {QT_VERSION_STR}")
-        self.pushInfo(f"GDAL version: {gdal.VersionInfo('--version')}")
-        self.pushInfo(
-            f"Algorithm started at: {datetime.now().isoformat(timespec='seconds')}"
-        )
-        self.pushInfo(f"Algorithm '{self.algorithm().displayName()}' starting…")
-        self.pushInfo("Input parameters:")
-        for k, v in params.items():
-            self.pushInfo(f"  {k}: {v}")
-        results = processing.run(
-            self.algorithm(), params, context=context, feedback=feedback
-        )
-
-        self.setResults(results)
-        self.showLog()
-
     def getParameters(self) -> dict:
         try:
             filters = []
@@ -293,13 +227,6 @@ class AddImageCollectionAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
         except Exception as e:
             raise ValueError(f"Invalid parameters: {e}")
-
-    def algExecuted(self, successful: bool, results: dict) -> None:
-        return super().algExecuted(successful, results)
-
-    def createProcessingParameters(self, context: QgsProcessingContext) -> dict:
-        # TODO: some nested error happening when copying json parameters or qgis_process
-        return self.unserializeParameters()
 
 
 class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):

@@ -1,10 +1,8 @@
 import typing
 from abc import abstractmethod
-
 from datetime import datetime
 from typing import Optional, Dict
 
-from qgis import processing
 from osgeo import gdal
 from qgis.core import (
     Qgis,
@@ -14,7 +12,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import Qt, QT_VERSION_STR
 from qgis.PyQt.QtWidgets import QWidget
-from qgis import gui
+from qgis import gui, processing
 
 from ..logging import local_context
 
@@ -97,9 +95,6 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         )
         self.setResults(results)
         self.showLog()
-
-    def algExecuted(self, successful: bool, results: Dict) -> None:
-        return super().algExecuted(successful, results)
 
     def createProcessingParameters(self, flags) -> typing.Dict[str, typing.Any]:
         # TODO: We are currently unable to copy parameters from the algorithm to the dialog.

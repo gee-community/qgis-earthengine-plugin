@@ -162,7 +162,6 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout.addWidget(compositing_group)
 
         # Show/hide percentile input based on method
-
         self.compositing_method.currentIndexChanged.connect(
             update_percentile_visibility
         )
@@ -198,8 +197,8 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
     def getParameters(self) -> dict:
         try:
             filters = []
-            for i in range(self.filter_rows_layout.count()):
-                row_layout = self.filter_rows_layout.itemAt(i)
+            for filter in self.filter_rows_layout.children():
+                row_layout = filter.layout()
                 if isinstance(row_layout, QHBoxLayout):
                     name_input = row_layout.itemAt(0).widget()
                     operator_input = row_layout.itemAt(1).widget()

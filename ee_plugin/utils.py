@@ -279,28 +279,25 @@ def ee_image_to_geotiff(
 
     tiles = tile_extent(ee_image, extent, scale)
     logger.info(f"Generated {len(tiles)} tiles for export.")
-    # TODO: review threshold and messaging
+
+    # hard-coded early warning for large number of tiles
     if len(tiles) > 5:
         logger.warning(
             "Exporting large number of tiles. Consider reducing scale or extent."
         )
     tile_paths = []
 
-    try:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            for idx, tile in enumerate(tiles):
-                if feedback and feedback.isCanceled():
-                    logger.info("Export cancelled by user.")
-                    raise StopIteration("Export cancelled by user.")
-                out_path = os.path.join(temp_dir, f"{base_name}_tile{idx}.tif")
-                logger.info(f"Downloading tile {idx + 1}/{len(tiles)} to {out_path}")
-                download_tile(ee_image, tile, scale, projection, out_path)
-                tile_paths.append(out_path)
-
-            logger.info(f"Merging {len(tile_paths)} tiles into {merge_output}")
-            merge_geotiffs_gdal(tile_paths, merge_output)
-    except StopIteration:
-        pass
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for idx, tile in enumerate(tiles):
+            if feedback and feedback.isCanceled():
+                logger.info("Export cancelled by user.")
+                return
+            out_path = os.path.join(temp_dir, f"{base_name}_tile{idx}.tif")
+            logger.info(f"Downloading tile {idx + 1}/{len(tiles)} to {out_path}")
+            download_tile(ee_image, tile, scale, projection, out_path)
+            tile_paths.append(out_path)
+        logger.info(f"Merging {len(tile_paths)} tiles into {merge_output}")
+        merge_geotiffs_gdal(tile_paths, merge_output)
 
 
 def merge_geotiffs_gdal(in_files: List[str], out_file: str) -> None:

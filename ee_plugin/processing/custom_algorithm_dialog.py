@@ -31,6 +31,7 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             flags=Qt.WindowFlags(),
             mode=gui.QgsProcessingAlgorithmDialogBase.DialogMode.Single,
         )
+        self.context = self.createContext()
         self.setAlgorithm(algorithm)
         self.setModal(True)
         self.setWindowTitle(title or algorithm.displayName())
@@ -48,32 +49,23 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         """
         Build the dialog layout."
         """
-        pass
+        raise NotImplementedError("buildDialog() not implemented")
 
     @abstractmethod
     def getParameters(self) -> Dict:
         """
         Get the parameters from the dialog.
         """
-        pass
+        raise NotImplementedError("getParameters() not implemented")
 
     def processingContext(self) -> QgsProcessingContext:
-        return QgsProcessingContext()
+        return self.context
 
     def createContext(self) -> QgsProcessingContext:
         return QgsProcessingContext()
 
     def createFeedback(self) -> QgsProcessingFeedback:
         return super().createFeedback()
-
-    def pushInfo(self, info: str) -> None:
-        super().pushInfo(info)
-
-    def pushWarning(self, warning: str) -> None:
-        super().pushWarning(warning)
-
-    def reportError(self, error: str, fatalError: bool) -> None:
-        super().reportError(error, fatalError)
 
     def runAlgorithm(self) -> None:
         context = self.processingContext()
@@ -110,6 +102,6 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         return super().algExecuted(successful, results)
 
     def createProcessingParameters(self, flags) -> typing.Dict[str, typing.Any]:
-        # TODO: We are currently unable to copy parameters
-        #   from the algorithm to the dialog.
+        # TODO: We are currently unable to copy parameters from the algorithm to the dialog.
+        #   See: https://github.com/gee-community/qgis-earthengine-plugin/issues/251
         return {}

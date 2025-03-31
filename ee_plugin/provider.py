@@ -50,7 +50,15 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         self.providerOptions = providerOptions
         self.flags = flags
         self.ee_object = image
-        self.ee_info = image.getInfo() if image else None
+        self.asset_id = None
+        self.ee_info = None
+        if image:
+            try:
+                self.ee_info = image.getInfo()
+                if hasattr(image, "id"):
+                    self.asset_id = image.id().getInfo()
+            except Exception as e:
+                logger.warning(f"Could not fetch ee_info in __init__: {e}")
 
         # create WMS provider
         self.wms = QgsProviderRegistry.instance().createProvider(
@@ -77,6 +85,8 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
         if image:
             provider.set_ee_object(image)
+        else:
+            provider.set_ee_object_from_asset()
 
         return provider
 
@@ -228,7 +238,11 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return self.wms.getLegendGraphicFetcher(mapSettings)
 
     def htmlMetadata(self):
-        return json.dumps(self.ee_object.getInfo())
+        try:
+            return json.dumps(self.ee_object.getInfo())
+        except Exception as e:
+            logger.warning(f"Could not get html metadata: {e}")
+            return "{}"
 
     def identify(
         self, point, format, boundingBox=None, width=None, height=None, dpi=None
@@ -318,7 +332,10 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
             self.uri, self.providerOptions, self.flags, self.ee_object
         )
         provider.wms.setDataSourceUri(self.wms.dataSourceUri())
-        provider.set_ee_object(self.ee_object)
+        if self.ee_object:
+            provider.set_ee_object(self.ee_object)
+        else:
+            provider.set_ee_object_from_asset()
         provider.setParent(EarthEngineRasterDataProvider.PARENT)
 
         return provider
@@ -342,12 +359,13 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         return self.wms.sourceDataType(band_no)
 
     def bandCount(self):
-        if self.ee_object:
+        if self.ee_info and "bands" in self.ee_info:
             return len(self.ee_info["bands"])
-        else:
-            return 1  # fall back to default if ee_object is not set
+        return 1  # fallback to default if ee_object is not set
 
     def generateBandName(self, band_no):
+        if not self.ee_info or "bands" not in self.ee_info:
+            return f"band_{band_no}"
         return self.ee_info["bands"][band_no - 1]["id"]
 
     def xBlockSize(self):
@@ -385,7 +403,29 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def set_ee_object(self, ee_object):
         self.ee_object = ee_object
-        self.ee_info = ee_object.getInfo()
+        if not ee_object:
+            if not getattr(self, "_warned_about_missing_object", False):
+                logger.warning("ee_object is None — can't fetch info")
+                self._warned_about_missing_object = True
+            self.ee_info = None
+            return
+        try:
+            self.ee_info = ee_object.getInfo()
+            if hasattr(ee_object, "id"):
+                self.asset_id = ee_object.id().getInfo()
+        except Exception as e:
+            logger.warning(f"Could not fetch ee_info in set_ee_object: {e}")
+            self.ee_info = None
+
+    def set_ee_object_from_asset(self):
+        """Try to rehydrate ee_object from stored asset ID."""
+        if self.asset_id:
+            try:
+                logger.info(f"Rehydrating ee_object from asset_id: {self.asset_id}")
+                image = ee.Image(self.asset_id)
+                self.set_ee_object(image)
+            except Exception as e:
+                logger.warning(f"Failed to rehydrate ee_object from asset_id: {e}")
 
 
 def register_data_provider():

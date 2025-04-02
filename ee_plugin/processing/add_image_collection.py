@@ -13,6 +13,7 @@ from qgis.core import (
     QgsProcessingParameterExtent,
     QgsRectangle,
 )
+from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
@@ -29,7 +30,7 @@ from qgis import gui
 
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 from .. import Map
-from ..utils import translate as _
+from ..utils import translate as _, get_ee_properties
 
 
 filter_functions = {
@@ -46,6 +47,29 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
     def __init__(self, algorithm: QgsProcessingAlgorithm, parent: QWidget = None):
         super().__init__(algorithm, parent=parent, title="Add Image Collection")
 
+    def update_image_properties(self):
+        asset_id = self.image_collection_id.text().strip()
+        if not asset_id:
+            return
+        props = get_ee_properties(asset_id)
+        if props:
+            self.image_properties = props
+            self.refresh_property_dropdowns()
+
+    def schedule_image_properties_update(self):
+        self._update_timer.start(500)  # 500ms delay after typing stops
+
+    def refresh_property_dropdowns(self):
+        for i in range(self.filter_rows_layout.count()):
+            layout = self.filter_rows_layout.itemAt(i)
+            if isinstance(layout, QHBoxLayout):
+                dropdown = layout.itemAt(0).widget()
+                if isinstance(dropdown, QComboBox):
+                    current = dropdown.currentText()
+                    dropdown.clear()
+                    dropdown.addItems(self.image_properties)
+                    dropdown.setCurrentText(current)
+
     def buildDialog(self) -> QWidget:
         # Build your custom layout
         layout = QVBoxLayout(self)
@@ -61,6 +85,14 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
             _("Enter the ID of the Earth Engine Image Collection.")
         )
 
+        self.image_properties = []
+        self.image_collection_id.textChanged.connect(
+            self.schedule_image_properties_update
+        )
+        self._update_timer = QTimer(self)
+        self._update_timer.setSingleShot(True)
+        self._update_timer.timeout.connect(self.update_image_properties)
+
         source_form = QFormLayout()
         source_form.addRow(source_label, self.image_collection_id)
         layout.addLayout(source_form)
@@ -74,9 +106,11 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         def add_filter_row():
             row_layout = QHBoxLayout()
 
-            name_input = QLineEdit()
-            name_input.setPlaceholderText(_("Property Name"))
-            name_input.setToolTip(_("Enter the property name to filter by."))
+            name_input = QComboBox()
+            name_input.setEditable(True)
+            name_input.setToolTip(_("Enter or select a property name."))
+            name_input.setObjectName("property_dropdown")
+            name_input.addItems(self.image_properties)
 
             operator_input = QComboBox()
             operator_input.addItems(["==", "!=", "<", ">", "<=", ">="])
@@ -97,10 +131,10 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
             remove_button.clicked.connect(remove_row)
 
-            row_layout.addWidget(name_input)
-            row_layout.addWidget(operator_input)
-            row_layout.addWidget(value_input)
-            row_layout.addWidget(remove_button)
+            row_layout.addWidget(name_input, 2)
+            row_layout.addWidget(operator_input, 1)
+            row_layout.addWidget(value_input, 2)
+            row_layout.addWidget(remove_button, 1)
 
             self.filter_rows_layout.addLayout(row_layout)
 
@@ -219,11 +253,12 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                     if (
                         name_input
                         and value_input
-                        and name_input.text()
+                        and (name_input.currentText())
                         and value_input.text()
                     ):
                         op = operator_input.currentText()
-                        filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
+                        name_val = name_input.currentText()
+                        filters.append(f"{name_val}:{op}:{value_input.text()}")
             filters_str = ";".join(filters)
 
             viz_params_raw = self.viz_params.toPlainText()

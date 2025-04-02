@@ -26,6 +26,8 @@ from qgis.PyQt.QtCore import QCoreApplication
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Change as needed (DEBUG/INFO/WARNING/ERROR)
 
+suppressed_logger = logging.getLogger("ee_plugin.utils.get_ee_properties")
+
 
 class VisualizeParams(TypedDict, total=False):
     bands: Optional[Any]
@@ -419,11 +421,13 @@ def get_ee_properties(asset_id: str) -> Optional[List[str]]:
         elif asset["type"] == "TABLE":
             obj = ee.FeatureCollection(asset_id).first()
         else:
-            logger.warning(f"Unhandled EE object type: {asset['type']}")
+            suppressed_logger.warning(f"Unhandled EE object type: {asset['type']}")
             return None
 
         props = obj.toDictionary().getInfo()
         return sorted(props.keys())
     except Exception as e:
-        logger.error(f"Error retrieving properties from asset '{asset_id}': {e}")
+        suppressed_logger.error(
+            f"Error retrieving properties from asset '{asset_id}': {e}"
+        )
         return None

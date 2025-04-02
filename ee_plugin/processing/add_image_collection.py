@@ -70,6 +70,25 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                     dropdown.addItems(self.image_properties)
                     dropdown.setCurrentText(current)
 
+    def _buildCompositingLayoutWidget(self):
+        compositing_group = gui.QgsCollapsibleGroupBox(_("Compositing"))
+        compositing_group.setCollapsed(False)
+        compositing_layout = QFormLayout()
+
+        self.compositing_method = QComboBox(objectName="compositing_method")
+        self.compositing_method.addItems(
+            ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
+        )
+        self.compositing_method.setToolTip(_("Select a compositing method."))
+        compositing_layout.addRow(_("Compositing Method"), self.compositing_method)
+
+        percentile_slider_layout = self._buildPercentileSliderLayout()
+        compositing_layout.addRow(self.percentile_label, percentile_slider_layout)
+
+        compositing_group.setLayout(compositing_layout)
+
+        return compositing_group
+
     def _buildFilterLayoutWidget(self):
         # --- Filter by Properties ---
         filter_group = gui.QgsCollapsibleGroupBox(_("Filter by Image Properties"))
@@ -128,6 +147,44 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
         return filter_group
 
+    def _update_percentile_visibility(self, index):
+        is_percentile = self.compositing_method.itemText(index) == "Percentile"
+        self.percentile_label.setVisible(is_percentile)
+        self.percentile_value.setVisible(is_percentile)
+        self.percentile_max_label.setVisible(is_percentile)
+        self.percentile_min_label.setVisible(is_percentile)
+        self.percentile_current_value.setVisible(is_percentile)
+
+    def _buildPercentileSliderLayout(self):
+        self.percentile_label = QLabel(_("Percentile Value"))
+        self.percentile_value = QSlider(objectName="percentile_value")
+        self.percentile_value.setRange(0, 100)
+        self.percentile_value.setSingleStep(1)
+        self.percentile_value.setTickInterval(10)
+        self.percentile_value.setOrientation(1)
+        self.percentile_value.setTickPosition(QSlider.TicksBelow)
+        self.percentile_min_label = QLabel("0")
+        self.percentile_max_label = QLabel("100")
+
+        self.percentile_current_value = QLabel(str(self.percentile_value.value()))
+        self.percentile_value.valueChanged.connect(
+            lambda value: self.percentile_current_value.setText(str(value))
+        )
+
+        percentile_slider_layout = QHBoxLayout()
+        percentile_slider_layout.addWidget(self.percentile_min_label)
+        percentile_slider_layout.addWidget(self.percentile_value)
+        percentile_slider_layout.addWidget(self.percentile_max_label)
+        # next line
+        percentile_slider_layout.addSpacing(50)
+        percentile_slider_layout.addWidget(self.percentile_current_value)
+
+        self.percentile_value.setValue(50)
+        self.percentile_value.setToolTip(_("Enter percentile value (0-100)"))
+        self._update_percentile_visibility(self.compositing_method.currentIndex())
+
+        return percentile_slider_layout
+
     def buildDialog(self) -> QWidget:
         # Build your custom layout
         layout = QVBoxLayout(self)
@@ -155,71 +212,28 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         source_form.addRow(source_label, self.image_collection_id)
         layout.addLayout(source_form)
 
+        ## --- Filter by Properties ---
         filter_layout_widget = self._buildFilterLayoutWidget()
         layout.addWidget(filter_layout_widget)
 
         # --- Compositing Method ---
-        compositing_group = gui.QgsCollapsibleGroupBox(_("Compositing"))
-        compositing_group.setCollapsed(False)
-        compositing_layout = QFormLayout()
-
-        self.compositing_method = QComboBox(objectName="compositing_method")
-        self.compositing_method.addItems(
-            ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
-        )
-        self.compositing_method.setToolTip(_("Select a compositing method."))
-        compositing_layout.addRow(_("Compositing Method"), self.compositing_method)
-
-        def update_percentile_visibility(index):
-            is_percentile = self.compositing_method.itemText(index) == "Percentile"
-            self.percentile_label.setVisible(is_percentile)
-            self.percentile_value.setVisible(is_percentile)
-            self.percentile_max_label.setVisible(is_percentile)
-            self.percentile_min_label.setVisible(is_percentile)
-            self.percentile_min_label.setVisible(is_percentile)
-            self.percentile_max_label.setVisible(is_percentile)
-
-        self.percentile_label = QLabel(_("Percentile Value"))
-        self.percentile_value = QSlider(objectName="percentile_value")
-        self.percentile_value.setRange(0, 100)
-        self.percentile_value.setSingleStep(1)
-        self.percentile_value.setTickInterval(10)
-        self.percentile_value.setOrientation(1)
-        self.percentile_value.setTickPosition(QSlider.TicksBelow)
-        self.percentile_min_label = QLabel("0")
-        self.percentile_max_label = QLabel("100")
-        percentile_slider_layout = QHBoxLayout()
-        percentile_slider_layout.addWidget(self.percentile_min_label)
-        percentile_slider_layout.addWidget(self.percentile_value)
-        percentile_slider_layout.addWidget(self.percentile_max_label)
-        self.percentile_value.setValue(50)
-        self.percentile_value.setToolTip(_("Enter percentile value (0-100)"))
-        update_percentile_visibility(self.compositing_method.currentIndex())
-
-        compositing_layout.addRow(self.percentile_label, percentile_slider_layout)
-
-        compositing_group.setLayout(compositing_layout)
+        compositing_group = self._buildCompositingLayoutWidget()
         layout.addWidget(compositing_group)
-
-        # Show/hide percentile input based on method
         self.compositing_method.currentIndexChanged.connect(
-            update_percentile_visibility
+            self._update_percentile_visibility
         )
 
         # --- Filter by Dates ---
         date_group = gui.QgsCollapsibleGroupBox(_("Filter by Dates"))
         date_group.setCollapsed(True)
         date_layout = QFormLayout()
-
         self.start_date = gui.QgsDateEdit(objectName="start_date")
         self.start_date.setToolTip(_("Start date for filtering"))
-
         self.end_date = gui.QgsDateEdit(objectName="end_date")
         self.end_date.setToolTip(_("End date for filtering"))
 
         date_layout.addRow(_("Start"), self.start_date)
         date_layout.addRow(_("End"), self.end_date)
-
         date_group.setLayout(date_layout)
         layout.addWidget(date_group)
 

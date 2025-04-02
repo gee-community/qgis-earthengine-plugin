@@ -401,3 +401,29 @@ def download_tile(
     with open(out_path, "wb") as f:
         f.write(response.content)
     logger.debug(f"Tile saved to {out_path}")
+
+
+def get_ee_properties(asset_id: str) -> Optional[List[str]]:
+    """
+    Get property names from any Earth Engine asset.
+    """
+    try:
+        asset = ee.data.getAsset(asset_id)
+
+        if asset["type"] == "IMAGE_COLLECTION":
+            obj = ee.ImageCollection(asset_id).first()
+        elif asset["type"] == "IMAGE":
+            obj = ee.Image(asset_id)
+        elif asset["type"] == "FEATURE_COLLECTION":
+            obj = ee.FeatureCollection(asset_id).first()
+        elif asset["type"] == "TABLE":
+            obj = ee.FeatureCollection(asset_id).first()
+        else:
+            logger.warning(f"Unhandled EE object type: {asset['type']}")
+            return None
+
+        props = obj.toDictionary().getInfo()
+        return sorted(props.keys())
+    except Exception as e:
+        logger.error(f"Error retrieving properties from asset '{asset_id}': {e}")
+        return None

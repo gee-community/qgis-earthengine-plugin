@@ -23,6 +23,7 @@ from qgis.PyQt.QtWidgets import (
     QHBoxLayout,
     QWidget,
     QPushButton,
+    QTextEdit,
 )
 from qgis import gui
 
@@ -189,8 +190,20 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
             title=_("Filter by Coordinates"),
             collapsed=True,
         )
+        self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())
         self.extent_group.setToolTip(_("Specify the geographic extent."))
         layout.addWidget(self.extent_group)
+
+        viz_label = QLabel(
+            _("Visualization Parameters <br>(JSON format)"),
+        )
+        viz_label.setToolTip(_("Enter visualization parameters in JSON format."))
+        self.viz_params = QTextEdit()
+        self.viz_params.setObjectName("viz_params")
+        self.viz_params.setToolTip(_("Enter visualization parameters in JSON format."))
+        viz_form = QFormLayout()
+        viz_form.addRow(viz_label, self.viz_params)
+        layout.addLayout(viz_form)
 
         return layout
 
@@ -212,6 +225,17 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                         op = operator_input.currentText()
                         filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
             filters_str = ";".join(filters)
+
+            viz_params_raw = self.viz_params.toPlainText()
+            if viz_params_raw:
+                viz_params_raw = viz_params_raw.strip()
+                try:
+                    viz_params = json.loads(viz_params_raw)
+                except json.JSONDecodeError:
+                    raise ValueError("Invalid JSON format in visualization parameters.")
+            else:
+                viz_params = {}
+
             params = {
                 "image_collection_id": self.image_collection_id.text(),
                 "filters": filters_str,
@@ -220,7 +244,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                 "extent": self.extent_group.outputExtent(),
                 "compositing_method": self.compositing_method.currentIndex(),
                 "percentile_value": self.percentile_value.value(),
-                "viz_params": "{}",
+                "viz_params": viz_params,
             }
             return params
 
@@ -255,8 +279,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         <h3>Parameters:</h3>
         <ul>
             <li><b>Image Collection ID:</b> The Earth Engine Image Collection ID to add to the map.</li>
-            <li><b>Filter Image Properties:</b> Image Property filter Filters to apply to the Image Collection. Image properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details. Example for LANDSAT/LC09/C02/T1_L2: "cloud_coverage:&lt;:10;sun_elevation:&gt;:0" for non-cloudy daytime Landsat images.</li>
-            <li><b>Start date for filtering:</b> The start date for filtering the Image Collection.</li>
+            <li><b>Filter Image Properties:</b> Image Property filter Filters to apply to the Image Collection. Image properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details. 
             <li><b>End date for filtering:</b> The end date for filtering the Image Collection.</li>
             <li><b>Compositing Method:</b> The compositing method to use for the Image Collection.</li>
             <li><b>Percentile Value:</b> The percentile value to use for the 'Percentile' compositing method if selected.</li>
@@ -423,13 +446,15 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             if percentile_value < 0 or percentile_value > 100:
                 raise ValueError("Percentile value must be between 0 and 100.")
 
-        if viz_params:
+        if isinstance(viz_params, str):
             try:
-                viz_params = json.loads(viz_params)  # Parse the JSON string
+                viz_params = json.loads(viz_params.replace("'", '"'))
             except json.JSONDecodeError:
                 raise ValueError("Invalid JSON for visualization parameters.")
-        else:
-            viz_params = {}
+        elif not isinstance(viz_params, dict):
+            raise ValueError(
+                "Visualization parameters must be a JSON string or dictionary."
+            )
 
         # compositing method is an index
         compositing_options = ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]

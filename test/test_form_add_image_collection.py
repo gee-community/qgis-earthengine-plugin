@@ -24,6 +24,7 @@ def test_add_image_collection_algorithm_with_filters(clean_qgis_iface):
         "extent": None,
         "compositing_method": 0,  # Mosaic index
         "percentile_value": None,
+        "viz_params": {},
     }
 
     # Run the algorithm with parameters
@@ -47,6 +48,7 @@ def test_add_image_collection_algorithm_multiple_filters(clean_qgis_iface):
         "extent": None,
         "compositing_method": 0,  # Mosaic index
         "percentile_value": None,
+        "viz_params": {},
     }
 
     # Run the algorithm with parameters
@@ -70,6 +72,7 @@ def test_invalid_filters(clean_qgis_iface):
         "extent": None,
         "compositing_method": "Mosaic",
         "percentile_value": None,
+        "viz_params": {},
     }
 
     # Run the algorithm with invalid filters
@@ -94,6 +97,7 @@ def test_add_image_collection_algorithm_empty_filters(clean_qgis_iface):
         "extent": None,
         "compositing_method": 0,  # Mosaic index
         "percentile_value": None,
+        "viz_params": "{}",
     }
 
     # Run the algorithm with empty filters
@@ -117,6 +121,7 @@ def test_add_image_collection_algorithm_percentile_compositing(clean_qgis_iface)
         "extent": None,
         "compositing_method": 5,  # Percentile index
         "percentile_value": 90,
+        "viz_params": {},
     }
 
     # Run the algorithm with percentile compositing method
@@ -164,7 +169,7 @@ def test_empty_viz_params(clean_qgis_iface):
         "extent": None,
         "compositing_method": 0,  # Mosaic index
         "percentile_value": None,
-        "viz_params": "",
+        "viz_params": "{}",
     }
 
     run_algorithm_with_params(params)

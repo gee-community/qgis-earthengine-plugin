@@ -70,33 +70,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                     dropdown.addItems(self.image_properties)
                     dropdown.setCurrentText(current)
 
-    def buildDialog(self) -> QWidget:
-        # Build your custom layout
-        layout = QVBoxLayout(self)
-
-        # --- Source Group ---
-        source_label = QLabel(
-            _("Image Collection ID <br>(e.g. LANDSAT/LC09/C02/T1_L2)"),
-        )
-        source_label.setToolTip(_("The Earth Engine Image Collection ID."))
-        self.image_collection_id = QLineEdit()
-        self.image_collection_id.setObjectName("image_collection_id")
-        self.image_collection_id.setToolTip(
-            _("Enter the ID of the Earth Engine Image Collection.")
-        )
-
-        self.image_properties = []
-        self.image_collection_id.textChanged.connect(
-            self.schedule_image_properties_update
-        )
-        self._update_timer = QTimer(self)
-        self._update_timer.setSingleShot(True)
-        self._update_timer.timeout.connect(self.update_image_properties)
-
-        source_form = QFormLayout()
-        source_form.addRow(source_label, self.image_collection_id)
-        layout.addLayout(source_form)
-
+    def _buildFilterLayoutWidget(self):
         # --- Filter by Properties ---
         filter_group = gui.QgsCollapsibleGroupBox(_("Filter by Image Properties"))
         filter_group.setCollapsed(True)
@@ -151,7 +125,38 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         filter_layout.addWidget(add_filter_btn)
 
         filter_group.setLayout(filter_layout)
-        layout.addWidget(filter_group)
+
+        return filter_group
+
+    def buildDialog(self) -> QWidget:
+        # Build your custom layout
+        layout = QVBoxLayout(self)
+
+        # --- Source Group ---
+        source_label = QLabel(
+            _("Image Collection ID <br>(e.g. LANDSAT/LC09/C02/T1_L2)"),
+        )
+        source_label.setToolTip(_("The Earth Engine Image Collection ID."))
+        self.image_collection_id = QLineEdit()
+        self.image_collection_id.setObjectName("image_collection_id")
+        self.image_collection_id.setToolTip(
+            _("Enter the ID of the Earth Engine Image Collection.")
+        )
+
+        self.image_properties = []
+        self.image_collection_id.textChanged.connect(
+            self.schedule_image_properties_update
+        )
+        self._update_timer = QTimer(self)
+        self._update_timer.setSingleShot(True)
+        self._update_timer.timeout.connect(self.update_image_properties)
+
+        source_form = QFormLayout()
+        source_form.addRow(source_label, self.image_collection_id)
+        layout.addLayout(source_form)
+
+        filter_layout_widget = self._buildFilterLayoutWidget()
+        layout.addWidget(filter_layout_widget)
 
         # --- Compositing Method ---
         compositing_group = gui.QgsCollapsibleGroupBox(_("Compositing"))

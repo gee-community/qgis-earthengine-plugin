@@ -57,9 +57,6 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
             self.image_properties = props
             self._refresh_property_dropdowns()
 
-    def schedule_image_properties_update(self):
-        self._update_timer.start(500)  # 500ms delay after typing stops
-
     def _on_image_collection_id_changed(self):
         self._update_timer.start(500)
 

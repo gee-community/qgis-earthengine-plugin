@@ -29,7 +29,7 @@ from qgis import gui
 
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 from .. import Map
-from ..utils import translate as _, get_ee_properties
+from ..utils import translate as _, get_ee_properties, get_available_bands
 
 
 filter_functions = {
@@ -58,16 +58,21 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
     def schedule_image_properties_update(self):
         self._update_timer.start(500)  # 500ms delay after typing stops
 
+    def _on_image_collection_id_changed(self):
+        self._update_timer.start(500)
+
+    def _on_image_collection_id_ready(self):
+        self.update_image_properties()
+        self.update_band_dropdowns()
+
     def refresh_property_dropdowns(self):
         for i in range(self.filter_rows_layout.count()):
             layout = self.filter_rows_layout.itemAt(i)
             if isinstance(layout, QHBoxLayout):
                 dropdown = layout.itemAt(0).widget()
                 if isinstance(dropdown, QComboBox):
-                    current = dropdown.currentText()
                     dropdown.clear()
                     dropdown.addItems(self.image_properties)
-                    dropdown.setCurrentText(current)
 
     def _buildCompositingLayoutWidget(self):
         compositing_group = gui.QgsCollapsibleGroupBox(_("Compositing"))
@@ -201,11 +206,11 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
         self.image_properties = []
         self.image_collection_id.textChanged.connect(
-            self.schedule_image_properties_update
+            self._on_image_collection_id_changed
         )
         self._update_timer = QTimer(self)
         self._update_timer.setSingleShot(True)
-        self._update_timer.timeout.connect(self.update_image_properties)
+        self._update_timer.timeout.connect(self._on_image_collection_id_ready)
 
         source_form = QFormLayout()
         source_form.addRow(source_label, self.image_collection_id)
@@ -255,14 +260,13 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
             _("Select Bands for Visualization"),
         )
         band_selection_label.setToolTip(_("Select bands for visualization."))
-        viz_bands_selection = [QComboBox() for _ in range(3)]
+        viz_bands_selection = [QComboBox(self) for _ in range(3)]
 
         for i, band_selection in enumerate(viz_bands_selection):
             band_selection.setToolTip(_("Select a band for visualization."))
             band_selection.setObjectName(f"viz_band_{i}")
             band_selection.setEditable(True)
             band_selection.setPlaceholderText(_("Band"))
-            band_selection.addItems(self.image_properties)
 
         bands_row_layout = QHBoxLayout()
         for band_selection in viz_bands_selection:
@@ -276,6 +280,19 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout.addWidget(viz_group)
 
         return layout
+
+    def update_band_dropdowns(self):
+        band_selection_items = (
+            get_available_bands(self.image_collection_id.text().strip()) or []
+        )
+        print(band_selection_items)
+        for i in range(3):
+            band_dropdown = self.findChild(QComboBox, f"viz_band_{i}")
+            if band_dropdown:
+                current = band_dropdown.currentText()
+                band_dropdown.clear()
+                band_dropdown.addItems(band_selection_items)
+                band_dropdown.setCurrentText(current)
 
     def getParameters(self) -> dict:
         try:

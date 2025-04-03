@@ -409,6 +409,8 @@ def get_ee_properties(asset_id: str) -> Optional[List[str]]:
     """
     Get property names from any Earth Engine asset.
     """
+    # TODO: could caller of the function provide a logger?
+    # using suppress logger because of dynamic calls to function
     try:
         asset = ee.data.getAsset(asset_id)
 
@@ -430,4 +432,30 @@ def get_ee_properties(asset_id: str) -> Optional[List[str]]:
         suppressed_logger.error(
             f"Error retrieving properties from asset '{asset_id}': {e}"
         )
+        return None
+
+
+def get_available_bands(
+    asset_id: str,
+) -> Optional[List[str]]:
+    """
+    Get available bands from an Earth Engine image or image collection.
+    """
+    # TODO: could caller of the function provide a logger?
+    # using suppress logger because of dynamic calls to function
+    try:
+        asset = ee.data.getAsset(asset_id)
+
+        if asset["type"] == "IMAGE_COLLECTION":
+            obj = ee.ImageCollection(asset_id).first()
+        elif asset["type"] == "IMAGE":
+            obj = ee.Image(asset_id)
+        else:
+            suppressed_logger.warning(f"Unhandled EE object type: {asset['type']}")
+            return None
+
+        bands = obj.bandNames().getInfo()
+        return sorted(bands)
+    except Exception as e:
+        suppressed_logger.error(f"Error retrieving bands from asset '{asset_id}': {e}")
         return None

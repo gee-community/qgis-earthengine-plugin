@@ -53,7 +53,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         props = get_ee_properties(asset_id)
         if props:
             self.image_properties = props
-            self.refresh_property_dropdowns()
+            self._refresh_property_dropdowns()
 
     def schedule_image_properties_update(self):
         self._update_timer.start(500)  # 500ms delay after typing stops
@@ -65,7 +65,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.update_image_properties()
         self.update_band_dropdowns()
 
-    def refresh_property_dropdowns(self):
+    def _refresh_property_dropdowns(self):
         for i in range(self.filter_rows_layout.count()):
             layout = self.filter_rows_layout.itemAt(i)
             if isinstance(layout, QHBoxLayout):
@@ -288,11 +288,10 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         print(band_selection_items)
         for i in range(3):
             band_dropdown = self.findChild(QComboBox, f"viz_band_{i}")
-            if band_dropdown:
-                current = band_dropdown.currentText()
-                band_dropdown.clear()
-                band_dropdown.addItems(band_selection_items)
-                band_dropdown.setCurrentText(current)
+            current = band_dropdown.currentText()
+            band_dropdown.clear()
+            band_dropdown.addItems(band_selection_items)
+            band_dropdown.setCurrentText(current)
 
     def getParameters(self) -> dict:
         try:

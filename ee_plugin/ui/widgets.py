@@ -17,6 +17,8 @@ from qgis.PyQt.QtWidgets import (
     QPushButton,
     QSlider,
     QLabel,
+    QDoubleSpinBox,
+    QColorDialog,
 )
 from qgis.gui import QgsCollapsibleGroupBox
 
@@ -269,3 +271,78 @@ def build_vbox_widget(
     )
 
     return container
+
+
+class VisualizationParamsWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.color_palette = []
+        self.layout = QFormLayout()
+
+        # Band selection
+        self.band_selection = [QComboBox(self) for _ in range(3)]
+        bands_layout = QHBoxLayout()
+        for i, combo in enumerate(self.band_selection):
+            combo.setObjectName(f"viz_band_{i}")
+            combo.setEditable(True)
+            combo.setPlaceholderText("Band")
+            bands_layout.addWidget(combo)
+        self.layout.addRow(QLabel("Select Bands (RGB)"), bands_layout)
+
+        # Color palette
+        self.color_palette = []
+        self.add_color_btn = QPushButton("Add Color")
+        self.add_color_btn.clicked.connect(self.add_color_to_palette)
+        self.palette_display = QHBoxLayout()
+        palette_widget = QWidget()
+        palette_widget.setLayout(self.palette_display)
+        self.layout.addRow(QLabel("Color Palette"), self.add_color_btn)
+        self.layout.addRow(palette_widget)
+
+        # min, max, gamma, opacity
+        self.viz_min = self._make_spinbox(-1e6, 1e6, "Min")
+        self.viz_max = self._make_spinbox(-1e6, 1e6, "Max", default=10000)
+        self.viz_gamma = self._make_spinbox(0.01, 10.0, "Gamma")
+        self.viz_opacity = self._make_spinbox(0.01, 1.0, "Opacity", default=1.0)
+
+        self.setLayout(self.layout)
+
+    def _make_spinbox(self, min_val, max_val, label, default=None):
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setDecimals(2)
+        spin.setSingleStep(0.1)
+        if default is not None:
+            spin.setValue(default)
+        self.layout.addRow(QLabel(label), spin)
+        setattr(self, f"viz_{label.lower()}", spin)
+        return spin
+
+    def add_color_to_palette(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            hex_color = color.name()
+            self.color_palette.append(hex_color)
+            swatch = QLabel()
+            swatch.setFixedSize(24, 24)
+            swatch.setStyleSheet(
+                f"background-color: {hex_color}; border: 1px solid black;"
+            )
+            self.palette_display.addWidget(swatch)
+
+    def get_viz_params(self):
+        bands = [
+            combo.currentText() for combo in self.band_selection if combo.currentText()
+        ]
+        params = {
+            "bands": bands,
+            "min": self.viz_min.value(),
+            "max": self.viz_max.value(),
+            "opacity": self.viz_opacity.value(),
+        }
+        if self.color_palette:
+            params["palette"] = self.color_palette
+        else:
+            params["gamma"] = self.viz_gamma.value()
+        return params

@@ -24,7 +24,6 @@ from qgis.PyQt.QtWidgets import (
     QHBoxLayout,
     QWidget,
     QPushButton,
-    QTextEdit,
 )
 from qgis import gui
 
@@ -247,16 +246,34 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.extent_group.setToolTip(_("Specify the geographic extent."))
         layout.addWidget(self.extent_group)
 
-        viz_label = QLabel(
-            _("Visualization Parameters <br>(JSON format)"),
+        # --- Visualization Parameters ---
+        viz_group = gui.QgsCollapsibleGroupBox(_("Visualization Parameters"))
+        viz_group.setCollapsed(False)
+        viz_layout = QFormLayout()
+
+        band_selection_label = QLabel(
+            _("Select Bands for Visualization"),
         )
-        viz_label.setToolTip(_("Enter visualization parameters in JSON format."))
-        self.viz_params = QTextEdit()
-        self.viz_params.setObjectName("viz_params")
-        self.viz_params.setToolTip(_("Enter visualization parameters in JSON format."))
-        viz_form = QFormLayout()
-        viz_form.addRow(viz_label, self.viz_params)
-        layout.addLayout(viz_form)
+        band_selection_label.setToolTip(_("Select bands for visualization."))
+        viz_bands_selection = [QComboBox() for _ in range(3)]
+
+        for i, band_selection in enumerate(viz_bands_selection):
+            band_selection.setToolTip(_("Select a band for visualization."))
+            band_selection.setObjectName(f"viz_band_{i}")
+            band_selection.setEditable(True)
+            band_selection.setPlaceholderText(_("Band"))
+            band_selection.addItems(self.image_properties)
+
+        bands_row_layout = QHBoxLayout()
+        for band_selection in viz_bands_selection:
+            bands_row_layout.addWidget(band_selection)
+        viz_layout.addRow(band_selection_label, bands_row_layout)
+
+        # finally, viz_layout
+        viz_group.setLayout(viz_layout)
+
+        # finally
+        layout.addWidget(viz_group)
 
         return layout
 

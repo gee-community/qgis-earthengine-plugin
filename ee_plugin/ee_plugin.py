@@ -22,7 +22,6 @@ import ee
 
 from . import provider, config, ee_auth, utils, logging
 from .ui import menus
-from .ui.forms import add_feature_collection
 from .processing.processing_provider import EEProcessingProvider
 from .processing.add_image_collection import (
     AddImageCollectionAlgorithm,
@@ -130,8 +129,8 @@ class GoogleEarthEnginePlugin(object):
         add_fc_button = QtWidgets.QAction(
             text=self.tr("Add Feature Collection"),
             parent=self.iface.mainWindow(),
-            triggered=lambda: add_feature_collection.form(
-                accepted=add_feature_collection.callback
+            triggered=lambda: processing.execAlgorithmDialog(
+                "ee:add_feature_collection"
             ),
         )
 

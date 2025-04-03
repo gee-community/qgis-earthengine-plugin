@@ -5,7 +5,7 @@ import pytest
 from qgis import gui
 from qgis.PyQt import QtWidgets, QtGui
 
-from ee_plugin.ui.forms import add_feature_collection
+from ee_plugin.processing import add_feature_collection
 from ee_plugin.ui import widgets, widget_parsers
 
 

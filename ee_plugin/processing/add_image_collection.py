@@ -24,6 +24,8 @@ from qgis.PyQt.QtWidgets import (
     QHBoxLayout,
     QWidget,
     QPushButton,
+    QColorDialog,
+    QDoubleSpinBox,
 )
 from qgis import gui
 
@@ -189,6 +191,106 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
         return percentile_slider_layout
 
+    def add_color_to_palette(self):
+        options = QColorDialog.ColorDialogOptions(
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog
+        )
+        color_dialog = QColorDialog()
+        color_dialog.setOptions(options)
+        color = color_dialog.getColor()
+        if color.isValid():
+            hex_color = color.name()  # e.g. "#ff0000"
+            self.color_palette.append(hex_color)
+
+            # Display a swatch
+            swatch = QLabel()
+            swatch.setFixedSize(24, 24)
+            swatch.setStyleSheet(
+                f"background-color: {hex_color}; border: 1px solid black;"
+            )
+            self.palette_display.addWidget(swatch)
+
+    def _buildVisualizationLayoutWidget(self):
+        # --- Visualization Parameters ---
+        viz_group = gui.QgsCollapsibleGroupBox(_("Visualization Parameters"))
+        viz_group.setCollapsed(False)
+        viz_layout = QFormLayout()
+
+        band_selection_label = QLabel(
+            _("Select Bands for Visualization (RGB)"),
+        )
+        band_selection_label.setToolTip(_("Select bands for visualization (RGB)."))
+        viz_bands_selection = [QComboBox(self) for _ in range(3)]
+
+        for i, band_selection in enumerate(viz_bands_selection):
+            band_selection.setToolTip(_("Select a band for visualization."))
+            band_selection.setObjectName(f"viz_band_{i}")
+            band_selection.setEditable(True)
+            band_selection.setPlaceholderText(_("Band"))
+
+        bands_row_layout = QHBoxLayout()
+        for band_selection in viz_bands_selection:
+            bands_row_layout.addWidget(band_selection)
+        viz_layout.addRow(band_selection_label, bands_row_layout)
+
+        # color palette
+        self.color_palette = []
+        # Button to launch color picker
+        self.add_color_btn = QPushButton("Add Color")
+        self.add_color_btn.clicked.connect(self.add_color_to_palette)
+        # Display area for selected colors
+        self.palette_display = QHBoxLayout()
+        self.palette_widget = QWidget()
+        self.palette_widget.setLayout(self.palette_display)
+
+        viz_layout.addRow(QLabel(_("Color Palette")), self.add_color_btn)
+        viz_layout.addRow(self.palette_widget)
+
+        # min, max, gamma inputs using QDoubleSpinBox
+        self.viz_min = QDoubleSpinBox()
+        self.viz_min.setRange(-1e6, 1e6)
+        self.viz_min.setDecimals(2)
+        self.viz_min.setSingleStep(1)
+        self.viz_min.setToolTip(_("Enter minimum value for visualization"))
+        self.viz_min.setObjectName("viz_min")
+
+        self.viz_max = QDoubleSpinBox()
+        self.viz_max.setRange(-1e6, 1e6)
+        self.viz_max.setDecimals(2)
+        self.viz_max.setSingleStep(1)
+        self.viz_max.setValue(10000)
+        self.viz_max.setToolTip(_("Enter maximum value for visualization"))
+        self.viz_max.setObjectName("viz_max")
+
+        self.viz_gamma = QDoubleSpinBox()
+        self.viz_gamma.setRange(0.01, 10.0)
+        self.viz_gamma.setDecimals(2)
+        self.viz_gamma.setSingleStep(0.1)
+        self.viz_gamma.setToolTip(_("Enter gamma value for visualization"))
+        self.viz_gamma.setObjectName("viz_gamma")
+
+        viz_layout.addRow(QLabel(_("Min")), self.viz_min)
+        viz_layout.addRow(QLabel(_("Max")), self.viz_max)
+        viz_layout.addRow(QLabel(_("Gamma")), self.viz_gamma)
+
+        # opacity
+        self.viz_opacity = QDoubleSpinBox()
+        self.viz_opacity.setRange(0.01, 1.0)
+        self.viz_opacity.setDecimals(2)
+        self.viz_opacity.setSingleStep(0.05)
+        self.viz_opacity.setValue(1.0)
+        self.viz_opacity.setToolTip(
+            _("Enter opacity value from 0 (transparent) to 1 (opaque)")
+        )
+        self.viz_opacity.setObjectName("viz_opacity")
+
+        viz_layout.addRow(QLabel(_("Opacity")), self.viz_opacity)
+
+        # finally, viz_layout
+        viz_group.setLayout(viz_layout)
+
+        return viz_group
+
     def buildDialog(self) -> QWidget:
         # Build your custom layout
         layout = QVBoxLayout(self)
@@ -252,29 +354,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout.addWidget(self.extent_group)
 
         # --- Visualization Parameters ---
-        viz_group = gui.QgsCollapsibleGroupBox(_("Visualization Parameters"))
-        viz_group.setCollapsed(False)
-        viz_layout = QFormLayout()
-
-        band_selection_label = QLabel(
-            _("Select Bands for Visualization"),
-        )
-        band_selection_label.setToolTip(_("Select bands for visualization."))
-        viz_bands_selection = [QComboBox(self) for _ in range(3)]
-
-        for i, band_selection in enumerate(viz_bands_selection):
-            band_selection.setToolTip(_("Select a band for visualization."))
-            band_selection.setObjectName(f"viz_band_{i}")
-            band_selection.setEditable(True)
-            band_selection.setPlaceholderText(_("Band"))
-
-        bands_row_layout = QHBoxLayout()
-        for band_selection in viz_bands_selection:
-            bands_row_layout.addWidget(band_selection)
-        viz_layout.addRow(band_selection_label, bands_row_layout)
-
-        # finally, viz_layout
-        viz_group.setLayout(viz_layout)
+        viz_group = self._buildVisualizationLayoutWidget()
 
         # finally
         layout.addWidget(viz_group)
@@ -313,15 +393,24 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                         filters.append(f"{name_val}:{op}:{value_input.text()}")
             filters_str = ";".join(filters)
 
-            viz_params_raw = self.viz_params.toPlainText()
-            if viz_params_raw:
-                viz_params_raw = viz_params_raw.strip()
-                try:
-                    viz_params = json.loads(viz_params_raw)
-                except json.JSONDecodeError:
-                    raise ValueError("Invalid JSON format in visualization parameters.")
+            # Build viz_params from UI
+            selected_bands = []
+            for i in range(3):
+                band_dropdown = self.findChild(QComboBox, f"viz_band_{i}")
+                if band_dropdown and band_dropdown.currentText():
+                    selected_bands.append(band_dropdown.currentText())
+
+            viz_params = {}
+            if selected_bands:
+                viz_params["bands"] = selected_bands
+            # gamma can't be applied with palette
+            if self.color_palette:
+                viz_params["palette"] = self.color_palette
             else:
-                viz_params = {}
+                viz_params["gamma"] = self.viz_gamma.value()
+            viz_params["min"] = self.viz_min.value()
+            viz_params["max"] = self.viz_max.value()
+            viz_params["opacity"] = self.viz_opacity.value()
 
             params = {
                 "image_collection_id": self.image_collection_id.text(),
@@ -370,7 +459,10 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             <li><b>End date for filtering:</b> The end date for filtering the Image Collection.</li>
             <li><b>Compositing Method:</b> The compositing method to use for the Image Collection.</li>
             <li><b>Percentile Value:</b> The percentile value to use for the 'Percentile' compositing method if selected.</li>
-            <li><b>Visualization Parameters:</b> JSON string for visualization parameters.</li>
+        <li><b>Visualization Parameters:</b> These include min, max, bands, palette (for single-band images), and gamma (for RGB or multi-band images). <br>
+        Important: <code>gamma</code> and <code>palette</code> cannot be used together. Use <code>palette</code> only for single-band visualizations. <br>
+        See the <a href='https://developers.google.com/earth-engine/guides/image_visualization' target='_blank'>Image Visualization Guide</a> for details.
+        </li>
         </ul>
 
         <b>Earth Engine Data Catalog:</b>

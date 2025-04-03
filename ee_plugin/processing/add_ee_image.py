@@ -63,7 +63,9 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
         self.update_band_dropdowns()
 
     def update_band_dropdowns(self):
-        bands = get_available_bands(self.image_id_input.text().strip()) or []
+        bands = (
+            get_available_bands(self.image_id_input.text().strip(), silent=True) or []
+        )
         for i in range(3):
             combo = self.viz_widget.findChild(QComboBox, f"viz_band_{i}")
             current = combo.currentText()

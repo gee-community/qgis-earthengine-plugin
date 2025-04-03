@@ -128,10 +128,6 @@ def setup_logger(plugin_name: str, logger_name: str = MODULE_NAME) -> None:
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
 
-    # avoid errors being logged while dynamic entering asset id
-    suppressed_logger = logging.getLogger("ee_plugin.utils.get_ee_properties")
-    suppressed_logger.setLevel(logging.CRITICAL)
-
     qgis_log_handler = QGISMessageLogHandler(plugin_name=plugin_name)
     qgis_log_handler.setLevel(logging.INFO)
     qgis_log_handler.setFormatter(

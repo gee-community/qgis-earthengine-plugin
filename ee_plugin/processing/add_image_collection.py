@@ -52,7 +52,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         asset_id = self.image_collection_id.text().strip()
         if not asset_id:
             return
-        props = get_ee_properties(asset_id)
+        props = get_ee_properties(asset_id, silent=True)
         if props:
             self.image_properties = props
             self._refresh_property_dropdowns()
@@ -226,9 +226,9 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.image_collection_id.textChanged.connect(
             self._on_image_collection_id_changed
         )
-        self._update_timer = QTimer(self)
-        self._update_timer.setSingleShot(True)
-        self._update_timer.timeout.connect(self._on_image_collection_id_ready)
+        self._update_timer = QTimer(
+            self, singleShot=True, timeout=self._on_image_collection_id_ready
+        )
 
         source_form = QFormLayout()
         source_form.addRow(source_label, self.image_collection_id)
@@ -284,9 +284,9 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
     def update_band_dropdowns(self):
         band_selection_items = (
-            get_available_bands(self.image_collection_id.text().strip()) or []
+            get_available_bands(self.image_collection_id.text().strip(), silent=True)
+            or []
         )
-        print(band_selection_items)
         for i in range(3):
             band_dropdown = self.findChild(QComboBox, f"viz_band_{i}")
             current = band_dropdown.currentText()

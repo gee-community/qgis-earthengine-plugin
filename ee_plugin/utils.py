@@ -26,8 +26,6 @@ from qgis.PyQt.QtCore import QCoreApplication
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Change as needed (DEBUG/INFO/WARNING/ERROR)
 
-suppressed_logger = logging.getLogger("ee_plugin.utils.get_ee_properties")
-
 
 class VisualizeParams(TypedDict, total=False):
     bands: Optional[Any]
@@ -405,12 +403,10 @@ def download_tile(
     logger.debug(f"Tile saved to {out_path}")
 
 
-def get_ee_properties(asset_id: str) -> Optional[List[str]]:
+def get_ee_properties(asset_id: str, silent: bool = False) -> Optional[List[str]]:
     """
     Get property names from any Earth Engine asset.
     """
-    # TODO: could caller of the function provide a logger?
-    # using suppress logger because of dynamic calls to function
     try:
         asset = ee.data.getAsset(asset_id)
 
@@ -423,26 +419,25 @@ def get_ee_properties(asset_id: str) -> Optional[List[str]]:
         elif asset["type"] == "TABLE":
             obj = ee.FeatureCollection(asset_id).first()
         else:
-            suppressed_logger.warning(f"Unhandled EE object type: {asset['type']}")
+            if not silent:
+                logger.warning(f"Unhandled EE object type: {asset['type']!r}")
             return None
 
         props = obj.toDictionary().getInfo()
         return sorted(props.keys())
-    except Exception as e:
-        suppressed_logger.error(
-            f"Error retrieving properties from asset '{asset_id}': {e}"
-        )
+    except Exception:
+        if not silent:
+            logger.exception(f"Error retrieving properties from asset {asset_id!r}")
         return None
 
 
 def get_available_bands(
     asset_id: str,
+    silent: bool = False,
 ) -> Optional[List[str]]:
     """
     Get available bands from an Earth Engine image or image collection.
     """
-    # TODO: could caller of the function provide a logger?
-    # using suppress logger because of dynamic calls to function
     try:
         asset = ee.data.getAsset(asset_id)
 
@@ -451,11 +446,13 @@ def get_available_bands(
         elif asset["type"] == "IMAGE":
             obj = ee.Image(asset_id)
         else:
-            suppressed_logger.warning(f"Unhandled EE object type: {asset['type']}")
+            if not silent:
+                logger.warning(f"Unhandled EE object type: {asset['type']!r}")
             return None
 
         bands = obj.bandNames().getInfo()
         return sorted(bands)
-    except Exception as e:
-        suppressed_logger.error(f"Error retrieving bands from asset '{asset_id}': {e}")
+    except Exception:
+        if not silent:
+            logger.exception(f"Error retrieving bands from asset {asset_id!r}")
         return None

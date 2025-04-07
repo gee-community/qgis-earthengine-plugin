@@ -20,6 +20,7 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from .. import Map, utils
+from ..ui.widgets import FilterWidget
 from ..processing.custom_algorithm_dialog import BaseAlgorithmDialog
 from ..utils import translate as _, get_ee_properties, filter_functions
 
@@ -360,8 +361,8 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout.addWidget(self.as_vector)
 
         # --- Filters ---
-        filter_layout_widget = self._buildFilterLayoutWidget()
-        layout.addWidget(filter_layout_widget)
+        self.filter_widget = FilterWidget(property_list=self.feature_properties)
+        layout.addWidget(self.filter_widget)
 
         # --- Date Range ---
         date_group = gui.QgsCollapsibleGroupBox(_("Filter by Dates"))
@@ -395,8 +396,9 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
     def getParameters(self):
         filters = []
-        for i in range(self.filter_rows_layout.count()):
-            row_layout = self.filter_rows_layout.itemAt(i)
+        filter_layout = self.filter_widget.get_filter_rows_layout()
+        for i in range(filter_layout.count()):
+            row_layout = filter_layout.itemAt(i)
             name_input = row_layout.itemAt(0).widget()
             operator_input = row_layout.itemAt(1).widget()
             value_input = row_layout.itemAt(2).widget()
@@ -439,10 +441,4 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
             self._refresh_property_dropdowns()
 
     def _refresh_property_dropdowns(self):
-        for i in range(self.filter_rows_layout.count()):
-            layout = self.filter_rows_layout.itemAt(i)
-            if isinstance(layout, QHBoxLayout):
-                dropdown = layout.itemAt(0).widget()
-                if isinstance(dropdown, QComboBox):
-                    dropdown.clear()
-                    dropdown.addItems(self.feature_properties)
+        self.filter_widget.set_property_list(self.feature_properties)

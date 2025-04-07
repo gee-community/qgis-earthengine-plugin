@@ -23,14 +23,13 @@ from qgis.PyQt.QtWidgets import (
     QSlider,
     QHBoxLayout,
     QWidget,
-    QPushButton,
     QColorDialog,
 )
 from qgis import gui
 
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 from .. import Map
-from ..ui.widgets import VisualizationParamsWidget
+from ..ui.widgets import VisualizationParamsWidget, FilterWidget
 from ..utils import (
     translate as _,
     get_ee_properties,
@@ -41,7 +40,11 @@ from ..utils import (
 
 class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
     def __init__(self, algorithm: QgsProcessingAlgorithm, parent: QWidget = None):
+        self.image_properties = []
         super().__init__(algorithm, parent=parent, title="Add Image Collection")
+        self._update_timer = QTimer(
+            self, singleShot=True, timeout=self._on_image_collection_id_ready
+        )
 
     def update_image_properties(self):
         asset_id = self.image_collection_id.text().strip()
@@ -60,13 +63,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.update_band_dropdowns()
 
     def _refresh_property_dropdowns(self):
-        for i in range(self.filter_rows_layout.count()):
-            layout = self.filter_rows_layout.itemAt(i)
-            if isinstance(layout, QHBoxLayout):
-                dropdown = layout.itemAt(0).widget()
-                if isinstance(dropdown, QComboBox):
-                    dropdown.clear()
-                    dropdown.addItems(self.image_properties)
+        self.filter_widget.set_property_list(self.image_properties)
 
     def _buildCompositingLayoutWidget(self):
         compositing_group = gui.QgsCollapsibleGroupBox(_("Compositing"))
@@ -86,64 +83,6 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         compositing_group.setLayout(compositing_layout)
 
         return compositing_group
-
-    def _buildFilterLayoutWidget(self):
-        # --- Filter by Properties ---
-        filter_group = gui.QgsCollapsibleGroupBox(_("Filter by Image Properties"))
-        filter_group.setCollapsed(True)
-
-        self.filter_rows_layout = QVBoxLayout()
-
-        def add_filter_row():
-            row_layout = QHBoxLayout()
-
-            name_input = QComboBox()
-            name_input.setEditable(True)
-            name_input.setToolTip(_("Enter or select a property name."))
-            name_input.setObjectName("property_dropdown")
-            name_input.addItems(self.image_properties)
-
-            operator_input = QComboBox()
-            operator_input.addItems(["==", "!=", "<", ">", "<=", ">="])
-            operator_input.setToolTip(_("Choose the filter operator."))
-
-            value_input = QLineEdit()
-            value_input.setPlaceholderText(_("Value"))
-            value_input.setToolTip(_("Enter the value to filter by."))
-
-            remove_button = QPushButton("Remove")
-
-            def remove_row():
-                for i in reversed(range(row_layout.count())):
-                    widget = row_layout.itemAt(i).widget()
-                    if widget:
-                        widget.setParent(None)
-                self.filter_rows_layout.removeItem(row_layout)
-
-            remove_button.clicked.connect(remove_row)
-
-            row_layout.addWidget(name_input, 2)
-            row_layout.addWidget(operator_input, 1)
-            row_layout.addWidget(value_input, 2)
-            row_layout.addWidget(remove_button, 1)
-
-            self.filter_rows_layout.addLayout(row_layout)
-
-        add_filter_btn = QPushButton("Add Filter")
-        add_filter_btn.clicked.connect(add_filter_row)
-
-        add_filter_row()  # Start with one filter row
-
-        filter_widget = QWidget()
-        filter_widget.setLayout(self.filter_rows_layout)
-
-        filter_layout = QVBoxLayout()
-        filter_layout.addWidget(filter_widget)
-        filter_layout.addWidget(add_filter_btn)
-
-        filter_group.setLayout(filter_layout)
-
-        return filter_group
 
     def _update_percentile_visibility(self, index):
         is_percentile = self.compositing_method.itemText(index) == "Percentile"
@@ -230,8 +169,10 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout.addLayout(source_form)
 
         ## --- Filter by Properties ---
-        filter_layout_widget = self._buildFilterLayoutWidget()
-        layout.addWidget(filter_layout_widget)
+        self.filter_widget = FilterWidget(
+            "Filter by Image Properties", self.image_properties
+        )
+        layout.addWidget(self.filter_widget)
 
         # --- Compositing Method ---
         compositing_group = self._buildCompositingLayoutWidget()
@@ -292,8 +233,9 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
     def getParameters(self) -> dict:
         try:
             filters = []
-            for filter in self.filter_rows_layout.children():
-                row_layout = filter.layout()
+            filter_layout = self.filter_widget.get_filter_rows_layout()
+            for i in range(filter_layout.count()):
+                row_layout = filter_layout.itemAt(i)
                 if isinstance(row_layout, QHBoxLayout):
                     name_input = row_layout.itemAt(0).widget()
                     operator_input = row_layout.itemAt(1).widget()

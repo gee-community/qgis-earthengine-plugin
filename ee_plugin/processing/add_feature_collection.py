@@ -157,8 +157,16 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         if filter_name and filter_value:
             fc = fc.filter(ee.Filter.eq(filter_name, filter_value))
 
+        # Apply date filter only if system:time_start exists
         if start_date and end_date:
-            fc = fc.filter(ee.Filter.date(ee.Date(start_date), ee.Date(end_date)))
+            sample_feature = fc.first()
+            sample_info = sample_feature.getInfo()
+            if "system:time_start" in sample_info.get("properties", {}):
+                fc = fc.filter(ee.Filter.date(ee.Date(start_date), ee.Date(end_date)))
+            else:
+                logger.warning(
+                    "Skipping date filter: no system:time_start property found."
+                )
 
         if extent.lower() != "null":
             try:

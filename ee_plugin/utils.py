@@ -190,11 +190,31 @@ def add_ee_vector_layer(
     opacity: float = 1.0,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding EE vector layer: {name}")
-    geometry_info = eeObject.getInfo()
-    geojson = {
-        "type": "FeatureCollection",
-        "features": [{"type": "Feature", "geometry": geometry_info, "properties": {}}],
-    }
+    info = eeObject.getInfo()
+
+    if info["type"] == "FeatureCollection":
+        geojson = {
+            "type": "FeatureCollection",
+            "features": info["features"],
+        }
+    elif info["type"] == "Feature":
+        geojson = {
+            "type": "FeatureCollection",
+            "features": [info],
+        }
+    elif info["type"] in (
+        "Polygon",
+        "MultiPolygon",
+        "Point",
+        "LineString",
+        "MultiLineString",
+    ):
+        geojson = {
+            "type": "FeatureCollection",
+            "features": [{"type": "Feature", "geometry": info, "properties": {}}],
+        }
+    else:
+        raise ValueError("Unsupported EE object type: " + info["type"])
 
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".geojson")
     with open(temp_file.name, "w") as f:

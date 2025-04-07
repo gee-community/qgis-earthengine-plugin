@@ -131,6 +131,15 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterString(
+                "opacity",
+                _("Opacity (0-100)"),
+                defaultValue="100",
+                optional=True,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterString(
                 "as_vector",
                 _("Retain as Vector Layer"),
                 defaultValue="false",
@@ -151,6 +160,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         viz_fill_color = self.parameterAsString(parameters, "viz_fill_color", context)
         viz_width = self.parameterAsString(parameters, "viz_width", context)
         as_vector = self.parameterAsString(parameters, "as_vector", context)
+        opacity = self.parameterAsString(parameters, "opacity", context)
 
         fc = ee.FeatureCollection(feature_collection_id)
 
@@ -187,11 +197,11 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
                     fc,
                     layer_name,
                     shown=True,
-                    opacity=1.0,
                     style_params={
                         "color": viz_color_hex,
                         "fillColor": viz_fill_color,
                         "width": int(viz_width),
+                        "opacity": int(opacity) / 100,
                     },
                 )
             except ee.ee_exception.EEException as e:
@@ -200,7 +210,10 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             styled_fc = fc.style(
                 color=viz_color_hex, fillColor=viz_fill_color, width=int(viz_width)
             )
-            Map.addLayer(styled_fc, {}, layer_name)
+            # opacity can't be set from EE, we must apply in QGIS
+            layer = Map.addLayer(styled_fc, {}, layer_name)
+            if opacity != "":
+                layer.setOpacity(int(opacity) / 100)
 
         return {"OUTPUT": fc}
 
@@ -231,6 +244,14 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.line_width.setValue(2)
         self.line_width.setObjectName("viz_width")
         layout.addRow(QLabel("Line Width (px)"), self.line_width)
+
+        # opacity
+        self.opacity = QSpinBox()
+        self.opacity.setMinimum(0)
+        self.opacity.setMaximum(100)
+        self.opacity.setValue(100)
+        self.opacity.setObjectName("opacity")
+        layout.addRow(QLabel("Opacity (%)"), self.opacity)
 
         group.setLayout(layout)
 
@@ -298,6 +319,7 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
             "start_date": self.start_date.date().toString("yyyy-MM-dd"),
             "end_date": self.end_date.date().toString("yyyy-MM-dd"),
             "extent": self.extent_group.outputExtent().toString(),
+            "opacity": str(self.opacity.value()),
             "viz_color_hex": self.outline_color.color().name(),
             "viz_fill_color": self.fill_color.color().name(),
             "viz_width": str(self.line_width.value()),

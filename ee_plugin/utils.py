@@ -190,7 +190,6 @@ def add_ee_vector_layer(
     eeObject: ee.Element,
     name: str,
     shown: bool = True,
-    opacity: float = 1.0,
     style_params: Optional[dict] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding EE vector layer: {name}")
@@ -230,27 +229,22 @@ def add_ee_vector_layer(
 
     QgsProject.instance().addMapLayer(layer)
 
-    if opacity is not None and layer.renderer():
-        symbol = layer.renderer().symbol()
-        symbol.setOpacity(opacity)
-        layer.triggerRepaint()
-
     if shown is not None:
         QgsProject.instance().layerTreeRoot().findLayer(
             layer.id()
         ).setItemVisibilityChecked(shown)
 
     if style_params:
-        symbol_layer = layer.renderer().symbol().symbolLayer(0)
+        symbol = layer.renderer().symbol()
+        symbol_layer = symbol.symbolLayer(0)
+        if style_params.get("opacity"):
+            symbol.setOpacity(style_params["opacity"])
         if style_params.get("color"):
-            if hasattr(symbol_layer, "setStrokeColor"):
-                symbol_layer.setStrokeColor(QColor(style_params["color"]))
+            symbol_layer.setStrokeColor(QColor(style_params["color"]))
         if style_params.get("width"):
-            if hasattr(symbol_layer, "setStrokeWidth"):
-                symbol_layer.setStrokeWidth(style_params["width"])
+            symbol_layer.setStrokeWidth(style_params["width"])
         if style_params.get("fillColor"):
-            if hasattr(symbol_layer, "setFillColor"):
-                symbol_layer.setFillColor(QColor(style_params["fillColor"]))
+            symbol_layer.setFillColor(QColor(style_params["fillColor"]))
 
     return layer
 

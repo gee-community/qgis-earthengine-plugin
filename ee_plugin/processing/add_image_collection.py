@@ -31,17 +31,12 @@ from qgis import gui
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 from .. import Map
 from ..ui.widgets import VisualizationParamsWidget
-from ..utils import translate as _, get_ee_properties, get_available_bands
-
-
-filter_functions = {
-    "==": {"operator": ee.Filter.eq, "symbol": "=="},
-    "!=": {"operator": ee.Filter.neq, "symbol": "!="},
-    "<": {"operator": ee.Filter.lt, "symbol": "<"},
-    ">": {"operator": ee.Filter.gt, "symbol": ">"},
-    "<=": {"operator": ee.Filter.lte, "symbol": "<="},
-    ">=": {"operator": ee.Filter.gte, "symbol": ">="},
-}
+from ..utils import (
+    translate as _,
+    get_ee_properties,
+    get_available_bands,
+    filter_functions,
+)
 
 
 class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):

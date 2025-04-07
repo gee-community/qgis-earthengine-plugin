@@ -21,19 +21,10 @@ from qgis.PyQt.QtWidgets import (
 
 from .. import Map, utils
 from ..processing.custom_algorithm_dialog import BaseAlgorithmDialog
-from ..utils import translate as _, get_ee_properties
+from ..utils import translate as _, get_ee_properties, filter_functions
 
 
 logger = logging.getLogger(__name__)
-
-filter_functions = {
-    "==": {"operator": ee.Filter.eq, "symbol": "=="},
-    "!=": {"operator": ee.Filter.neq, "symbol": "!="},
-    "<": {"operator": ee.Filter.lt, "symbol": "<"},
-    ">": {"operator": ee.Filter.gt, "symbol": ">"},
-    "<=": {"operator": ee.Filter.lte, "symbol": "<="},
-    ">=": {"operator": ee.Filter.gte, "symbol": ">="},
-}
 
 
 class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):

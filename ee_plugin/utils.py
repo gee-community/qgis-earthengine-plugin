@@ -29,6 +29,16 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Change as needed (DEBUG/INFO/WARNING/ERROR)
 
 
+filter_functions = {
+    "==": {"operator": ee.Filter.eq, "symbol": "=="},
+    "!=": {"operator": ee.Filter.neq, "symbol": "!="},
+    "<": {"operator": ee.Filter.lt, "symbol": "<"},
+    ">": {"operator": ee.Filter.gt, "symbol": ">"},
+    "<=": {"operator": ee.Filter.lte, "symbol": "<="},
+    ">=": {"operator": ee.Filter.gte, "symbol": ">="},
+}
+
+
 class VisualizeParams(TypedDict, total=False):
     bands: Optional[Any]
     gain: Optional[Any]

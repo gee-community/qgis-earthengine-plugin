@@ -22,6 +22,8 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.gui import QgsCollapsibleGroupBox
 
+from ..utils import translate as _
+
 
 class LabeledSlider(QWidget):
     """
@@ -346,3 +348,72 @@ class VisualizationParamsWidget(QWidget):
         else:
             params["gamma"] = self.viz_gamma.value()
         return params
+
+
+class FilterWidget(gui.QgsCollapsibleGroupBox):
+    def __init__(self, title="Filter by Properties", property_list=None, parent=None):
+        super().__init__(title, parent)
+        self.setCollapsed(True)
+        self.property_list = property_list or []
+        self.filter_rows_layout = QVBoxLayout()
+        self._build_filter_widget()
+
+    def _build_filter_widget(self):
+        def add_filter_row():
+            row_layout = QHBoxLayout()
+
+            name_input = QComboBox()
+            name_input.setEditable(True)
+            name_input.setToolTip(_("Enter or select a property name."))
+            name_input.setObjectName("property_dropdown")
+            name_input.addItems(self.property_list)
+
+            operator_input = QComboBox()
+            operator_input.addItems(["==", "!=", "<", ">", "<=", ">="])
+            operator_input.setToolTip(_("Choose the filter operator."))
+
+            value_input = QLineEdit()
+            value_input.setPlaceholderText(_("Value"))
+            value_input.setToolTip(_("Enter the value to filter by."))
+
+            remove_button = QPushButton("Remove")
+            remove_button.clicked.connect(lambda: self._remove_row(row_layout))
+
+            row_layout.addWidget(name_input, 2)
+            row_layout.addWidget(operator_input, 1)
+            row_layout.addWidget(value_input, 2)
+            row_layout.addWidget(remove_button, 1)
+
+            self.filter_rows_layout.addLayout(row_layout)
+
+        add_filter_btn = QPushButton("Add Filter")
+        add_filter_btn.clicked.connect(add_filter_row)
+        add_filter_row()
+
+        filter_widget = QWidget()
+        filter_widget.setLayout(self.filter_rows_layout)
+
+        layout = QVBoxLayout()
+        layout.addWidget(filter_widget)
+        layout.addWidget(add_filter_btn)
+        self.setLayout(layout)
+
+    def _remove_row(self, row_layout):
+        for i in reversed(range(row_layout.count())):
+            widget = row_layout.itemAt(i).widget()
+            if widget:
+                widget.setParent(None)
+        self.filter_rows_layout.removeItem(row_layout)
+
+    def set_property_list(self, props):
+        self.property_list = props
+        for i in range(self.filter_rows_layout.count()):
+            layout = self.filter_rows_layout.itemAt(i)
+            if isinstance(layout, QHBoxLayout):
+                dropdown = layout.itemAt(0).widget()
+                if isinstance(dropdown, QComboBox):
+                    dropdown.clear()
+                    dropdown.addItems(self.property_list)
+
+    def get_filter_rows_layout(self):
+        return self.filter_rows_layout

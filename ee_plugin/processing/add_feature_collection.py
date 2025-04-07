@@ -183,7 +183,17 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         layer_name = f"FC: {feature_collection_id}"
         if as_vector.lower() in ("true", "1", "yes"):
             try:
-                utils.add_ee_vector_layer(fc, layer_name)
+                utils.add_ee_vector_layer(
+                    fc,
+                    layer_name,
+                    shown=True,
+                    opacity=1.0,
+                    style_params={
+                        "color": viz_color_hex,
+                        "fillColor": viz_fill_color,
+                        "width": int(viz_width),
+                    },
+                )
             except ee.ee_exception.EEException as e:
                 logger.error(f"Failed to load the Feature Collection: {e}")
         else:

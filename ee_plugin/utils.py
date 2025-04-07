@@ -3,6 +3,8 @@
 Utils functions for EE
 """
 
+from qgis.PyQt.QtGui import QColor
+
 import os
 import math
 import json
@@ -173,6 +175,7 @@ def add_or_update_ee_vector_layer(
     name: str,
     shown: bool = True,
     opacity: float = 1.0,
+    style_params: Optional[dict] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding/updating EE vector layer: {name}")
     layer = get_layer_by_name(name)
@@ -180,7 +183,7 @@ def add_or_update_ee_vector_layer(
         if not layer.customProperty("ee-layer"):
             raise Exception(f"Layer is not an EE layer: {name}")
         return update_ee_vector_layer(eeObject, layer, shown, opacity)
-    return add_ee_vector_layer(eeObject, name, shown, opacity)
+    return add_ee_vector_layer(eeObject, name, shown, opacity, style_params)
 
 
 def add_ee_vector_layer(
@@ -188,6 +191,7 @@ def add_ee_vector_layer(
     name: str,
     shown: bool = True,
     opacity: float = 1.0,
+    style_params: Optional[dict] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding EE vector layer: {name}")
     info = eeObject.getInfo()
@@ -235,6 +239,18 @@ def add_ee_vector_layer(
         QgsProject.instance().layerTreeRoot().findLayer(
             layer.id()
         ).setItemVisibilityChecked(shown)
+
+    if style_params:
+        symbol_layer = layer.renderer().symbol().symbolLayer(0)
+        if style_params.get("color"):
+            if hasattr(symbol_layer, "setStrokeColor"):
+                symbol_layer.setStrokeColor(QColor(style_params["color"]))
+        if style_params.get("width"):
+            if hasattr(symbol_layer, "setStrokeWidth"):
+                symbol_layer.setStrokeWidth(style_params["width"])
+        if style_params.get("fillColor"):
+            if hasattr(symbol_layer, "setFillColor"):
+                symbol_layer.setFillColor(QColor(style_params["fillColor"]))
 
     return layer
 

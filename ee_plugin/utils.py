@@ -200,6 +200,7 @@ def add_ee_vector_layer(
     eeObject: ee.Element,
     name: str,
     shown: bool = True,
+    opacity: float = 1.0,
     style_params: Optional[dict] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding EE vector layer: {name}")
@@ -221,6 +222,7 @@ def add_ee_vector_layer(
         "Point",
         "LineString",
         "MultiLineString",
+        "LinearRing",
     ):
         geojson = {
             "type": "FeatureCollection",

@@ -45,14 +45,26 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         return "Add Layer"
 
     def shortHelpString(self):
-        return _(
-            "Adds a Google Earth Engine Feature Collection to the QGIS map.\n\n"
-            "You can optionally filter the collection by property name/value pairs, "
-            "date ranges, and bounding box coordinates. The resulting features can be "
-            "added as a vector layer or visualized as a raster overlay with a specified color.\n\n"
-            "Example dataset:  USGS/WBD/2017/HUC06\n"
-            "<a href='https://developers.google.com/earth-engine/datasets/catalog'> Google Earth Engine Data Catalog</a> for more."
-        )
+        return """
+    <html>
+    <b>Add Feature Collection</b><br>
+    This algorithm adds an Earth Engine Feature Collection to the map either as a styled vector layer or as a styled raster overlay.<br>
+    You can filter the collection by properties, dates, or geographic extent.<br>
+ 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><b>Feature Collection ID:</b> The Earth Engine Feature Collection ID to add to the map.</li>
+        <li><b>Filter Properties:</b> Filters to apply to the Feature Collection. Feature properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details.</li>
+        <li><b>Start and End Date:</b> Optional start and end dates for filtering. Applies only to collections with <code>system:time_start</code>.</li>
+        <li><b>Geographic Extent:</b> Optional bounding box filter using the format xmin,ymin,xmax,ymax.</li>
+        <li><b>Visualization Parameters:</b> Includes outline color, fill color, line width, and opacity. These apply to both vector and raster styles.</li>
+        <li><b>Retain as Vector Layer:</b> If checked, the features are retained as a local vector layer in QGIS. Otherwise, the styled result is added as a raster overlay.</li>
+    </ul>
+ 
+    <b>Earth Engine Data Catalog:</b>
+    <a href='https://developers.google.com/earth-engine/datasets'>https://developers.google.com/earth-engine/datasets</a>
+    </html>
+    """
 
     def initAlgorithm(self, config):
         # requires config in signature becuse of QGIS call to it

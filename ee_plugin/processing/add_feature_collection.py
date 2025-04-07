@@ -1,5 +1,6 @@
 import re
 import logging
+from typing import List
 
 import ee
 from qgis.core import QgsProcessingAlgorithm, QgsProcessingParameterString
@@ -11,6 +12,10 @@ from qgis.PyQt.QtWidgets import (
     QCheckBox,
     QFormLayout,
     QSpinBox,
+    QPushButton,
+    QHBoxLayout,
+    QWidget,
+    QComboBox,
 )
 
 from .. import Map, utils
@@ -19,6 +24,15 @@ from ..utils import translate as _
 
 
 logger = logging.getLogger(__name__)
+
+filter_functions = {
+    "==": {"operator": ee.Filter.eq, "symbol": "=="},
+    "!=": {"operator": ee.Filter.neq, "symbol": "!="},
+    "<": {"operator": ee.Filter.lt, "symbol": "<"},
+    ">": {"operator": ee.Filter.gt, "symbol": ">"},
+    "<=": {"operator": ee.Filter.lte, "symbol": "<="},
+    ">=": {"operator": ee.Filter.gte, "symbol": ">="},
+}
 
 
 class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
@@ -59,18 +73,9 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterString(
-                "filter_name",
-                _("Filter Name"),
-                defaultValue="",
-                optional=True,
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterString(
-                "filter_value",
-                _("Filter Value"),
-                defaultValue="",
+                "filters",
+                "Filter Image Properties",
+                "Enter filters as property_0:operator_0:value_0;property_1:operator_1:value_1",
                 optional=True,
             )
         )
@@ -147,12 +152,23 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             )
         )
 
+    def _get_filters(self, filters: str) -> List[str]:
+        filters = filters.split(";")
+        parsed_filters = []
+        for f in filters:
+            f = f.split(":")
+            if len(f) == 3 and f[1] in filter_functions:
+                parsed_filters.append(f)
+            else:
+                raise ValueError(f"Invalid filter format: {f}")
+
+        return parsed_filters
+
     def processAlgorithm(self, parameters, context, feedback):
         feature_collection_id = self.parameterAsString(
             parameters, "feature_collection_id", context
         )
-        filter_name = self.parameterAsString(parameters, "filter_name", context)
-        filter_value = self.parameterAsString(parameters, "filter_value", context)
+        filters = self.parameterAsString(parameters, "filters", context)
         start_date = self.parameterAsString(parameters, "start_date", context)
         end_date = self.parameterAsString(parameters, "end_date", context)
         extent = self.parameterAsString(parameters, "extent", context)
@@ -164,11 +180,26 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
 
         fc = ee.FeatureCollection(feature_collection_id)
 
-        if filter_name and filter_value:
-            fc = fc.filter(ee.Filter.eq(filter_name, filter_value))
+        if filters:
+            filters = self._get_filters(filters)
+            for filter_item in filters:
+                filter_property, filter_operator, filter_value = filter_item
+                filter_func = filter_functions.get(filter_operator)
+                if filter_func:
+                    # Attempt to convert value to number, fallback to string
+                    try:
+                        filter_value_casted = float(filter_value)
+                        # Convert to int if applicable
+                        if filter_value_casted.is_integer():
+                            filter_value_casted = int(filter_value_casted)
+                    except ValueError:
+                        filter_value_casted = filter_value
+                    fc = fc.filter(
+                        filter_func["operator"](filter_property, filter_value_casted)
+                    )
 
         # Apply date filter only if system:time_start exists
-        if start_date and end_date:
+        if start_date and end_date and fc.size().getInfo() > 0:
             sample_feature = fc.first()
             sample_info = sample_feature.getInfo()
             if "system:time_start" in sample_info.get("properties", {}):
@@ -215,6 +246,11 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             if opacity != "":
                 layer.setOpacity(int(opacity) / 100)
 
+        if fc.size().getInfo() == 0:
+            logger.warning(
+                f"No features found in the Feature Collection: {feature_collection_id}"
+            )
+
         return {"OUTPUT": fc}
 
     def createCustomParametersWidget(self, parent=None):
@@ -227,7 +263,6 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
     def _build_visualization_group(self):
         group = gui.QgsCollapsibleGroupBox("Visualization")
         group.setCollapsed(True)
-
         layout = QFormLayout()
 
         self.outline_color = gui.QgsColorButton()
@@ -245,7 +280,6 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.line_width.setObjectName("viz_width")
         layout.addRow(QLabel("Line Width (px)"), self.line_width)
 
-        # opacity
         self.opacity = QSpinBox()
         self.opacity.setMinimum(0)
         self.opacity.setMaximum(100)
@@ -254,8 +288,61 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout.addRow(QLabel("Opacity (%)"), self.opacity)
 
         group.setLayout(layout)
-
         return group
+
+    def _buildFilterLayoutWidget(self):
+        filter_group = gui.QgsCollapsibleGroupBox(_("Filter by Properties"))
+        filter_group.setCollapsed(True)
+
+        self.filter_rows_layout = QVBoxLayout()
+
+        def add_filter_row():
+            row_layout = QHBoxLayout()
+
+            name_input = QLineEdit()
+            name_input.setPlaceholderText(_("Property Name"))
+            name_input.setToolTip(_("Enter a property name."))
+
+            operator_input = QComboBox()
+            operator_input.addItems(["==", "!=", "<", ">", "<=", ">="])
+            operator_input.setToolTip(_("Choose the filter operator."))
+
+            value_input = QLineEdit()
+            value_input.setPlaceholderText(_("Value"))
+            value_input.setToolTip(_("Enter the value to filter by."))
+
+            remove_button = QPushButton("Remove")
+
+            def remove_row():
+                for i in reversed(range(row_layout.count())):
+                    widget = row_layout.itemAt(i).widget()
+                    if widget:
+                        widget.setParent(None)
+                self.filter_rows_layout.removeItem(row_layout)
+
+            remove_button.clicked.connect(remove_row)
+
+            row_layout.addWidget(name_input, 2)
+            row_layout.addWidget(operator_input, 1)
+            row_layout.addWidget(value_input, 2)
+            row_layout.addWidget(remove_button, 1)
+
+            self.filter_rows_layout.addLayout(row_layout)
+
+        add_filter_btn = QPushButton("Add Filter")
+        add_filter_btn.clicked.connect(add_filter_row)
+        add_filter_row()
+
+        filter_widget = QWidget()
+        filter_widget.setLayout(self.filter_rows_layout)
+
+        filter_layout = QVBoxLayout()
+        filter_layout.addWidget(filter_widget)
+        filter_layout.addWidget(add_filter_btn)
+
+        filter_group.setLayout(filter_layout)
+
+        return filter_group
 
     def buildDialog(self):
         layout = QVBoxLayout()
@@ -269,16 +356,10 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         # --- Retain as Vector Layer ---
         self.as_vector = QCheckBox("Retain as vector layer")
         layout.addWidget(self.as_vector)
-        self.filter_name = QLineEdit()
 
-        # -- Filters ---
-        # TODO: support multiple and dynamic retrieval of properties
-        # TODO: before, verify results without current filters for both retain and non retain vector
-        layout.addWidget(QLabel("Filter name"))
-        layout.addWidget(self.filter_name)
-        self.filter_value = QLineEdit()
-        layout.addWidget(QLabel("Filter value"))
-        layout.addWidget(self.filter_value)
+        # --- Filters ---
+        filter_layout_widget = self._buildFilterLayoutWidget()
+        layout.addWidget(filter_layout_widget)
 
         # --- Date Range ---
         date_group = gui.QgsCollapsibleGroupBox(_("Filter by Dates"))
@@ -311,11 +392,21 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         return layout
 
     def getParameters(self):
+        filters = []
+        for i in range(self.filter_rows_layout.count()):
+            row_layout = self.filter_rows_layout.itemAt(i)
+            name_input = row_layout.itemAt(0).widget()
+            operator_input = row_layout.itemAt(1).widget()
+            value_input = row_layout.itemAt(2).widget()
+            if name_input and value_input and name_input.text() and value_input.text():
+                op = operator_input.currentText()
+                filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
+        filters_str = ";".join(filters)
+
         return {
             "feature_collection_id": self.fc_id.text().strip(),
             "as_vector": str(self.as_vector.isChecked()),
-            "filter_name": self.filter_name.text().strip(),
-            "filter_value": self.filter_value.text().strip(),
+            "filters": filters_str,
             "start_date": self.start_date.date().toString("yyyy-MM-dd"),
             "end_date": self.end_date.date().toString("yyyy-MM-dd"),
             "extent": self.extent_group.outputExtent().toString(),

@@ -17,8 +17,12 @@ from qgis.PyQt.QtWidgets import (
     QPushButton,
     QSlider,
     QLabel,
+    QDoubleSpinBox,
+    QColorDialog,
 )
 from qgis.gui import QgsCollapsibleGroupBox
+
+from ..utils import translate as _
 
 
 class LabeledSlider(QWidget):
@@ -269,3 +273,147 @@ def build_vbox_widget(
     )
 
     return container
+
+
+class VisualizationParamsWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.color_palette = []
+        self.layout = QFormLayout()
+
+        # Band selection
+        self.band_selection = [QComboBox(self) for _ in range(3)]
+        bands_layout = QHBoxLayout()
+        for i, combo in enumerate(self.band_selection):
+            combo.setObjectName(f"viz_band_{i}")
+            combo.setEditable(True)
+            combo.setPlaceholderText("Band")
+            bands_layout.addWidget(combo)
+        self.layout.addRow(QLabel("Select Bands (RGB)"), bands_layout)
+
+        # Color palette
+        self.color_palette = []
+        self.add_color_btn = QPushButton("Add Color")
+        self.add_color_btn.clicked.connect(self.add_color_to_palette)
+        self.palette_display = QHBoxLayout()
+        palette_widget = QWidget()
+        palette_widget.setLayout(self.palette_display)
+        self.layout.addRow(QLabel("Color Palette"), self.add_color_btn)
+        self.layout.addRow(palette_widget)
+
+        # min, max, gamma, opacity
+        self.viz_min = self._make_spinbox(-1e6, 1e6, "Min")
+        self.viz_max = self._make_spinbox(-1e6, 1e6, "Max", default=10000)
+        self.viz_gamma = self._make_spinbox(0.01, 10.0, "Gamma")
+        self.viz_opacity = self._make_spinbox(0.01, 1.0, "Opacity", default=1.0)
+
+        self.setLayout(self.layout)
+
+    def _make_spinbox(self, min_val, max_val, label, default=None):
+        spin = QDoubleSpinBox()
+        spin.setRange(min_val, max_val)
+        spin.setDecimals(2)
+        spin.setSingleStep(0.1)
+        if default is not None:
+            spin.setValue(default)
+        self.layout.addRow(QLabel(label), spin)
+        setattr(self, f"viz_{label.lower()}", spin)
+        return spin
+
+    def add_color_to_palette(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            hex_color = color.name()
+            self.color_palette.append(hex_color)
+            swatch = QLabel()
+            swatch.setFixedSize(24, 24)
+            swatch.setStyleSheet(
+                f"background-color: {hex_color}; border: 1px solid black;"
+            )
+            self.palette_display.addWidget(swatch)
+
+    def get_viz_params(self):
+        bands = [
+            combo.currentText() for combo in self.band_selection if combo.currentText()
+        ]
+        params = {
+            "bands": bands,
+            "min": self.viz_min.value(),
+            "max": self.viz_max.value(),
+            "opacity": self.viz_opacity.value(),
+        }
+        if self.color_palette:
+            params["palette"] = self.color_palette
+        else:
+            params["gamma"] = self.viz_gamma.value()
+        return params
+
+
+class FilterWidget(gui.QgsCollapsibleGroupBox):
+    def __init__(self, title="Filter by Properties", property_list=None, parent=None):
+        super().__init__(title, parent)
+        self.setCollapsed(True)
+        self.property_list = property_list or []
+        self.filter_rows_layout = QVBoxLayout()
+        self._build_filter_widget()
+
+    def _build_filter_widget(self):
+        def add_filter_row():
+            row_layout = QHBoxLayout()
+
+            name_input = QComboBox()
+            name_input.setEditable(True)
+            name_input.setToolTip(_("Enter or select a property name."))
+            name_input.setObjectName("property_dropdown")
+            name_input.addItems(self.property_list)
+
+            operator_input = QComboBox()
+            operator_input.addItems(["==", "!=", "<", ">", "<=", ">="])
+            operator_input.setToolTip(_("Choose the filter operator."))
+
+            value_input = QLineEdit()
+            value_input.setPlaceholderText(_("Value"))
+            value_input.setToolTip(_("Enter the value to filter by."))
+
+            remove_button = QPushButton("Remove")
+            remove_button.clicked.connect(lambda: self._remove_row(row_layout))
+
+            row_layout.addWidget(name_input, 2)
+            row_layout.addWidget(operator_input, 1)
+            row_layout.addWidget(value_input, 2)
+            row_layout.addWidget(remove_button, 1)
+
+            self.filter_rows_layout.addLayout(row_layout)
+
+        add_filter_btn = QPushButton("Add Filter")
+        add_filter_btn.clicked.connect(add_filter_row)
+        add_filter_row()
+
+        filter_widget = QWidget()
+        filter_widget.setLayout(self.filter_rows_layout)
+
+        layout = QVBoxLayout()
+        layout.addWidget(filter_widget)
+        layout.addWidget(add_filter_btn)
+        self.setLayout(layout)
+
+    def _remove_row(self, row_layout):
+        for i in reversed(range(row_layout.count())):
+            widget = row_layout.itemAt(i).widget()
+            if widget:
+                widget.setParent(None)
+        self.filter_rows_layout.removeItem(row_layout)
+
+    def set_property_list(self, props):
+        self.property_list = props
+        for i in range(self.filter_rows_layout.count()):
+            layout = self.filter_rows_layout.itemAt(i)
+            if isinstance(layout, QHBoxLayout):
+                dropdown = layout.itemAt(0).widget()
+                if isinstance(dropdown, QComboBox):
+                    dropdown.clear()
+                    dropdown.addItems(self.property_list)
+
+    def get_filter_rows_layout(self):
+        return self.filter_rows_layout

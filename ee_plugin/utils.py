@@ -3,6 +3,8 @@
 Utils functions for EE
 """
 
+from qgis.PyQt.QtGui import QColor
+
 import os
 import math
 import json
@@ -25,6 +27,16 @@ from qgis.PyQt.QtCore import QCoreApplication
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Change as needed (DEBUG/INFO/WARNING/ERROR)
+
+
+filter_functions = {
+    "==": {"operator": ee.Filter.eq, "symbol": "=="},
+    "!=": {"operator": ee.Filter.neq, "symbol": "!="},
+    "<": {"operator": ee.Filter.lt, "symbol": "<"},
+    ">": {"operator": ee.Filter.gt, "symbol": ">"},
+    "<=": {"operator": ee.Filter.lte, "symbol": "<="},
+    ">=": {"operator": ee.Filter.gte, "symbol": ">="},
+}
 
 
 class VisualizeParams(TypedDict, total=False):
@@ -173,6 +185,7 @@ def add_or_update_ee_vector_layer(
     name: str,
     shown: bool = True,
     opacity: float = 1.0,
+    style_params: Optional[dict] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding/updating EE vector layer: {name}")
     layer = get_layer_by_name(name)
@@ -180,7 +193,7 @@ def add_or_update_ee_vector_layer(
         if not layer.customProperty("ee-layer"):
             raise Exception(f"Layer is not an EE layer: {name}")
         return update_ee_vector_layer(eeObject, layer, shown, opacity)
-    return add_ee_vector_layer(eeObject, name, shown, opacity)
+    return add_ee_vector_layer(eeObject, name, shown, opacity, style_params)
 
 
 def add_ee_vector_layer(
@@ -188,13 +201,35 @@ def add_ee_vector_layer(
     name: str,
     shown: bool = True,
     opacity: float = 1.0,
+    style_params: Optional[dict] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding EE vector layer: {name}")
-    geometry_info = eeObject.getInfo()
-    geojson = {
-        "type": "FeatureCollection",
-        "features": [{"type": "Feature", "geometry": geometry_info, "properties": {}}],
-    }
+    info = eeObject.getInfo()
+
+    if info["type"] == "FeatureCollection":
+        geojson = {
+            "type": "FeatureCollection",
+            "features": info["features"],
+        }
+    elif info["type"] == "Feature":
+        geojson = {
+            "type": "FeatureCollection",
+            "features": [info],
+        }
+    elif info["type"] in (
+        "Polygon",
+        "MultiPolygon",
+        "Point",
+        "LineString",
+        "MultiLineString",
+        "LinearRing",
+    ):
+        geojson = {
+            "type": "FeatureCollection",
+            "features": [{"type": "Feature", "geometry": info, "properties": {}}],
+        }
+    else:
+        raise ValueError("Unsupported EE object type: " + info["type"])
 
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".geojson")
     with open(temp_file.name, "w") as f:
@@ -206,15 +241,22 @@ def add_ee_vector_layer(
 
     QgsProject.instance().addMapLayer(layer)
 
-    if opacity is not None and layer.renderer():
-        symbol = layer.renderer().symbol()
-        symbol.setOpacity(opacity)
-        layer.triggerRepaint()
-
     if shown is not None:
         QgsProject.instance().layerTreeRoot().findLayer(
             layer.id()
         ).setItemVisibilityChecked(shown)
+
+    if style_params:
+        symbol = layer.renderer().symbol()
+        symbol_layer = symbol.symbolLayer(0)
+        if style_params.get("opacity"):
+            symbol.setOpacity(style_params["opacity"])
+        if style_params.get("color"):
+            symbol_layer.setStrokeColor(QColor(style_params["color"]))
+        if style_params.get("width"):
+            symbol_layer.setStrokeWidth(style_params["width"])
+        if style_params.get("fillColor"):
+            symbol_layer.setFillColor(QColor(style_params["fillColor"]))
 
     return layer
 
@@ -401,3 +443,58 @@ def download_tile(
     with open(out_path, "wb") as f:
         f.write(response.content)
     logger.debug(f"Tile saved to {out_path}")
+
+
+def get_ee_properties(asset_id: str, silent: bool = False) -> Optional[List[str]]:
+    """
+    Get property names from any Earth Engine asset.
+    """
+    try:
+        asset = ee.data.getAsset(asset_id)
+
+        if asset["type"] == "IMAGE_COLLECTION":
+            obj = ee.ImageCollection(asset_id).first()
+        elif asset["type"] == "IMAGE":
+            obj = ee.Image(asset_id)
+        elif asset["type"] == "FEATURE_COLLECTION":
+            obj = ee.FeatureCollection(asset_id).first()
+        elif asset["type"] == "TABLE":
+            obj = ee.FeatureCollection(asset_id).first()
+        else:
+            if not silent:
+                logger.warning(f"Unhandled EE object type: {asset['type']!r}")
+            return None
+
+        props = obj.toDictionary().getInfo()
+        return sorted(props.keys())
+    except Exception:
+        if not silent:
+            logger.exception(f"Error retrieving properties from asset {asset_id!r}")
+        return None
+
+
+def get_available_bands(
+    asset_id: str,
+    silent: bool = False,
+) -> Optional[List[str]]:
+    """
+    Get available bands from an Earth Engine image or image collection.
+    """
+    try:
+        asset = ee.data.getAsset(asset_id)
+
+        if asset["type"] == "IMAGE_COLLECTION":
+            obj = ee.ImageCollection(asset_id).first()
+        elif asset["type"] == "IMAGE":
+            obj = ee.Image(asset_id)
+        else:
+            if not silent:
+                logger.warning(f"Unhandled EE object type: {asset['type']!r}")
+            return None
+
+        bands = obj.bandNames().getInfo()
+        return sorted(bands)
+    except Exception:
+        if not silent:
+            logger.exception(f"Error retrieving bands from asset {asset_id!r}")
+        return None

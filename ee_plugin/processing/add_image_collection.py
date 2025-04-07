@@ -13,6 +13,7 @@ from qgis.core import (
     QgsProcessingParameterExtent,
     QgsRectangle,
 )
+from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
@@ -22,29 +23,123 @@ from qgis.PyQt.QtWidgets import (
     QSlider,
     QHBoxLayout,
     QWidget,
-    QPushButton,
-    QTextEdit,
+    QColorDialog,
 )
 from qgis import gui
 
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 from .. import Map
-from ..utils import translate as _
-
-
-filter_functions = {
-    "==": {"operator": ee.Filter.eq, "symbol": "=="},
-    "!=": {"operator": ee.Filter.neq, "symbol": "!="},
-    "<": {"operator": ee.Filter.lt, "symbol": "<"},
-    ">": {"operator": ee.Filter.gt, "symbol": ">"},
-    "<=": {"operator": ee.Filter.lte, "symbol": "<="},
-    ">=": {"operator": ee.Filter.gte, "symbol": ">="},
-}
+from ..ui.widgets import VisualizationParamsWidget, FilterWidget
+from ..utils import (
+    translate as _,
+    get_ee_properties,
+    get_available_bands,
+    filter_functions,
+)
 
 
 class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
     def __init__(self, algorithm: QgsProcessingAlgorithm, parent: QWidget = None):
+        self.image_properties = []
         super().__init__(algorithm, parent=parent, title="Add Image Collection")
+        self._update_timer = QTimer(
+            self, singleShot=True, timeout=self._on_image_collection_id_ready
+        )
+
+    def update_image_properties(self):
+        asset_id = self.image_collection_id.text().strip()
+        if not asset_id:
+            return
+        props = get_ee_properties(asset_id, silent=True)
+        if props:
+            self.image_properties = props
+            self._refresh_property_dropdowns()
+
+    def _on_image_collection_id_changed(self):
+        self._update_timer.start(500)
+
+    def _on_image_collection_id_ready(self):
+        self.update_image_properties()
+        self.update_band_dropdowns()
+
+    def _refresh_property_dropdowns(self):
+        self.filter_widget.set_property_list(self.image_properties)
+
+    def _buildCompositingLayoutWidget(self):
+        compositing_group = gui.QgsCollapsibleGroupBox(_("Compositing"))
+        compositing_group.setCollapsed(False)
+        compositing_layout = QFormLayout()
+
+        self.compositing_method = QComboBox(objectName="compositing_method")
+        self.compositing_method.addItems(
+            ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
+        )
+        self.compositing_method.setToolTip(_("Select a compositing method."))
+        compositing_layout.addRow(_("Compositing Method"), self.compositing_method)
+
+        percentile_slider_layout = self._buildPercentileSliderLayout()
+        compositing_layout.addRow(self.percentile_label, percentile_slider_layout)
+
+        compositing_group.setLayout(compositing_layout)
+
+        return compositing_group
+
+    def _update_percentile_visibility(self, index):
+        is_percentile = self.compositing_method.itemText(index) == "Percentile"
+        self.percentile_label.setVisible(is_percentile)
+        self.percentile_value.setVisible(is_percentile)
+        self.percentile_max_label.setVisible(is_percentile)
+        self.percentile_min_label.setVisible(is_percentile)
+        self.percentile_current_value.setVisible(is_percentile)
+
+    def _buildPercentileSliderLayout(self):
+        self.percentile_label = QLabel(_("Percentile Value"))
+        self.percentile_value = QSlider(objectName="percentile_value")
+        self.percentile_value.setRange(0, 100)
+        self.percentile_value.setSingleStep(1)
+        self.percentile_value.setTickInterval(10)
+        self.percentile_value.setOrientation(1)
+        self.percentile_value.setTickPosition(QSlider.TicksBelow)
+        self.percentile_min_label = QLabel("0")
+        self.percentile_max_label = QLabel("100")
+
+        self.percentile_current_value = QLabel(str(self.percentile_value.value()))
+        self.percentile_value.valueChanged.connect(
+            lambda value: self.percentile_current_value.setText(str(value))
+        )
+
+        percentile_slider_layout = QHBoxLayout()
+        percentile_slider_layout.addWidget(self.percentile_min_label)
+        percentile_slider_layout.addWidget(self.percentile_value)
+        percentile_slider_layout.addWidget(self.percentile_max_label)
+        # next line
+        percentile_slider_layout.addSpacing(50)
+        percentile_slider_layout.addWidget(self.percentile_current_value)
+
+        self.percentile_value.setValue(50)
+        self.percentile_value.setToolTip(_("Enter percentile value (0-100)"))
+        self._update_percentile_visibility(self.compositing_method.currentIndex())
+
+        return percentile_slider_layout
+
+    def add_color_to_palette(self):
+        options = QColorDialog.ColorDialogOptions(
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog
+        )
+        color_dialog = QColorDialog()
+        color_dialog.setOptions(options)
+        color = color_dialog.getColor()
+        if color.isValid():
+            hex_color = color.name()  # e.g. "#ff0000"
+            self.color_palette.append(hex_color)
+
+            # Display a swatch
+            swatch = QLabel()
+            swatch.setFixedSize(24, 24)
+            swatch.setStyleSheet(
+                f"background-color: {hex_color}; border: 1px solid black;"
+            )
+            self.palette_display.addWidget(swatch)
 
     def buildDialog(self) -> QWidget:
         # Build your custom layout
@@ -61,126 +156,42 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
             _("Enter the ID of the Earth Engine Image Collection.")
         )
 
+        self.image_properties = []
+        self.image_collection_id.textChanged.connect(
+            self._on_image_collection_id_changed
+        )
+        self._update_timer = QTimer(
+            self, singleShot=True, timeout=self._on_image_collection_id_ready
+        )
+
         source_form = QFormLayout()
         source_form.addRow(source_label, self.image_collection_id)
         layout.addLayout(source_form)
 
-        # --- Filter by Properties ---
-        filter_group = gui.QgsCollapsibleGroupBox(_("Filter by Image Properties"))
-        filter_group.setCollapsed(True)
-
-        self.filter_rows_layout = QVBoxLayout()
-
-        def add_filter_row():
-            row_layout = QHBoxLayout()
-
-            name_input = QLineEdit()
-            name_input.setPlaceholderText(_("Property Name"))
-            name_input.setToolTip(_("Enter the property name to filter by."))
-
-            operator_input = QComboBox()
-            operator_input.addItems(["==", "!=", "<", ">", "<=", ">="])
-            operator_input.setToolTip(_("Choose the filter operator."))
-
-            value_input = QLineEdit()
-            value_input.setPlaceholderText(_("Value"))
-            value_input.setToolTip(_("Enter the value to filter by."))
-
-            remove_button = QPushButton("Remove")
-
-            def remove_row():
-                for i in reversed(range(row_layout.count())):
-                    widget = row_layout.itemAt(i).widget()
-                    if widget:
-                        widget.setParent(None)
-                self.filter_rows_layout.removeItem(row_layout)
-
-            remove_button.clicked.connect(remove_row)
-
-            row_layout.addWidget(name_input)
-            row_layout.addWidget(operator_input)
-            row_layout.addWidget(value_input)
-            row_layout.addWidget(remove_button)
-
-            self.filter_rows_layout.addLayout(row_layout)
-
-        add_filter_btn = QPushButton("Add Filter")
-        add_filter_btn.clicked.connect(add_filter_row)
-
-        add_filter_row()  # Start with one filter row
-
-        filter_widget = QWidget()
-        filter_widget.setLayout(self.filter_rows_layout)
-
-        filter_layout = QVBoxLayout()
-        filter_layout.addWidget(filter_widget)
-        filter_layout.addWidget(add_filter_btn)
-
-        filter_group.setLayout(filter_layout)
-        layout.addWidget(filter_group)
+        ## --- Filter by Properties ---
+        self.filter_widget = FilterWidget(
+            "Filter by Image Properties", self.image_properties
+        )
+        layout.addWidget(self.filter_widget)
 
         # --- Compositing Method ---
-        compositing_group = gui.QgsCollapsibleGroupBox(_("Compositing"))
-        compositing_group.setCollapsed(False)
-        compositing_layout = QFormLayout()
-
-        self.compositing_method = QComboBox(objectName="compositing_method")
-        self.compositing_method.addItems(
-            ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
-        )
-        self.compositing_method.setToolTip(_("Select a compositing method."))
-        compositing_layout.addRow(_("Compositing Method"), self.compositing_method)
-
-        def update_percentile_visibility(index):
-            is_percentile = self.compositing_method.itemText(index) == "Percentile"
-            self.percentile_label.setVisible(is_percentile)
-            self.percentile_value.setVisible(is_percentile)
-            self.percentile_max_label.setVisible(is_percentile)
-            self.percentile_min_label.setVisible(is_percentile)
-            self.percentile_min_label.setVisible(is_percentile)
-            self.percentile_max_label.setVisible(is_percentile)
-
-        self.percentile_label = QLabel(_("Percentile Value"))
-        self.percentile_value = QSlider(objectName="percentile_value")
-        self.percentile_value.setRange(0, 100)
-        self.percentile_value.setSingleStep(1)
-        self.percentile_value.setTickInterval(10)
-        self.percentile_value.setOrientation(1)
-        self.percentile_value.setTickPosition(QSlider.TicksBelow)
-        self.percentile_min_label = QLabel("0")
-        self.percentile_max_label = QLabel("100")
-        percentile_slider_layout = QHBoxLayout()
-        percentile_slider_layout.addWidget(self.percentile_min_label)
-        percentile_slider_layout.addWidget(self.percentile_value)
-        percentile_slider_layout.addWidget(self.percentile_max_label)
-        self.percentile_value.setValue(50)
-        self.percentile_value.setToolTip(_("Enter percentile value (0-100)"))
-        update_percentile_visibility(self.compositing_method.currentIndex())
-
-        compositing_layout.addRow(self.percentile_label, percentile_slider_layout)
-
-        compositing_group.setLayout(compositing_layout)
+        compositing_group = self._buildCompositingLayoutWidget()
         layout.addWidget(compositing_group)
-
-        # Show/hide percentile input based on method
         self.compositing_method.currentIndexChanged.connect(
-            update_percentile_visibility
+            self._update_percentile_visibility
         )
 
         # --- Filter by Dates ---
         date_group = gui.QgsCollapsibleGroupBox(_("Filter by Dates"))
         date_group.setCollapsed(True)
         date_layout = QFormLayout()
-
         self.start_date = gui.QgsDateEdit(objectName="start_date")
         self.start_date.setToolTip(_("Start date for filtering"))
-
         self.end_date = gui.QgsDateEdit(objectName="end_date")
         self.end_date.setToolTip(_("End date for filtering"))
 
         date_layout.addRow(_("Start"), self.start_date)
         date_layout.addRow(_("End"), self.end_date)
-
         date_group.setLayout(date_layout)
         layout.addWidget(date_group)
 
@@ -194,24 +205,37 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.extent_group.setToolTip(_("Specify the geographic extent."))
         layout.addWidget(self.extent_group)
 
-        viz_label = QLabel(
-            _("Visualization Parameters <br>(JSON format)"),
-        )
-        viz_label.setToolTip(_("Enter visualization parameters in JSON format."))
-        self.viz_params = QTextEdit()
-        self.viz_params.setObjectName("viz_params")
-        self.viz_params.setToolTip(_("Enter visualization parameters in JSON format."))
-        viz_form = QFormLayout()
-        viz_form.addRow(viz_label, self.viz_params)
-        layout.addLayout(viz_form)
+        # --- Visualization Parameters ---
+        viz_group = gui.QgsCollapsibleGroupBox(_("Visualization Parameters"))
+        viz_group.setCollapsed(False)
+        self.viz_widget = VisualizationParamsWidget()
+        viz_layout = QVBoxLayout()
+        viz_layout.addWidget(self.viz_widget)
+        viz_group.setLayout(viz_layout)
+
+        # finally
+        layout.addWidget(viz_group)
 
         return layout
+
+    def update_band_dropdowns(self):
+        band_selection_items = (
+            get_available_bands(self.image_collection_id.text().strip(), silent=True)
+            or []
+        )
+        for i in range(3):
+            band_dropdown = self.findChild(QComboBox, f"viz_band_{i}")
+            current = band_dropdown.currentText()
+            band_dropdown.clear()
+            band_dropdown.addItems(band_selection_items)
+            band_dropdown.setCurrentText(current)
 
     def getParameters(self) -> dict:
         try:
             filters = []
-            for filter in self.filter_rows_layout.children():
-                row_layout = filter.layout()
+            filter_layout = self.filter_widget.get_filter_rows_layout()
+            for i in range(filter_layout.count()):
+                row_layout = filter_layout.itemAt(i)
                 if isinstance(row_layout, QHBoxLayout):
                     name_input = row_layout.itemAt(0).widget()
                     operator_input = row_layout.itemAt(1).widget()
@@ -219,22 +243,22 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                     if (
                         name_input
                         and value_input
-                        and name_input.text()
+                        and (name_input.currentText())
                         and value_input.text()
                     ):
                         op = operator_input.currentText()
-                        filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
+                        name_val = name_input.currentText()
+                        filters.append(f"{name_val}:{op}:{value_input.text()}")
             filters_str = ";".join(filters)
 
-            viz_params_raw = self.viz_params.toPlainText()
-            if viz_params_raw:
-                viz_params_raw = viz_params_raw.strip()
-                try:
-                    viz_params = json.loads(viz_params_raw)
-                except json.JSONDecodeError:
-                    raise ValueError("Invalid JSON format in visualization parameters.")
-            else:
-                viz_params = {}
+            # Build viz_params from UI
+            selected_bands = []
+            for i in range(3):
+                band_dropdown = self.findChild(QComboBox, f"viz_band_{i}")
+                if band_dropdown and band_dropdown.currentText():
+                    selected_bands.append(band_dropdown.currentText())
+
+            viz_params = self.viz_widget.get_viz_params()
 
             params = {
                 "image_collection_id": self.image_collection_id.text(),
@@ -283,7 +307,10 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             <li><b>End date for filtering:</b> The end date for filtering the Image Collection.</li>
             <li><b>Compositing Method:</b> The compositing method to use for the Image Collection.</li>
             <li><b>Percentile Value:</b> The percentile value to use for the 'Percentile' compositing method if selected.</li>
-            <li><b>Visualization Parameters:</b> JSON string for visualization parameters.</li>
+        <li><b>Visualization Parameters:</b> These include min, max, bands, palette (for single-band images), and gamma (for RGB or multi-band images). <br>
+        Important: <code>gamma</code> and <code>palette</code> cannot be used together. Use <code>palette</code> only for single-band visualizations. <br>
+        See the <a href='https://developers.google.com/earth-engine/guides/image_visualization' target='_blank'>Image Visualization Guide</a> for details.
+        </li>
         </ul>
 
         <b>Earth Engine Data Catalog:</b>

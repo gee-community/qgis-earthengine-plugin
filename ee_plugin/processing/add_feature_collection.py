@@ -5,6 +5,7 @@ from typing import List
 import ee
 from qgis.core import QgsProcessingAlgorithm, QgsProcessingParameterString
 from qgis import gui
+from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QLabel,
@@ -20,7 +21,7 @@ from qgis.PyQt.QtWidgets import (
 
 from .. import Map, utils
 from ..processing.custom_algorithm_dialog import BaseAlgorithmDialog
-from ..utils import translate as _
+from ..utils import translate as _, get_ee_properties
 
 
 logger = logging.getLogger(__name__)
@@ -260,6 +261,11 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
 
 
 class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
+    def __init__(self, algorithm, parent=None):
+        self.feature_properties = []
+        super().__init__(algorithm, parent)
+        self._update_timer = QTimer(self, singleShot=True, timeout=self._on_fc_id_ready)
+
     def _build_visualization_group(self):
         group = gui.QgsCollapsibleGroupBox("Visualization")
         group.setCollapsed(True)
@@ -299,9 +305,11 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         def add_filter_row():
             row_layout = QHBoxLayout()
 
-            name_input = QLineEdit()
-            name_input.setPlaceholderText(_("Property Name"))
-            name_input.setToolTip(_("Enter a property name."))
+            name_input = QComboBox()
+            name_input.setEditable(True)
+            name_input.setToolTip(_("Enter or select a property name."))
+            name_input.setObjectName("property_dropdown")
+            name_input.addItems(self.feature_properties)
 
             operator_input = QComboBox()
             operator_input.addItems(["==", "!=", "<", ">", "<=", ">="])
@@ -350,6 +358,9 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         # --- Feature Collection ID ---
         self.fc_id = QLineEdit()
         self.fc_id.setPlaceholderText("e.g. USGS/WBD/2017/HUC06")
+        # Connect signals
+        self.fc_id.textChanged.connect(self._on_fc_id_changed)
+
         layout.addWidget(QLabel("Feature Collection ID"))
         layout.addWidget(self.fc_id)
 
@@ -398,9 +409,14 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
             name_input = row_layout.itemAt(0).widget()
             operator_input = row_layout.itemAt(1).widget()
             value_input = row_layout.itemAt(2).widget()
-            if name_input and value_input and name_input.text() and value_input.text():
+            if (
+                name_input
+                and value_input
+                and name_input.currentText()
+                and value_input.text()
+            ):
                 op = operator_input.currentText()
-                filters.append(f"{name_input.text()}:{op}:{value_input.text()}")
+                filters.append(f"{name_input.currentText()}:{op}:{value_input.text()}")
         filters_str = ";".join(filters)
 
         return {
@@ -415,3 +431,27 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
             "viz_fill_color": self.fill_color.color().name(),
             "viz_width": str(self.line_width.value()),
         }
+
+    def _on_fc_id_changed(self):
+        self._update_timer.start(500)
+
+    def _on_fc_id_ready(self):
+        self.update_feature_properties()
+
+    def update_feature_properties(self):
+        asset_id = self.fc_id.text().strip()
+        if not asset_id:
+            return
+        props = get_ee_properties(asset_id, silent=True)
+        if props:
+            self.feature_properties = props
+            self._refresh_property_dropdowns()
+
+    def _refresh_property_dropdowns(self):
+        for i in range(self.filter_rows_layout.count()):
+            layout = self.filter_rows_layout.itemAt(i)
+            if isinstance(layout, QHBoxLayout):
+                dropdown = layout.itemAt(0).widget()
+                if isinstance(dropdown, QComboBox):
+                    dropdown.clear()
+                    dropdown.addItems(self.feature_properties)

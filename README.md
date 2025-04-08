@@ -38,7 +38,7 @@ Google Earth Engine requires a **Google Cloud Project**. To find your Project ID
 
 ## 🌍 Using Earth Engine in QGIS
 
-### 1. Code Usage
+### Code Usage
 
 You can use Earth Engine datasets programmatically within QGIS using the `Python Console`:
 
@@ -55,7 +55,7 @@ Map.addLayer(image, vis_params, 'Digital Elevation Model')
 Map.setCenter(-121.753, 46.855, 9)
 ```
 
-### 2. Algorithms via Processing Toolbox and Plugin Menu
+### Algorithms via Processing Toolbox and Plugin Menu
 
 Earth Engine algorithms are available from:
 
@@ -66,11 +66,11 @@ See [available algorithms](#-available-algorithms) for more details.
 
 ![example algorithm](./media/example_algorithm.png)
 
-### 3. Model Designer
+### Model Designer
 
 Earth Engine algorithms can be integrated into QGIS **Model Designer** workflows:
 
-- Open `Processing > Graphical Modeler`
+- Open `Processing Toolbox > Models > Create New Model`
 - Add and chain EE algorithms with other QGIS algorithms
 - Save your custom processing model for repeated use
 
@@ -78,7 +78,7 @@ An [example model](https://github.com/gee-community/qgis-earthengine-plugin/blob
 ![Example Model](./media/example_model.png)
 
 
-### 4. Saving Your Project
+### Saving Your Project
 
 Any layers and model workflows can be saved in your QGIS project file.  
 
@@ -86,7 +86,7 @@ Be sure to re-authenticate if opening the project on a new machine or after toke
 
 ---
 
-## 🧠 Available Algorithms
+## ⚙️ Available Algorithms
 
 The following algorithms are currently implemented in the plugin:
 
@@ -97,7 +97,7 @@ The following algorithms are currently implemented in the plugin:
 | Export GeoTIFF             | Exports an EE image as a Cloud-Optimized GeoTIFF to disk      |
 | Add Feature Collection     | Loads a feature collection from Earth Engine  |
 
-📌 Each tool includes in-dialog documentation to help guide usage directly within QGIS.
+📌 Each algorithm includes in-dialog documentation to help guide usage directly within QGIS.
 
 ---
 

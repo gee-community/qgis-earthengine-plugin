@@ -74,7 +74,7 @@ Earth Engine algorithms can be integrated into QGIS **Model Designer** workflows
 - Add and chain EE algorithms with other QGIS algorithms
 - Save your custom processing model for repeated use
 
-An [example model](./examples/srtm_hillshade.model3) is provided for the hillshade example below:
+An [example model](https://github.com/gee-community/qgis-earthengine-plugin/blob/master/examples/srtm_hillshade.model3) is provided for the hillshade example below:
 ![Example Model](./media/example_model.png)
 
 

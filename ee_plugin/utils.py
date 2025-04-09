@@ -242,9 +242,13 @@ def add_ee_vector_layer(
     QgsProject.instance().addMapLayer(layer)
 
     if shown is not None:
-        QgsProject.instance().layerTreeRoot().findLayer(
-            layer.id()
-        ).setItemVisibilityChecked(shown)
+        tree_layer = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+        if tree_layer:
+            tree_layer.setItemVisibilityChecked(shown)
+        else:
+            logger.warning(
+                "Layer not found in layer tree when trying to set visibility."
+            )
 
     if style_params:
         symbol = layer.renderer().symbol()

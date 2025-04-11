@@ -3,7 +3,12 @@ import logging
 from typing import List
 
 import ee
-from qgis.core import QgsProcessingAlgorithm, QgsProcessingParameterString
+from qgis.core import (
+    QgsProcessingAlgorithm,
+    QgsProcessingParameterString,
+    QgsProcessingOutputVectorLayer,
+    QgsProcessingOutputRasterLayer,
+)
 from qgis import gui
 from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtWidgets import (
@@ -157,6 +162,20 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             )
         )
 
+        self.addOutput(
+            QgsProcessingOutputVectorLayer(
+                "OUTPUT_VECTOR",
+                _("Output Vector Feature Collection"),
+            )
+        )
+
+        self.addOutput(
+            QgsProcessingOutputRasterLayer(
+                "OUTPUT_RASTER",
+                _("Output Feature Collection as XYZ Raster"),
+            )
+        )
+
     def _get_filters(self, filters: str) -> List[str]:
         filters = filters.split(";")
         parsed_filters = []
@@ -213,8 +232,8 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
                 logger.warning(
                     "Skipping date filter: no system:time_start property found."
                 )
-
-        if extent.lower() != "null":
+        # Apply extent filter if provided
+        if extent and extent.lower() != "null":
             try:
                 # Split on commas and colons
                 parts = re.split(r"[,:]", extent)
@@ -226,6 +245,9 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             except Exception as e:
                 raise ValueError(f"Invalid extent format: {extent}") from e
 
+        # result can contain either vector or raster layer
+        # depending on the as_vector parameter
+        result = {}
         layer_name = f"FC: {feature_collection_id}"
         if as_vector.lower() in ("true", "1", "yes"):
             try:
@@ -240,6 +262,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
                         "opacity": int(opacity) / 100,
                     },
                 )
+                result["OUTPUT_VECTOR"] = layer_name
             except ee.ee_exception.EEException as e:
                 logger.error(f"Failed to load the Feature Collection: {e}")
         else:
@@ -250,13 +273,14 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             layer = Map.addLayer(styled_fc, {}, layer_name)
             if opacity != "":
                 layer.setOpacity(int(opacity) / 100)
+            result["OUTPUT_RASTER"] = layer
 
         if fc.size().getInfo() == 0:
             logger.warning(
                 f"No features found in the Feature Collection: {feature_collection_id}"
             )
 
-        return {"OUTPUT": fc}
+        return result
 
     def createCustomParametersWidget(self, parent=None):
         """Create a custom widget for the algorithm."""

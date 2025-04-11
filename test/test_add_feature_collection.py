@@ -25,7 +25,7 @@ def test_add_feature_collection_algorithm_retain_vector(clean_qgis_iface):
     result = algorithm.processAlgorithm(parameters, context, feedback)
 
     assert isinstance(result, dict)
-    assert "OUTPUT" in result
+    assert "OUTPUT_VECTOR" in result
     try:
         layer = clean_qgis_iface.mapCanvas().layers()[0]
     except IndexError:
@@ -63,7 +63,7 @@ def test_add_feature_collection_algorithm(clean_qgis_iface):
     result = algorithm.processAlgorithm(parameters, context, feedback)
 
     assert isinstance(result, dict)
-    assert "OUTPUT" in result
+    assert "OUTPUT_RASTER" in result
     try:
         layer = clean_qgis_iface.mapCanvas().layers()[0]
     except IndexError:

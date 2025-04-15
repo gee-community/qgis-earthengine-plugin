@@ -38,6 +38,10 @@ Google Earth Engine requires a **Google Cloud Project**. To find your Project ID
 
 ## 🌍 Using Earth Engine in QGIS
 
+With the code and algorithm tools below, the underlying Earth Engine assets are added as a [WMS](https://www.ogc.org/publications/standard/wms/) via our own custom QGIS Data Provider. The exception is if the `retain as vector layer` option is selected for the `Add Feature Collection` algorithm.
+
+To export data, you may use the `Export Image as GeoTIFF` algorithm. For feature collections added with the `retain as vector layer`, you may also right-click on the layer and use QGIS' built-in export functionality.
+
 ### Code Usage
 
 You can use Earth Engine datasets programmatically within QGIS using the `Python Console`:

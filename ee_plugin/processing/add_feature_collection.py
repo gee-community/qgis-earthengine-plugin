@@ -58,7 +58,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
  
     <h3>Parameters:</h3>
     <ul>
-        <li><b>Feature Collection ID:</b> The Earth Engine Feature Collection asset ID (add link to this page https://developers.google.com/earth-engine/guides/manage_assets) to add to the map.</li>
+        <li><b>Feature Collection ID:</b> The Earth Engine Feature Collection <a href='https://developers.google.com/earth-engine/guides/manage_assets'>Asset ID</a> to add to the map.</li>
         <li><b>Filter Properties:</b> Filters to apply to the Feature Collection. Feature properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details.</li>
         <li><b>Start and End Date:</b> Optional start and end dates for filtering. Applies only to collections with <code>system:time_start</code>.</li>
         <li><b>Geographic Extent:</b> Optional bounding box filter using the format xmin,ymin,xmax,ymax.</li>

@@ -53,17 +53,17 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         return """
     <html>
     <b>Add Feature Collection</b><br>
-    This algorithm adds an Earth Engine Feature Collection to the map either as a styled vector layer or as a styled raster overlay.<br>
+    This algorithm adds an Earth Engine Feature Collection to the map either as a styled vector layer (downloaded locally) or as a styled raster overlay.<br>
     You can filter the collection by properties, dates, or geographic extent.<br>
  
     <h3>Parameters:</h3>
     <ul>
-        <li><b>Feature Collection ID:</b> The Earth Engine Feature Collection ID to add to the map.</li>
+        <li><b>Feature Collection ID:</b> The Earth Engine Feature Collection asset ID (add link to this page https://developers.google.com/earth-engine/guides/manage_assets) to add to the map.</li>
         <li><b>Filter Properties:</b> Filters to apply to the Feature Collection. Feature properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details.</li>
         <li><b>Start and End Date:</b> Optional start and end dates for filtering. Applies only to collections with <code>system:time_start</code>.</li>
         <li><b>Geographic Extent:</b> Optional bounding box filter using the format xmin,ymin,xmax,ymax.</li>
         <li><b>Visualization Parameters:</b> Includes outline color, fill color, line width, and opacity. These apply to both vector and raster styles.</li>
-        <li><b>Retain as Vector Layer:</b> If checked, the features are retained as a local vector layer in QGIS. Otherwise, the styled result is added as a raster overlay.</li>
+        <li><b>Retain as Vector Layer:</b> If checked, the features are downloaded as a local vector layer in QGIS use with caution for large datasets. Otherwise, the styled result is added as a raster overlay.</li>
     </ul>
  
     <b>Earth Engine Data Catalog:</b>

@@ -121,7 +121,7 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
     def shortHelpString(self) -> str:
         return (
             "<h2>Export Earth Engine Image to GeoTIFF</h2>"
-            "<p>This tool allows you to export an Earth Engine image to a GeoTIFF format. You must specify:</p>"
+            "<p>This tool allows you to export an Earth Engine image already loaded into a project to a GeoTIFF format. You must specify:</p>"
             "<ul>"
             "<li><b>Extent</b>: Coordinates defining the current map extent for the export region.</li>"
             "<li><b>Scale</b>: Resolution in meters per pixel.</li>"

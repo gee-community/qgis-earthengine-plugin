@@ -42,6 +42,8 @@ With the code and algorithm tools below, the underlying Earth Engine assets are 
 
 To export data, you may use the `Export Image as GeoTIFF` algorithm. For feature collections added with the `retain as vector layer`, you may also right-click on the layer and use QGIS' built-in export functionality.
 
+**Note to Zac: add in information about the "read only" nature of data pulled in from GEE, and how to download into your project if you want to**
+
 ### Code Usage
 
 You can use Earth Engine datasets programmatically within QGIS using the `Python Console`:
@@ -96,8 +98,8 @@ The following algorithms are currently implemented in the plugin:
 
 | Algorithm Name              | Description                                   |
 | -------------------------- | --------------------------------------------- |
-| Add EE Image               | Loads a single Earth Engine image             |
-| Add Image Collection       | Loads a filtered Earth Engine image collection |
+| Add EE Image               | Loads a single Earth Engine image for viewing             |
+| Add Image Collection       | Loads a filtered Earth Engine image collection for viewing|
 | Export GeoTIFF             | Exports an EE image as a Cloud-Optimized GeoTIFF to disk      |
 | Add Feature Collection     | Loads a feature collection from Earth Engine  |
 
@@ -120,7 +122,7 @@ The plugin supports several **Map API functions** similar to the Earth Engine Co
 | `Map.getZoom()`                                           | Returns the current zoom level.     |
 | `Map.setZoom(zoom)`                                       | Sets a new zoom level.              |
 
-For more details, check the [EE API Documentation](https://developers.google.com/earth-engine/getstarted#adding-data-to-the-map).
+For more details, check the [Earth Engine API Documentation](https://developers.google.com/earth-engine/getstarted#adding-data-to-the-map).
 
 ---
 

@@ -176,7 +176,7 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
  
             <h3>Parameters:</h3>
             <ul>
-                <li><b>Image ID:</b> The Earth Engine Image ID to add to the map (e.g. <code>USGS/SRTMGL1_003</code>).</li>
+                <li><b>Image ID:</b> The Earth Engine <a href='https://developers.google.com/earth-engine/guides/manage_assets'>Asset ID</a> to add to the map (e.g. <code>USGS/SRTMGL1_003</code>).</li>
                 <li><b>Visualization Parameters:</b> These include <code>min</code>, <code>max</code>, <code>bands</code>, <code>palette</code> (for single-band images), and <code>gamma</code> (for RGB or multi-band images).<br>
                 Important: <code>gamma</code> and <code>palette</code> cannot be used together. Use <code>palette</code> only for single-band visualizations.<br>
                 See the <a href='https://developers.google.com/earth-engine/guides/image_visualization' target='_blank'>Image Visualization Guide</a> for details.

@@ -302,7 +302,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
 
         <h3>Parameters:</h3>
         <ul>
-            <li><b>Image Collection ID:</b> The Earth Engine Image Collection ID to add to the map.</li>
+            <li><b>Image Collection ID:</b> The Earth Engine Image Collection <a href='https://developers.google.com/earth-engine/guides/manage_assets'>Asset ID</a> to add to the map.</li>
             <li><b>Filter Image Properties:</b> Image Property filter Filters to apply to the Image Collection. Image properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details. 
             <li><b>End date for filtering:</b> The end date for filtering the Image Collection.</li>
             <li><b>Compositing Method:</b> The compositing method to use for the Image Collection.</li>

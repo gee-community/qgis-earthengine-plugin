@@ -38,7 +38,8 @@ Google Earth Engine requires a **Google Cloud Project**. To find your Project ID
 
 ## 🌍 Using Earth Engine in QGIS
 
-With the code and algorithm tools below, the underlying Earth Engine assets are added as a [WMS](https://www.ogc.org/publications/standard/wms/) via our own custom QGIS Data Provider. The exception is if the `retain as vector layer` option is selected for the `Add Feature Collection` algorithm.
+With the code and algorithm tools below, the underlying Earth Engine assets are added as a [WMS](https://www.ogc.org/publications/standard/wms/) via our own custom QGIS Data Provider. To modify data pulled from Earth Engine, you must export it via the `Export` tools. The exception is if the `retain as vector layer` option is selected for the `Add Feature Collection` algorithm.
+
 
 To export data, you may use the `Export Image as GeoTIFF` algorithm. For feature collections added with the `retain as vector layer`, you may also right-click on the layer and use QGIS' built-in export functionality.
 
@@ -96,8 +97,8 @@ The following algorithms are currently implemented in the plugin:
 
 | Algorithm Name              | Description                                   |
 | -------------------------- | --------------------------------------------- |
-| Add EE Image               | Loads a single Earth Engine image             |
-| Add Image Collection       | Loads a filtered Earth Engine image collection |
+| Add EE Image               | Loads a single Earth Engine image for viewing             |
+| Add Image Collection       | Loads a filtered Earth Engine image collection for viewing|
 | Export GeoTIFF             | Exports an EE image as a Cloud-Optimized GeoTIFF to disk      |
 | Add Feature Collection     | Loads a feature collection from Earth Engine  |
 
@@ -120,7 +121,7 @@ The plugin supports several **Map API functions** similar to the Earth Engine Co
 | `Map.getZoom()`                                           | Returns the current zoom level.     |
 | `Map.setZoom(zoom)`                                       | Sets a new zoom level.              |
 
-For more details, check the [EE API Documentation](https://developers.google.com/earth-engine/getstarted#adding-data-to-the-map).
+For more details, check the [Earth Engine API Documentation](https://developers.google.com/earth-engine/getstarted#adding-data-to-the-map).
 
 ---
 

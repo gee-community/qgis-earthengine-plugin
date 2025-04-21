@@ -1,9 +1,10 @@
 from unittest.mock import patch
 
 import ee
-from qgis.core import QgsProject, QgsPointXY
+from qgis.core import QgsProject, QgsPointXY, QgsDataProvider
 
 from ee_plugin import Map
+from ee_plugin.provider import EarthEngineRasterDataProvider
 
 
 def test_raster_identify():
@@ -70,3 +71,28 @@ def test_reduce_region():
 
     assert "elevation" in result, {"message": "Elevation not found in result"}
     assert result["elevation"] > 0, {"message": "Elevation is not positive"}
+
+
+def test_provider_rehydrates_from_asset_id():
+    ee.Initialize()
+
+    asset_id = "USGS/SRTMGL1_003"
+    image = ee.Image(asset_id)
+
+    provider = EarthEngineRasterDataProvider(
+        uri="type=xyz&url=http://example.com",
+        providerOptions=QgsDataProvider.ProviderOptions(),
+        flags=None,
+        image=image,
+    )
+
+    # Simulate reload with no ee_object
+    provider.asset_id = asset_id
+    provider.ee_object = None
+    provider.ee_info = None
+
+    provider.set_ee_object_from_asset()
+
+    assert provider.ee_object is not None
+    assert provider.ee_info is not None
+    assert "bands" in provider.ee_info

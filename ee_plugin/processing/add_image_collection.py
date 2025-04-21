@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import List
 
 import ee
@@ -36,6 +37,8 @@ from ..utils import (
     get_available_bands,
     filter_functions,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
@@ -265,7 +268,9 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                 "filters": filters_str,
                 "start_date": self.start_date.dateTime(),
                 "end_date": self.end_date.dateTime(),
-                "extent": self.extent_group.outputExtent(),
+                "extent": self.extent_group.outputExtent().toString()
+                if not self.extent_group.outputExtent().isEmpty()
+                else "",
                 "compositing_method": self.compositing_method.currentIndex(),
                 "percentile_value": self.percentile_value.value(),
                 "viz_params": viz_params,
@@ -416,22 +421,22 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             )
 
         # If extent is provided, convert it to a QgsRectangle and then to ee.Geometry
-        if isinstance(extent, str):
+        if not extent:
+            logger.warning("Extent is not provided. The entire globe will be used.")
+        if extent and isinstance(extent, str):
             # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
             try:
                 coords = extent.split(" [")[0]  # Drop CRS info
                 xmin, ymin, xmax, ymax = map(float, coords.split(","))
                 extent = QgsRectangle(xmin, ymin, xmax, ymax)
+                min_lon = extent.xMinimum()
+                max_lon = extent.xMaximum()
+                min_lat = extent.yMinimum()
+                max_lat = extent.yMaximum()
+                ee_extent = ee.Geometry.Rectangle([min_lon, min_lat, max_lon, max_lat])
+                ic = ic.filterBounds(ee_extent)
             except Exception as e:
                 raise ValueError(f"Invalid extent format: {extent}") from e
-
-        if extent:
-            min_lon = extent.xMinimum()
-            max_lon = extent.xMaximum()
-            min_lat = extent.yMinimum()
-            max_lat = extent.yMaximum()
-            ee_extent = ee.Geometry.Rectangle([min_lon, min_lat, max_lon, max_lat])
-            ic = ic.filterBounds(ee_extent)
 
         # Apply the filters if provided
         if filters:

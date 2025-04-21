@@ -22,7 +22,7 @@ class EEProcessingProvider(QgsProcessingProvider):
         return "ee"
 
     def name(self):
-        return "GEE"
+        return "Google Earth Engine"
 
     def longName(self):
         return "Google Earth Engine Plugin"

@@ -303,18 +303,20 @@ class VisualizationParamsWidget(QWidget):
         self.layout.addRow(palette_widget)
 
         # min, max, gamma, opacity
-        self.viz_min = self._make_spinbox(-1e6, 1e6, "Min")
-        self.viz_max = self._make_spinbox(-1e6, 1e6, "Max", default=10000)
-        self.viz_gamma = self._make_spinbox(0.01, 10.0, "Gamma")
+        self.viz_min = self._make_spinbox(-1e6, 1e6, "Min", num_decimals=4)
+        self.viz_max = self._make_spinbox(
+            -1e6, 1e6, "Max", default=10000, num_decimals=4
+        )
+        self.viz_gamma = self._make_spinbox(1.00, 10.0, "Gamma")
         self.viz_opacity = self._make_spinbox(0.01, 1.0, "Opacity", default=1.0)
 
         self.setLayout(self.layout)
 
-    def _make_spinbox(self, min_val, max_val, label, default=None):
+    def _make_spinbox(self, min_val, max_val, label, default=None, num_decimals=2):
         spin = QDoubleSpinBox()
         spin.setRange(min_val, max_val)
-        spin.setDecimals(2)
-        spin.setSingleStep(0.1)
+        spin.setDecimals(num_decimals)
+        spin.setSingleStep(10**-num_decimals)
         if default is not None:
             spin.setValue(default)
         self.layout.addRow(QLabel(label), spin)

@@ -160,7 +160,7 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
         return "add_ee_image"
 
     def displayName(self) -> str:
-        return "Add EE Image"
+        return "Add Image"
 
     def group(self) -> str:
         return "Add Layer"

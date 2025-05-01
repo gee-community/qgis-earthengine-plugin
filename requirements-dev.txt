@@ -9,5 +9,4 @@ pre-commit
 pyqt5
 future
 paver
-pandas
 rasterio

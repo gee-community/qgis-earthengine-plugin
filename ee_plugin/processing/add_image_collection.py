@@ -263,14 +263,17 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
             viz_params = self.viz_widget.get_viz_params()
 
+            extent = self.extent_group.outputExtent()
             params = {
                 "image_collection_id": self.image_collection_id.text(),
                 "filters": filters_str,
                 "start_date": self.start_date.dateTime(),
                 "end_date": self.end_date.dateTime(),
-                "extent": self.extent_group.outputExtent().toString()
-                if not self.extent_group.outputExtent().isEmpty()
-                else "",
+                "extent": (
+                    f"{extent.xMinimum()},{extent.xMaximum()},{extent.yMinimum()},{extent.yMaximum()}"
+                    if not extent.isEmpty()
+                    else ""
+                ),
                 "compositing_method": self.compositing_method.currentIndex(),
                 "percentile_value": self.percentile_value.value(),
                 "viz_params": viz_params,
@@ -426,7 +429,9 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         if extent and isinstance(extent, str):
             # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
             try:
-                coords = extent.split(" [")[0]  # Drop CRS info
+                coords = (
+                    extent.split(" [")[0].replace(" : ", ",").replace(":", ",")
+                )  # Normalize separator
                 xmin, ymin, xmax, ymax = map(float, coords.split(","))
                 extent = QgsRectangle(xmin, ymin, xmax, ymax)
                 min_lon = extent.xMinimum()

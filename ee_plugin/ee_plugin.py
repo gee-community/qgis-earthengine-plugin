@@ -232,7 +232,7 @@ class GoogleEarthEnginePlugin(object):
         ee.Authenticate(auth_mode="localhost", force=True)
 
         # after resetting authentication, select Google Cloud project again
-        self.run_cmd_set_cloud_project()
+        self._run_cmd_set_cloud_project()
 
     def _run_cmd_set_cloud_project(self):
         ee_auth.ee_initialize_with_project(self.ee_config, force=True)

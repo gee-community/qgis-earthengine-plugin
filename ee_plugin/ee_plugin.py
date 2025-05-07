@@ -209,10 +209,17 @@ class GoogleEarthEnginePlugin(object):
         if self.menu:
             self.iface.pluginMenu().removeAction(self.menu.menuAction())
 
-        if self.toolButton:
-            self.toolButton.deleteLater()
+        try:
+            if self.toolButton:
+                self.toolButton.deleteLater()
+        except RuntimeError as e:
+            print(f"Error deleting toolButton: {e}")
 
-        QgsApplication.processingRegistry().removeProvider(self.provider)
+        if (
+            self.provider
+            and self.provider in QgsApplication.processingRegistry().providers()
+        ):
+            QgsApplication.processingRegistry().removeProvider(self.provider)
 
         logging.teardown_logger()
 

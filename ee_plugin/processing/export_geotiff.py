@@ -22,11 +22,17 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def initAlgorithm(self, config: dict) -> None:
-        raster_layers = [
-            layer.name()
-            for layer in Map.get_iface().mapCanvas().layers()
-            if layer.providerType() == "EE"
-        ]
+        try:
+            raster_layers = [
+                layer.name()
+                for layer in Map.get_iface().mapCanvas().layers()
+                if layer.providerType() == "EE"
+            ]
+        except Exception as e:
+            raster_layers = []
+            local_context.log(f"Failed to retrieve raster layers: {e}")
+        if not raster_layers:
+            raster_layers = ["<No EE layers found>"]
         self.raster_layers = raster_layers
         self.addParameter(
             QgsProcessingParameterEnum(

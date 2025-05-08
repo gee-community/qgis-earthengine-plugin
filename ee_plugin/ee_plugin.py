@@ -209,10 +209,14 @@ class GoogleEarthEnginePlugin(object):
         if self.menu:
             self.iface.pluginMenu().removeAction(self.menu.menuAction())
 
-        if self.toolButton:
-            self.toolButton.deleteLater()
+        try:
+            if self.toolButton:
+                self.toolButton.deleteLater()
+        except RuntimeError as e:
+            print(f"Error deleting toolButton: {e}")
 
-        QgsApplication.processingRegistry().removeProvider(self.provider)
+        if self.provider in QgsApplication.processingRegistry().providers():
+            QgsApplication.processingRegistry().removeProvider(self.provider)
 
         logging.teardown_logger()
 
@@ -232,7 +236,7 @@ class GoogleEarthEnginePlugin(object):
         ee.Authenticate(auth_mode="localhost", force=True)
 
         # after resetting authentication, select Google Cloud project again
-        self.run_cmd_set_cloud_project()
+        self._run_cmd_set_cloud_project()
 
     def _run_cmd_set_cloud_project(self):
         ee_auth.ee_initialize_with_project(self.ee_config, force=True)

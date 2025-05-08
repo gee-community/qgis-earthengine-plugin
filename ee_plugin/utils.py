@@ -323,7 +323,7 @@ def ee_image_to_geotiff(
 
     logger.debug(f"Provided extent for export: {extent}")
 
-    tiles = tile_extent(ee_image, extent, scale)
+    tiles = tile_extent(ee_image, extent, scale, projection)
     logger.info(f"Generated {len(tiles)} tiles for export.")
 
     # hard-coded early warning for large number of tiles
@@ -375,24 +375,31 @@ def tile_extent(
     ee_image: ee.Image,
     extent: Tuple[float, float, float, float],
     scale: float,
+    projection: str = "EPSG:4326",
 ) -> List[Tuple[float, float, float, float]]:
-    logger.debug(f"Tiling extent {extent} with scale {scale}")
+    logger.debug(f"Tiling extent {extent} with scale {scale}, projection {projection}")
     num_bands = ee_image.bandNames().size().getInfo()
     bytes_per_pixel = num_bands * 2
-    max_bytes = 30 * 1024 * 1024  # Apply safety margin to avoid exceeding EE limit
+    max_bytes = 30 * 1024 * 1024
     max_pixels = max_bytes // bytes_per_pixel
 
     xmin, ymin, xmax, ymax = extent
     width = xmax - xmin
     height = ymax - ymin
 
-    # Calculate tile dimensions in degrees
-    tile_side_meters = math.sqrt(max_pixels) * scale
-    tile_side_degrees = tile_side_meters / 111320
-    tile_width = tile_side_degrees
-    tile_height = tile_side_degrees
+    tile_side = math.sqrt(max_pixels) * scale
 
-    # Recalculate number of tiles
+    # If using geographic coordinates, convert tile side from meters to degrees
+    tile_width = tile_height = (
+        tile_side / 111_320 if projection == "EPSG:4326" else tile_side
+    )
+    if projection == "EPSG:4326":
+        tile_width = tile_side / 111320
+        tile_height = tile_width
+    else:
+        tile_width = tile_side
+        tile_height = tile_side
+
     tiles_x = math.ceil(width / tile_width)
     tiles_y = math.ceil(height / tile_height)
 

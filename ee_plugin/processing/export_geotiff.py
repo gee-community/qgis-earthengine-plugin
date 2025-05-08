@@ -1,4 +1,5 @@
 import os
+import logging
 
 from qgis.core import (
     QgsProcessingAlgorithm,
@@ -15,6 +16,8 @@ from ..logging import local_context
 from .. import Map
 from ..utils import ee_image_to_geotiff
 
+logging = logging.getLogger(__name__)
+
 
 class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
     """Export an EE Image to a GeoTIFF file."""
@@ -22,17 +25,16 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def initAlgorithm(self, config: dict) -> None:
-        try:
-            raster_layers = [
-                layer.name()
-                for layer in Map.get_iface().mapCanvas().layers()
-                if layer.providerType() == "EE"
-            ]
-        except Exception as e:
-            raster_layers = []
-            local_context.log(f"Failed to retrieve raster layers: {e}")
+        raster_layers = [
+            layer.name()
+            for layer in Map.get_iface().mapCanvas().layers()
+            if layer.providerType() == "EE"
+        ]
+
         if not raster_layers:
-            raster_layers = ["<No EE layers found>"]
+            logging.warning(
+                "No EE layers found in the current project. Please load an EE layer to use this algorithm."
+            )
         self.raster_layers = raster_layers
         self.addParameter(
             QgsProcessingParameterEnum(

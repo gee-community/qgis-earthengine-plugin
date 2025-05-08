@@ -215,10 +215,7 @@ class GoogleEarthEnginePlugin(object):
         except RuntimeError as e:
             print(f"Error deleting toolButton: {e}")
 
-        if (
-            self.provider
-            and self.provider in QgsApplication.processingRegistry().providers()
-        ):
+        if self.provider in QgsApplication.processingRegistry().providers():
             QgsApplication.processingRegistry().removeProvider(self.provider)
 
         logging.teardown_logger()

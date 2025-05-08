@@ -390,6 +390,9 @@ def tile_extent(
     tile_side = math.sqrt(max_pixels) * scale
 
     # If using geographic coordinates, convert tile side from meters to degrees
+    tile_width = tile_height = (
+        tile_side / 111_320 if projection == "EPSG:4326" else tile_side
+    )
     if projection == "EPSG:4326":
         tile_width = tile_side / 111320
         tile_height = tile_width

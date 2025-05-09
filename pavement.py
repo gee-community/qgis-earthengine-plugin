@@ -126,6 +126,7 @@ def package(options):
         if not hasattr(options.package, "tests"):
             options.plugin.excludes.extend(options.plugin.tests)
         make_zip(f, options)
+        f.write("LICENSE", os.path.join(options.plugin.name, "LICENSE"))
 
 
 def make_zip(zipFile, options):

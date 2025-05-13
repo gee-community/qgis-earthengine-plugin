@@ -296,6 +296,9 @@ class VisualizationParamsWidget(QWidget):
 
         # Color palette
         self.color_palette_picker = QComboBox(self)
+        self.num_color_choices = QComboBox(self)
+        self.palette_display = QHBoxLayout()
+
         self.color_palette_picker.addItems(palettes.palette_choices())
         self.color_palette_picker.currentTextChanged.connect(self.update_palette)
         self.color_palette_picker.setCurrentText("viridis")
@@ -320,7 +323,6 @@ class VisualizationParamsWidget(QWidget):
             matplotlib_index + num_multi_hue + num_single_hue + num_diverging
         )
 
-        self.num_color_choices = QComboBox(self)
         self.num_color_choices.addItems(
             palettes.num_colors(self.color_palette_picker.currentText())
         )
@@ -331,7 +333,6 @@ class VisualizationParamsWidget(QWidget):
             int(self.num_color_choices.currentText()),
         )
 
-        self.palette_display = QHBoxLayout()
         palette_widget = QWidget()
         palette_widget.setLayout(self.palette_display)
         self.layout.addRow(QLabel("Color Palette"), self.color_palette_picker)

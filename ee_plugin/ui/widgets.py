@@ -298,6 +298,21 @@ class VisualizationParamsWidget(QWidget):
         self.color_palette_picker = QComboBox(self)
         self.color_palette_picker.addItems([x[0] for x in self.color_choices])
         self.color_palette_picker.currentTextChanged.connect(self.update_palette)
+
+        # Add a separator for different palettes
+        matplotlib_index = len(palettes.matplotlib)
+        num_multi_hue = 13
+        num_single_hue = 7
+        num_diverging = 10
+
+        self.color_palette_picker.insertSeparator(matplotlib_index)
+        self.color_palette_picker.insertSeparator(matplotlib_index + num_multi_hue)
+        self.color_palette_picker.insertSeparator(
+            matplotlib_index + num_multi_hue + num_single_hue
+        )
+        self.color_palette_picker.insertSeparator(
+            matplotlib_index + num_multi_hue + num_single_hue + num_diverging
+        )
         self.color_palette = palettes.palette_colors(
             self.color_palette_picker.currentText()
         )

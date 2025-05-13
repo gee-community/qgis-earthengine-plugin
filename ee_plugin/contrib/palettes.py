@@ -3775,14 +3775,17 @@ def palette_colors(palette_name, num_colors):
         raise ValueError(f"Palette '{palette_name}' not found.")
 
 
-def num_colors(palette_name) -> List[int]:
+def num_colors(palette_name) -> List[str]:
     """
     Returns the number of colors supported by a specified palette.
     """
 
+    res = []
     if palette_name in matplotlib:
-        return list(matplotlib[palette_name].keys())
+        res = list(matplotlib[palette_name].keys())
     elif palette_name in cb:
-        return list(cb[palette_name].keys())
+        res = list(cb[palette_name].keys())
     else:
         raise ValueError(f"Palette '{palette_name}' not found.")
+
+    return [str(x) for x in res]

@@ -298,6 +298,12 @@ class VisualizationParamsWidget(QWidget):
         self.color_palette_picker = QComboBox(self)
         self.color_palette_picker.addItems(palettes.palette_choices())
         self.color_palette_picker.currentTextChanged.connect(self.update_palette)
+        self.color_palette_picker.setCurrentText("viridis")
+        self.color_palette_picker.view().setVerticalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAsNeeded
+        )
+        self.color_palette_picker.setStyleSheet("QComboBox {combobox-popup: 0;}")
+        self.color_palette_picker.setMaxVisibleItems(30)
 
         # Add a separator for different palettes
         matplotlib_index = len(palettes.matplotlib)
@@ -315,7 +321,9 @@ class VisualizationParamsWidget(QWidget):
         )
 
         self.num_color_choices = QComboBox(self)
-        self.num_color_choices.addItem("7")
+        self.num_color_choices.addItems(
+            palettes.num_colors(self.color_palette_picker.currentText())
+        )
         self.num_color_choices.currentTextChanged.connect(self.update_num_colors)
 
         self.color_palette = palettes.palette_colors(
@@ -371,7 +379,7 @@ class VisualizationParamsWidget(QWidget):
     def update_palette(self):
         selected_palette = self.color_palette_picker.currentText()
         self.num_color_choices.clear()
-        choices = [str(x) for x in palettes.num_colors(selected_palette)]
+        choices = palettes.num_colors(selected_palette)
         self.num_color_choices.addItems(choices)
         self.num_color_choices.setCurrentText(median(choices))
 

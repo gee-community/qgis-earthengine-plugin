@@ -1,4 +1,5 @@
 from dataclasses import field
+from statistics import median
 from typing import List, Optional, Tuple, Union
 
 from qgis import gui
@@ -294,9 +295,8 @@ class VisualizationParamsWidget(QWidget):
         self.layout.addRow(QLabel("Select Bands (RGB)"), bands_layout)
 
         # Color palette
-        self.color_choices = palettes.palette_choices()
         self.color_palette_picker = QComboBox(self)
-        self.color_palette_picker.addItems([x[0] for x in self.color_choices])
+        self.color_palette_picker.addItems(palettes.palette_choices())
         self.color_palette_picker.currentTextChanged.connect(self.update_palette)
 
         # Add a separator for different palettes
@@ -313,14 +313,21 @@ class VisualizationParamsWidget(QWidget):
         self.color_palette_picker.insertSeparator(
             matplotlib_index + num_multi_hue + num_single_hue + num_diverging
         )
+
+        self.num_color_choices = QComboBox(self)
+        self.num_color_choices.addItem("7")
+        self.num_color_choices.currentTextChanged.connect(self.update_num_colors)
+
         self.color_palette = palettes.palette_colors(
-            self.color_palette_picker.currentText()
+            self.color_palette_picker.currentText(),
+            int(self.num_color_choices.currentText()),
         )
 
         self.palette_display = QHBoxLayout()
         palette_widget = QWidget()
         palette_widget.setLayout(self.palette_display)
         self.layout.addRow(QLabel("Color Palette"), self.color_palette_picker)
+        self.layout.addRow(QLabel("Num Colors"), self.num_color_choices)
         self.layout.addRow(palette_widget)
         self.add_colors_from_palette(self.color_palette)
 
@@ -363,7 +370,24 @@ class VisualizationParamsWidget(QWidget):
 
     def update_palette(self):
         selected_palette = self.color_palette_picker.currentText()
-        colors = palettes.palette_colors(selected_palette)
+        self.num_color_choices.clear()
+        choices = [str(x) for x in palettes.num_colors(selected_palette)]
+        self.num_color_choices.addItems(choices)
+        self.num_color_choices.setCurrentText(median(choices))
+
+        colors = palettes.palette_colors(
+            selected_palette, int(self.num_color_choices.currentText())
+        )
+        self.color_palette = colors
+        self.add_colors_from_palette(self.color_palette)
+
+    def update_num_colors(self):
+        if self.num_color_choices.currentText() == "":
+            return
+
+        selected_palette = self.color_palette_picker.currentText()
+        num_colors = int(self.num_color_choices.currentText())
+        colors = palettes.palette_colors(selected_palette, num_colors)
         self.color_palette = colors
         self.add_colors_from_palette(self.color_palette)
 

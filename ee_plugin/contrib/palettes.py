@@ -3744,3 +3744,29 @@ crameri = {
         ],
     },
 }
+
+
+def palette_choices():
+    """
+    Returns a list of available palettes and their respective number of colors.
+    """
+
+    choices = []
+    for palette_name, palette_data in matplotlib.items():
+        choices.append([palette_name, list(palette_data.keys())])
+    for palette_name, palette_data in cb.items():
+        choices.append([palette_name, list(palette_data.keys())])
+    return choices
+
+
+def palette_colors(palette_name):
+    """
+    Returns the colors of a specified palette.
+    """
+
+    if palette_name in matplotlib:
+        return matplotlib[palette_name][7]
+    elif palette_name in cb:
+        return [f"#{x.capitalize()}" for x in cb[palette_name][7]]
+    else:
+        raise ValueError(f"Palette '{palette_name}' not found.")

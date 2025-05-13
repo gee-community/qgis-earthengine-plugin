@@ -23,6 +23,7 @@ from qgis.PyQt.QtWidgets import (
 from qgis.gui import QgsCollapsibleGroupBox
 
 from ..utils import translate as _
+from ee_plugin.contrib import palettes
 
 
 class LabeledSlider(QWidget):
@@ -293,14 +294,20 @@ class VisualizationParamsWidget(QWidget):
         self.layout.addRow(QLabel("Select Bands (RGB)"), bands_layout)
 
         # Color palette
-        self.color_palette = []
-        self.add_color_btn = QPushButton("Add Color")
-        self.add_color_btn.clicked.connect(self.add_color_to_palette)
+        self.color_choices = palettes.palette_choices()
+        self.color_palette_picker = QComboBox(self)
+        self.color_palette_picker.addItems([x[0] for x in self.color_choices])
+        self.color_palette_picker.currentTextChanged.connect(self.update_palette)
+        self.color_palette = palettes.palette_colors(
+            self.color_palette_picker.currentText()
+        )
+
         self.palette_display = QHBoxLayout()
         palette_widget = QWidget()
         palette_widget.setLayout(self.palette_display)
-        self.layout.addRow(QLabel("Color Palette"), self.add_color_btn)
+        self.layout.addRow(QLabel("Color Palette"), self.color_palette_picker)
         self.layout.addRow(palette_widget)
+        self.add_colors_from_palette(self.color_palette)
 
         # min, max, gamma, opacity
         self.viz_min = self._make_spinbox(-1e6, 1e6, "Min", num_decimals=4)
@@ -323,18 +330,6 @@ class VisualizationParamsWidget(QWidget):
         setattr(self, f"viz_{label.lower()}", spin)
         return spin
 
-    def add_color_to_palette(self):
-        color = QColorDialog.getColor()
-        if color.isValid():
-            hex_color = color.name()
-            self.color_palette.append(hex_color)
-            swatch = QLabel()
-            swatch.setFixedSize(24, 24)
-            swatch.setStyleSheet(
-                f"background-color: {hex_color}; border: 1px solid black;"
-            )
-            self.palette_display.addWidget(swatch)
-
     def get_viz_params(self):
         bands = [
             combo.currentText() for combo in self.band_selection if combo.currentText()
@@ -350,6 +345,23 @@ class VisualizationParamsWidget(QWidget):
         else:
             params["gamma"] = self.viz_gamma.value()
         return params
+
+    def update_palette(self):
+        selected_palette = self.color_palette_picker.currentText()
+        colors = palettes.palette_colors(selected_palette)
+        self.color_palette = colors
+        self.add_colors_from_palette(self.color_palette)
+
+    def add_colors_from_palette(self, palette):
+        # Delete the previous colors in the layout
+        for i in reversed(range(self.palette_display.count())):
+            self.palette_display.itemAt(i).widget().setParent(None)
+
+        for color in palette:
+            swatch = QLabel()
+            swatch.setFixedSize(24, 24)
+            swatch.setStyleSheet(f"background-color: {color}; border: 1px solid black;")
+            self.palette_display.addWidget(swatch)
 
 
 class FilterWidget(gui.QgsCollapsibleGroupBox):

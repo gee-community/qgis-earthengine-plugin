@@ -1,5 +1,4 @@
 from dataclasses import field
-from statistics import median
 from typing import List, Optional, Tuple, Union
 
 from qgis import gui
@@ -19,12 +18,10 @@ from qgis.PyQt.QtWidgets import (
     QSlider,
     QLabel,
     QDoubleSpinBox,
-    QColorDialog,
 )
 from qgis.gui import QgsCollapsibleGroupBox
 
 from ..utils import translate as _
-from ee_plugin.contrib import palettes
 
 
 class LabeledSlider(QWidget):
@@ -294,51 +291,9 @@ class VisualizationParamsWidget(QWidget):
             bands_layout.addWidget(combo)
         self.layout.addRow(QLabel("Select Bands (RGB)"), bands_layout)
 
-        # Color palette
-        self.color_palette_picker = QComboBox(self)
-        self.num_color_choices = QComboBox(self)
-        self.palette_display = QHBoxLayout()
-
-        self.color_palette_picker.addItems(palettes.palette_choices())
-        self.color_palette_picker.currentTextChanged.connect(self.update_palette)
-        self.color_palette_picker.setCurrentText("viridis")
-        self.color_palette_picker.view().setVerticalScrollBarPolicy(
-            QtCore.Qt.ScrollBarAsNeeded
-        )
-        self.color_palette_picker.setStyleSheet("QComboBox {combobox-popup: 0;}")
-        self.color_palette_picker.setMaxVisibleItems(30)
-
-        # Add a separator for different palettes
-        matplotlib_index = len(palettes.matplotlib)
-        num_multi_hue = 13
-        num_single_hue = 7
-        num_diverging = 10
-
-        self.color_palette_picker.insertSeparator(matplotlib_index)
-        self.color_palette_picker.insertSeparator(matplotlib_index + num_multi_hue)
-        self.color_palette_picker.insertSeparator(
-            matplotlib_index + num_multi_hue + num_single_hue
-        )
-        self.color_palette_picker.insertSeparator(
-            matplotlib_index + num_multi_hue + num_single_hue + num_diverging
-        )
-
-        self.num_color_choices.addItems(
-            palettes.num_colors(self.color_palette_picker.currentText())
-        )
-        self.num_color_choices.currentTextChanged.connect(self.update_num_colors)
-
-        self.color_palette = palettes.palette_colors(
-            self.color_palette_picker.currentText(),
-            int(self.num_color_choices.currentText()),
-        )
-
-        palette_widget = QWidget()
-        palette_widget.setLayout(self.palette_display)
-        self.layout.addRow(QLabel("Color Palette"), self.color_palette_picker)
-        self.layout.addRow(QLabel("Num Colors"), self.num_color_choices)
-        self.layout.addRow(palette_widget)
-        self.add_colors_from_palette(self.color_palette)
+        self.color_ramp = gui.QgsColorRampButton(self)
+        self.color_ramp.setShowRandomColorRamp(True)
+        self.layout.addRow(QLabel("Color Ramp"), self.color_ramp)
 
         # min, max, gamma, opacity
         self.viz_min = self._make_spinbox(-1e6, 1e6, "Min", num_decimals=4)
@@ -371,45 +326,15 @@ class VisualizationParamsWidget(QWidget):
             "max": self.viz_max.value(),
             "opacity": self.viz_opacity.value(),
         }
-        if self.color_palette:
-            params["palette"] = self.color_palette
+        # Use color ramp if selected
+        # ee uses palette to map colors
+        if self.color_ramp.colorRamp():
+            params["palette"] = self.color_ramp.colorRamp().clone()
         else:
             params["gamma"] = self.viz_gamma.value()
         return params
 
-    def update_palette(self):
-        selected_palette = self.color_palette_picker.currentText()
-        self.num_color_choices.clear()
-        choices = palettes.num_colors(selected_palette)
-        self.num_color_choices.addItems(choices)
-        self.num_color_choices.setCurrentText(median(choices))
-
-        colors = palettes.palette_colors(
-            selected_palette, int(self.num_color_choices.currentText())
-        )
-        self.color_palette = colors
-        self.add_colors_from_palette(self.color_palette)
-
-    def update_num_colors(self):
-        if self.num_color_choices.currentText() == "":
-            return
-
-        selected_palette = self.color_palette_picker.currentText()
-        num_colors = int(self.num_color_choices.currentText())
-        colors = palettes.palette_colors(selected_palette, num_colors)
-        self.color_palette = colors
-        self.add_colors_from_palette(self.color_palette)
-
-    def add_colors_from_palette(self, palette):
-        # Delete the previous colors in the layout
-        for i in reversed(range(self.palette_display.count())):
-            self.palette_display.itemAt(i).widget().setParent(None)
-
-        for color in palette:
-            swatch = QLabel()
-            swatch.setFixedSize(24, 24)
-            swatch.setStyleSheet(f"background-color: {color}; border: 1px solid black;")
-            self.palette_display.addWidget(swatch)
+    # Removed update_palette, update_num_colors, add_colors_from_palette methods
 
 
 class FilterWidget(gui.QgsCollapsibleGroupBox):

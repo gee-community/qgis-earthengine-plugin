@@ -8,8 +8,6 @@
 # * 2018-08-01: Fedor Baart (f.baart@gmail.com) - added cmocean
 # * 2019-01-18: Justin Braaten (jstnbraaten@gmail.com) - added niccoli, matplotlib, kovesi, misc
 
-from typing import List
-
 
 cmocean = {
     "Thermal": {
@@ -3747,45 +3745,3 @@ crameri = {
         ],
     },
 }
-
-
-def palette_choices() -> List[str]:
-    """
-    Returns a list of available palettes and their respective number of colors.
-    """
-
-    choices = []
-    for palette_name in matplotlib.keys():
-        choices.append(palette_name)
-    for palette_name in cb.keys():
-        choices.append(palette_name)
-    return choices
-
-
-def palette_colors(palette_name, num_colors):
-    """
-    Returns the colors of a specified palette.
-    """
-
-    if palette_name in matplotlib:
-        return matplotlib[palette_name][num_colors]
-    elif palette_name in cb:
-        return [f"#{x}" for x in cb[palette_name][num_colors]]
-    else:
-        raise ValueError(f"Palette '{palette_name}' not found.")
-
-
-def num_colors(palette_name) -> List[str]:
-    """
-    Returns the number of colors supported by a specified palette.
-    """
-
-    res = []
-    if palette_name in matplotlib:
-        res = list(matplotlib[palette_name].keys())
-    elif palette_name in cb:
-        res = list(cb[palette_name].keys())
-    else:
-        raise ValueError(f"Palette '{palette_name}' not found.")
-
-    return [str(x) for x in res]

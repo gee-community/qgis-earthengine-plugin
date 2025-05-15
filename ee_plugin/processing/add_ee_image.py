@@ -14,6 +14,11 @@ from qgis.core import (
     QgsProcessingFeedback,
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
+    QgsGradientColorRamp,
+    QgsColorBrewerColorRamp,
+    QgsLimitedRandomColorRamp,
+    QgsPresetSchemeColorRamp,
+    QgsCptCityColorRamp,
 )
 
 from ..Map import addLayer
@@ -79,10 +84,33 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
             viz_params = self.viz_widget.get_viz_params()
             return {
                 "IMAGE_ID": image_id,
-                "VIZ_PARAMS": json.dumps(viz_params),
+                "VIZ_PARAMS": json.dumps(self._serialize_viz_params(viz_params)),
             }
         except Exception as e:
             raise ValueError(f"Invalid parameters: {e}")
+
+    def _serialize_viz_params(self, viz_params):
+        result = {}
+        k = "palette"
+        if "palette" in viz_params:
+            v = viz_params[k]
+            if isinstance(v, QgsGradientColorRamp):
+                result[k] = [stop.color.name() for stop in v.stops()]
+            elif isinstance(v, QgsColorBrewerColorRamp):
+                result[k] = [v.color(i).name() for i in range(v.count())]
+            elif isinstance(v, QgsLimitedRandomColorRamp):
+                count = v.count()  # only generate the number of defined colors
+                result[k] = [v.color(i).name() for i in range(count)]
+            elif isinstance(v, QgsPresetSchemeColorRamp):
+                result[k] = [c.name() for c in v.colors()]
+            elif isinstance(v, QgsCptCityColorRamp):
+                result[k] = [c.name() for c in v.colors()]
+            else:
+                logger.warning(
+                    f"Unsupported color ramp type: {type(v)}. Defaulting to empty color ramp."
+                )
+                result[k] = []  # fallback, or raise error if needed
+        return result
 
 
 class AddEEImageAlgorithm(QgsProcessingAlgorithm):

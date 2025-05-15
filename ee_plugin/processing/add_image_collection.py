@@ -37,6 +37,7 @@ from ..utils import (
     get_available_bands,
     filter_functions,
 )
+from ..ui.utils import serialize_color_ramp
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +263,8 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                     selected_bands.append(band_dropdown.currentText())
 
             viz_params = self.viz_widget.get_viz_params()
-
+            serialized = serialize_color_ramp(viz_params)
+            viz_params["palette"] = serialized["palette"]
             extent = self.extent_group.outputExtent()
             params = {
                 "image_collection_id": self.image_collection_id.text(),

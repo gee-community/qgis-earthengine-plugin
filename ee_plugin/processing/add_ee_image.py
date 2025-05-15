@@ -14,17 +14,13 @@ from qgis.core import (
     QgsProcessingFeedback,
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
-    QgsGradientColorRamp,
-    QgsColorBrewerColorRamp,
-    QgsLimitedRandomColorRamp,
-    QgsPresetSchemeColorRamp,
-    QgsCptCityColorRamp,
 )
 
 from ..Map import addLayer
 from ..logging import local_context
 from ..ui.widgets import VisualizationParamsWidget
 from ..utils import get_available_bands
+from ..ui.utils import serialize_color_ramp
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 
 logger = logging.getLogger(__name__)
@@ -84,33 +80,10 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
             viz_params = self.viz_widget.get_viz_params()
             return {
                 "IMAGE_ID": image_id,
-                "VIZ_PARAMS": json.dumps(self._serialize_viz_params(viz_params)),
+                "VIZ_PARAMS": json.dumps(serialize_color_ramp(viz_params)),
             }
         except Exception as e:
             raise ValueError(f"Invalid parameters: {e}")
-
-    def _serialize_viz_params(self, viz_params):
-        result = {}
-        k = "palette"
-        if "palette" in viz_params:
-            v = viz_params[k]
-            if isinstance(v, QgsGradientColorRamp):
-                result[k] = [stop.color.name() for stop in v.stops()]
-            elif isinstance(v, QgsColorBrewerColorRamp):
-                result[k] = [v.color(i).name() for i in range(v.count())]
-            elif isinstance(v, QgsLimitedRandomColorRamp):
-                count = v.count()  # only generate the number of defined colors
-                result[k] = [v.color(i).name() for i in range(count)]
-            elif isinstance(v, QgsPresetSchemeColorRamp):
-                result[k] = [c.name() for c in v.colors()]
-            elif isinstance(v, QgsCptCityColorRamp):
-                result[k] = [c.name() for c in v.colors()]
-            else:
-                logger.warning(
-                    f"Unsupported color ramp type: {type(v)}. Defaulting to empty color ramp."
-                )
-                result[k] = []  # fallback, or raise error if needed
-        return result
 
 
 class AddEEImageAlgorithm(QgsProcessingAlgorithm):

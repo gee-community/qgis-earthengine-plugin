@@ -32,7 +32,7 @@ homepage=https://qgis-ee-plugin.appspot.com/
 category=Plugins
 icon=icons/earth-engine.svg
 # experimental flag
-experimental=False
+experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

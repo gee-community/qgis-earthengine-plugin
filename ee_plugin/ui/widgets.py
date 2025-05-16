@@ -334,8 +334,6 @@ class VisualizationParamsWidget(QWidget):
             params["gamma"] = self.viz_gamma.value()
         return params
 
-    # Removed update_palette, update_num_colors, add_colors_from_palette methods
-
 
 class FilterWidget(gui.QgsCollapsibleGroupBox):
     def __init__(self, title="Filter by Properties", property_list=None, parent=None):

@@ -20,6 +20,7 @@ from ..Map import addLayer
 from ..logging import local_context
 from ..ui.widgets import VisualizationParamsWidget
 from ..utils import get_available_bands
+from ..ui.utils import serialize_color_ramp
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
             viz_params = self.viz_widget.get_viz_params()
             return {
                 "IMAGE_ID": image_id,
-                "VIZ_PARAMS": json.dumps(viz_params),
+                "VIZ_PARAMS": json.dumps(serialize_color_ramp(viz_params)),
             }
         except Exception as e:
             raise ValueError(f"Invalid parameters: {e}")

@@ -8,6 +8,7 @@
 # * 2018-08-01: Fedor Baart (f.baart@gmail.com) - added cmocean
 # * 2019-01-18: Justin Braaten (jstnbraaten@gmail.com) - added niccoli, matplotlib, kovesi, misc
 
+
 cmocean = {
     "Thermal": {
         7: ["042333", "2c3395", "744992", "b15f82", "eb7958", "fbb43d", "e8fa5b"]

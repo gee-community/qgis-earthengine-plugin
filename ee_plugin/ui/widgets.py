@@ -18,7 +18,6 @@ from qgis.PyQt.QtWidgets import (
     QSlider,
     QLabel,
     QDoubleSpinBox,
-    QColorDialog,
 )
 from qgis.gui import QgsCollapsibleGroupBox
 
@@ -292,15 +291,9 @@ class VisualizationParamsWidget(QWidget):
             bands_layout.addWidget(combo)
         self.layout.addRow(QLabel("Select Bands (RGB)"), bands_layout)
 
-        # Color palette
-        self.color_palette = []
-        self.add_color_btn = QPushButton("Add Color")
-        self.add_color_btn.clicked.connect(self.add_color_to_palette)
-        self.palette_display = QHBoxLayout()
-        palette_widget = QWidget()
-        palette_widget.setLayout(self.palette_display)
-        self.layout.addRow(QLabel("Color Palette"), self.add_color_btn)
-        self.layout.addRow(palette_widget)
+        self.color_ramp = gui.QgsColorRampButton(self)
+        self.color_ramp.setShowRandomColorRamp(True)
+        self.layout.addRow(QLabel("Color Ramp"), self.color_ramp)
 
         # min, max, gamma, opacity
         self.viz_min = self._make_spinbox(-1e6, 1e6, "Min", num_decimals=4)
@@ -323,18 +316,6 @@ class VisualizationParamsWidget(QWidget):
         setattr(self, f"viz_{label.lower()}", spin)
         return spin
 
-    def add_color_to_palette(self):
-        color = QColorDialog.getColor()
-        if color.isValid():
-            hex_color = color.name()
-            self.color_palette.append(hex_color)
-            swatch = QLabel()
-            swatch.setFixedSize(24, 24)
-            swatch.setStyleSheet(
-                f"background-color: {hex_color}; border: 1px solid black;"
-            )
-            self.palette_display.addWidget(swatch)
-
     def get_viz_params(self):
         bands = [
             combo.currentText() for combo in self.band_selection if combo.currentText()
@@ -345,8 +326,10 @@ class VisualizationParamsWidget(QWidget):
             "max": self.viz_max.value(),
             "opacity": self.viz_opacity.value(),
         }
-        if self.color_palette:
-            params["palette"] = self.color_palette
+        # Use color ramp if selected
+        # ee uses palette to map colors
+        if self.color_ramp.colorRamp():
+            params["palette"] = self.color_ramp.colorRamp().clone()
         else:
             params["gamma"] = self.viz_gamma.value()
         return params

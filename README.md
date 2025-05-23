@@ -159,8 +159,6 @@ We warmly welcome contributions! If you'd like to contribute:
 2. Ensure your contribution relates to an existing [issue](https://github.com/gee-community/qgis-earthengine-plugin/issues) or discussion.
 3. Open a pull request or issue before starting major changes.
 
-For questions, contact the original author: [gennadiy.donchyts@gmail.com](mailto:gennadiy.donchyts@gmail.com).
-
 For feature requests and updates, please check the [GitHub Issues](https://github.com/gee-community/qgis-earthengine-plugin/issues) and [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions).
 
 Thank you for helping improve the QGIS Earth Engine Plugin!

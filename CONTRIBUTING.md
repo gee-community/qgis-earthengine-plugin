@@ -88,6 +88,6 @@ The plugin can be debugged within [Visual Studio Code](https://code.visualstudio
 
 ## Questions or Help?
 
-If you have any questions or need assistance, feel free to reach out by creating an issue in the repository or contacting the original author: [gennadiy.donchyts@gmail.com](mailto:gennadiy.donchyts@gmail.com).
+If you have any questions or need assistance, feel free to reach out by creating an [issue](https://github.com/gee-community/qgis-earthengine-plugin/issues) or adding a post in the [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions).
 
 Thank you for contributing to the QGIS Earth Engine Plugin!

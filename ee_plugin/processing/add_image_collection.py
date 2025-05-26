@@ -76,7 +76,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
         self.compositing_method = QComboBox(objectName="compositing_method")
         self.compositing_method.addItems(
-            ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
+            ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile", "First"]
         )
         self.compositing_method.setToolTip(_("Select a compositing method."))
         compositing_layout.addRow(_("Compositing Method"), self.compositing_method)
@@ -362,7 +362,15 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 "compositing_method",
                 "Compositing Method",
-                options=["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"],
+                options=[
+                    "Mosaic",
+                    "Mean",
+                    "Max",
+                    "Min",
+                    "Median",
+                    "Percentile",
+                    "First",
+                ],
                 optional=False,
                 defaultValue=0,
             )
@@ -474,6 +482,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             "Min": ic.min(),
             "Median": ic.median(),
             "Percentile": ic.reduce(ee.Reducer.percentile([percentile_value])),
+            "First": ic.first(),
         }
 
         ic = compositing_dict.get(compositing_method, ic.mosaic())
@@ -498,7 +507,15 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             )
 
         # compositing method is an index
-        compositing_options = ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
+        compositing_options = [
+            "Mosaic",
+            "Mean",
+            "Max",
+            "Min",
+            "Median",
+            "Percentile",
+            "First",
+        ]
         compositing_name = compositing_options[compositing_method]
         if compositing_name == "Percentile":
             name = f"IC: {image_collection_id} ({compositing_name} {percentile_value}%)"

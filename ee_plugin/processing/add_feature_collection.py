@@ -351,6 +351,8 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         return filter_group
 
     def buildDialog(self):
+        from qgis.PyQt.QtCore import QDate
+
         layout = QVBoxLayout()
 
         # --- Feature Collection ID ---
@@ -372,8 +374,11 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         date_layout = QFormLayout()
         self.start_date = gui.QgsDateEdit(objectName="start_date")
         self.start_date.setToolTip(_("Start date for filtering"))
+        self.start_date.setDate(QDate(1990, 1, 1))
+
         self.end_date = gui.QgsDateEdit(objectName="end_date")
         self.end_date.setToolTip(_("End date for filtering"))
+        self.end_date.setDate(QDate.currentDate())
 
         date_layout.addRow(_("Start"), self.start_date)
         date_layout.addRow(_("End"), self.end_date)

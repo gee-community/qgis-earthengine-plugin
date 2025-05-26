@@ -37,12 +37,13 @@ def serialize_color_ramp(viz_params):
         elif isinstance(v, QgsColorBrewerColorRamp):
             result[k] = [v.color(i).name() for i in range(v.count())]
         elif isinstance(v, QgsLimitedRandomColorRamp):
-            count = v.count()
-            result[k] = [v.color(i).name() for i in range(count)]
+            result[k] = [v.color(i).name() for i in range(v.count())]
         elif isinstance(v, QgsPresetSchemeColorRamp):
             result[k] = [c.name() for c in v.colors()]
         elif isinstance(v, QgsCptCityColorRamp):
             result[k] = [c.name() for c in v.colors()]
         else:
             result[k] = []
+    else:
+        result[k] = []
     return result

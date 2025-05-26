@@ -14,7 +14,7 @@ from qgis.core import (
     QgsProcessingParameterExtent,
     QgsRectangle,
 )
-from qgis.PyQt.QtCore import QTimer
+from qgis.PyQt.QtCore import QTimer, QDate
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
@@ -187,12 +187,14 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
         # --- Filter by Dates ---
         date_group = gui.QgsCollapsibleGroupBox(_("Filter by Dates"))
-        date_group.setCollapsed(True)
+        date_group.setCollapsed(False)
         date_layout = QFormLayout()
         self.start_date = gui.QgsDateEdit(objectName="start_date")
         self.start_date.setToolTip(_("Start date for filtering"))
+        self.start_date.setDate(QDate(1900, 1, 1))  # All-inclusive start date
         self.end_date = gui.QgsDateEdit(objectName="end_date")
         self.end_date.setToolTip(_("End date for filtering"))
+        self.end_date.setDate(QDate.currentDate())  # Default to today
 
         date_layout.addRow(_("Start"), self.start_date)
         date_layout.addRow(_("End"), self.end_date)

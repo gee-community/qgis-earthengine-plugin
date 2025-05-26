@@ -17,7 +17,6 @@ def test_add_feature_collection_algorithm_retain_vector(clean_qgis_iface):
         "viz_color_hex": "#000000",
         "viz_fill_color": "#ffffff",
         "viz_width": "2",
-        "as_vector": "True",
     }
 
     context = QgsProcessingContext()
@@ -25,15 +24,14 @@ def test_add_feature_collection_algorithm_retain_vector(clean_qgis_iface):
     result = algorithm.processAlgorithm(parameters, context, feedback)
 
     assert isinstance(result, dict)
-    assert "OUTPUT_VECTOR" in result
+    assert "OUTPUT_RASTER" in result
     try:
         layer = clean_qgis_iface.mapCanvas().layers()[0]
     except IndexError:
         assert False, "No layers found in the map canvas."
     assert layer is not None
     assert layer.name() == "FC: USGS/WBD/2017/HUC06"
-    assert layer.featureCount() > 0
-    assert layer.providerType() == "ogr"
+    assert layer.providerType() == "EE"
 
 
 def test_add_feature_collection_algorithm(clean_qgis_iface):

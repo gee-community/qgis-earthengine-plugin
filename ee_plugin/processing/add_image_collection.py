@@ -476,25 +476,38 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
                     )
 
         # Apply compositing logic
-        compositing_dict = {
-            "Mean": ic.mean(),
-            "Max": ic.max(),
-            "Min": ic.min(),
-            "Median": ic.median(),
-            "Percentile": ic.reduce(ee.Reducer.percentile([percentile_value])),
-            "First": ic.first(),
-        }
-
-        ic = compositing_dict.get(compositing_method, ic.mosaic())
-
-        # Add the image collection to the map
-        if compositing_method == "Percentile":
+        compositing_options = [
+            "Mosaic",
+            "Mean",
+            "Max",
+            "Min",
+            "Median",
+            "Percentile",
+            "First",
+        ]
+        compositing_name = compositing_options[compositing_method]
+        if compositing_name == "Mean":
+            ic = ic.mean()
+        elif compositing_name == "Max":
+            ic = ic.max()
+        elif compositing_name == "Min":
+            ic = ic.min()
+        elif compositing_name == "Median":
+            ic = ic.median()
+        elif compositing_name == "Percentile":
             if percentile_value is None:
                 raise ValueError(
-                    "Percentile value is required for 'Percentile' method."
+                    "Percentile value must be provided for 'Percentile' method."
                 )
-            if percentile_value < 0 or percentile_value > 100:
+            if not (0 <= percentile_value <= 100):
                 raise ValueError("Percentile value must be between 0 and 100.")
+            ic = ic.reduce(ee.Reducer.percentile([percentile_value]))
+        elif compositing_name == "First":
+            ic = ic.first()
+        elif compositing_name == "Mosaic":
+            ic = ic.mosaic()
+        else:
+            raise ValueError(f"Unsupported compositing method: {compositing_name}")
 
         if isinstance(viz_params, str):
             try:
@@ -506,17 +519,6 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
                 "Visualization parameters must be a JSON string or dictionary."
             )
 
-        # compositing method is an index
-        compositing_options = [
-            "Mosaic",
-            "Mean",
-            "Max",
-            "Min",
-            "Median",
-            "Percentile",
-            "First",
-        ]
-        compositing_name = compositing_options[compositing_method]
         if compositing_name == "Percentile":
             name = f"IC: {image_collection_id} ({compositing_name} {percentile_value}%)"
         else:

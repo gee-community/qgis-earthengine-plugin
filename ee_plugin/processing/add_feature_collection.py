@@ -267,7 +267,7 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
     def _build_visualization_group(self):
         group = gui.QgsCollapsibleGroupBox("Visualization")
-        group.setCollapsed(True)
+        group.setCollapsed(False)
         layout = QFormLayout()
 
         self.outline_color = gui.QgsColorButton()

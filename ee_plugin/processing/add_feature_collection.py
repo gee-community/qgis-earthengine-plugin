@@ -22,6 +22,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
     QComboBox,
 )
+from qgis.PyQt.QtGui import QColor
 
 from .. import Map
 from ..ui.widgets import FilterWidget
@@ -270,10 +271,12 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout = QFormLayout()
 
         self.outline_color = gui.QgsColorButton()
+        self.outline_color.setColor(QColor("#000000"))
         self.outline_color.setObjectName("viz_color_hex")
         layout.addRow(QLabel("Outline Color"), self.outline_color)
 
         self.fill_color = gui.QgsColorButton()
+        self.fill_color.setColor(QColor("#FFFFFF"))
         self.fill_color.setObjectName("viz_fill_color")
         layout.addRow(QLabel("Fill Color"), self.fill_color)
 
@@ -287,7 +290,7 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.opacity = QSpinBox()
         self.opacity.setMinimum(0)
         self.opacity.setMaximum(100)
-        self.opacity.setValue(100)
+        self.opacity.setValue(80)
         self.opacity.setObjectName("opacity")
         layout.addRow(QLabel("Opacity (%)"), self.opacity)
 
@@ -388,7 +391,7 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         # --- Filter by Extent ---
         self.extent_group = gui.QgsExtentGroupBox(
             objectName="extent",
-            title=_("Filter by Coordinates"),
+            title=_("Filter by Extent (Bounds)"),
             collapsed=True,
         )
         self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())

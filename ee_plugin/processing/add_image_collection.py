@@ -201,10 +201,10 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         date_group.setLayout(date_layout)
         layout.addWidget(date_group)
 
-        # --- Filter by Coordinates ---
+        # --- Filter by Extent ---
         self.extent_group = gui.QgsExtentGroupBox(
             objectName="extent",
-            title=_("Filter by Coordinates"),
+            title=_("Filter by Extent (Bounds)"),
             collapsed=True,
         )
         self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())

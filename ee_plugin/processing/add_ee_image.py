@@ -78,9 +78,11 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
         try:
             image_id = self.image_id_input.text().strip()
             viz_params = self.viz_widget.get_viz_params()
+            viz_data = viz_params.copy()
+            viz_data.update(serialize_color_ramp(viz_params))
             return {
                 "IMAGE_ID": image_id,
-                "VIZ_PARAMS": json.dumps(serialize_color_ramp(viz_params)),
+                "VIZ_PARAMS": json.dumps(viz_data),
             }
         except Exception as e:
             raise ValueError(f"Invalid parameters: {e}")

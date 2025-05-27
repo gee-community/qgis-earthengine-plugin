@@ -267,7 +267,8 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
             viz_params = self.viz_widget.get_viz_params()
             serialized = serialize_color_ramp(viz_params)
-            viz_params["palette"] = serialized["palette"]
+            if serialized.get("palette"):
+                viz_params["palette"] = serialized["palette"]
             extent = self.extent_group.outputExtent()
             params = {
                 "image_collection_id": self.image_collection_id.text(),

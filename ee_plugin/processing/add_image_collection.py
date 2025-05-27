@@ -509,7 +509,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             ic = ic.reduce(ee.Reducer.percentile([percentile_value]))
         elif compositing_name == "First":
             logger.warning(
-                "Using 'First' compositing method, which returns the first image in the collection. This method is only practical for collections with a single image."
+                "Using 'First' compositing method, which returns the first image in the collection."
             )
             ic = ic.first()
         elif compositing_name == "Mosaic":

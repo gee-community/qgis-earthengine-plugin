@@ -79,7 +79,9 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
             image_id = self.image_id_input.text().strip()
             viz_params = self.viz_widget.get_viz_params()
             viz_data = viz_params.copy()
-            viz_data.update(serialize_color_ramp(viz_params))
+            serialized = serialize_color_ramp(viz_params)
+            if "palette" in serialized and serialized["palette"]:
+                viz_data["palette"] = serialized["palette"]
             return {
                 "IMAGE_ID": image_id,
                 "VIZ_PARAMS": json.dumps(viz_data),

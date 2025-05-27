@@ -191,10 +191,11 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         date_layout = QFormLayout()
         self.start_date = gui.QgsDateEdit(objectName="start_date")
         self.start_date.setToolTip(_("Start date for filtering"))
-        self.start_date.setDate(QDate(1900, 1, 1))  # All-inclusive start date
+        # keep empty dates
+        self.start_date.setDate(QDate())
         self.end_date = gui.QgsDateEdit(objectName="end_date")
         self.end_date.setToolTip(_("End date for filtering"))
-        self.end_date.setDate(QDate.currentDate())  # Default to today
+        self.end_date.setDate(QDate())  # default to today
 
         date_layout.addRow(_("Start"), self.start_date)
         date_layout.addRow(_("End"), self.end_date)
@@ -271,8 +272,12 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
             params = {
                 "image_collection_id": self.image_collection_id.text(),
                 "filters": filters_str,
-                "start_date": self.start_date.dateTime(),
-                "end_date": self.end_date.dateTime(),
+                "start_date": self.start_date.dateTime()
+                if self.start_date.dateTime()
+                else None,
+                "end_date": self.end_date.dateTime()
+                if self.end_date.dateTime()
+                else None,
                 "extent": (
                     f"{extent.xMinimum()},{extent.xMaximum()},{extent.yMinimum()},{extent.yMaximum()}"
                     if not extent.isEmpty()

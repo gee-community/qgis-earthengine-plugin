@@ -53,7 +53,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         return """
     <html>
     <b>Add Feature Collection</b><br>
-    This algorithm adds an Earth Engine Feature Collection to the map either as styled raster overlay.<br>
+    This algorithm adds an Earth Engine Feature Collection to the map as a styled raster overlay.<br>
     You can filter the collection by properties, dates, or geographic extent.<br>
  
     <h3>Parameters:</h3>

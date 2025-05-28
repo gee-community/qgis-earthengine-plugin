@@ -296,12 +296,19 @@ class VisualizationParamsWidget(QWidget):
         self.layout.addRow(QLabel("Color Ramp"), self.color_ramp)
 
         # min, max, gamma, opacity
-        self.viz_min = self._make_spinbox(-1e6, 1e6, "Min", num_decimals=4)
-        self.viz_max = self._make_spinbox(
-            -1e6, 1e6, "Max", default=10000, num_decimals=4
+        self.viz_min = self._make_spinbox(
+            -1e6, 1e6, "Min", default=None, num_decimals=4
         )
-        self.viz_gamma = self._make_spinbox(1.00, 10.0, "Gamma")
-        self.viz_opacity = self._make_spinbox(0.01, 1.0, "Opacity", default=1.0)
+        self.viz_max = self._make_spinbox(
+            -1e6, 1e6, "Max", default=None, num_decimals=4
+        )
+        self.viz_gamma = self._make_spinbox(
+            1.00,
+            10.0,
+            "Gamma",
+            default=None,
+        )
+        self.viz_opacity = self._make_spinbox(0.01, 1.0, "Opacity", default=None)
 
         self.setLayout(self.layout)
 
@@ -310,8 +317,12 @@ class VisualizationParamsWidget(QWidget):
         spin.setRange(min_val, max_val)
         spin.setDecimals(num_decimals)
         spin.setSingleStep(10**-num_decimals)
+        spin.setSpecialValueText("")  # allows visual blank
+        spin.clear()
+
         if default is not None:
             spin.setValue(default)
+
         self.layout.addRow(QLabel(label), spin)
         setattr(self, f"viz_{label.lower()}", spin)
         return spin
@@ -320,18 +331,24 @@ class VisualizationParamsWidget(QWidget):
         bands = [
             combo.currentText() for combo in self.band_selection if combo.currentText()
         ]
-        params = {
-            "bands": bands,
-            "min": self.viz_min.value(),
-            "max": self.viz_max.value(),
-            "opacity": self.viz_opacity.value(),
-        }
-        # Use color ramp if selected
-        # ee uses palette to map colors
-        if self.color_ramp.colorRamp():
-            params["palette"] = self.color_ramp.colorRamp().clone()
-        else:
+        params = {}
+
+        if bands:
+            params["bands"] = bands
+
+        if self.viz_min.lineEdit().text().strip():
+            params["min"] = self.viz_min.value()
+        if self.viz_max.lineEdit().text().strip():
+            params["max"] = self.viz_max.value()
+        if self.viz_gamma.lineEdit().text().strip():
             params["gamma"] = self.viz_gamma.value()
+        if self.viz_opacity.lineEdit().text().strip():
+            params["opacity"] = self.viz_opacity.value()
+
+        ramp = self.color_ramp.colorRamp()
+        if ramp and ramp.count() > 0:
+            params["palette"] = ramp
+
         return params
 
 

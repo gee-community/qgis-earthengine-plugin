@@ -14,7 +14,7 @@ from qgis.core import (
     QgsProcessingParameterExtent,
     QgsRectangle,
 )
-from qgis.PyQt.QtCore import QTimer
+from qgis.PyQt.QtCore import QTimer, QDate
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
@@ -76,7 +76,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
         self.compositing_method = QComboBox(objectName="compositing_method")
         self.compositing_method.addItems(
-            ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
+            ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile", "First"]
         )
         self.compositing_method.setToolTip(_("Select a compositing method."))
         compositing_layout.addRow(_("Compositing Method"), self.compositing_method)
@@ -187,22 +187,25 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
         # --- Filter by Dates ---
         date_group = gui.QgsCollapsibleGroupBox(_("Filter by Dates"))
-        date_group.setCollapsed(True)
+        date_group.setCollapsed(False)
         date_layout = QFormLayout()
         self.start_date = gui.QgsDateEdit(objectName="start_date")
         self.start_date.setToolTip(_("Start date for filtering"))
+        # keep empty dates
+        self.start_date.setDate(QDate())
         self.end_date = gui.QgsDateEdit(objectName="end_date")
         self.end_date.setToolTip(_("End date for filtering"))
+        self.end_date.setDate(QDate())  # default to today
 
         date_layout.addRow(_("Start"), self.start_date)
         date_layout.addRow(_("End"), self.end_date)
         date_group.setLayout(date_layout)
         layout.addWidget(date_group)
 
-        # --- Filter by Coordinates ---
+        # --- Filter by Extent ---
         self.extent_group = gui.QgsExtentGroupBox(
             objectName="extent",
-            title=_("Filter by Coordinates"),
+            title=_("Filter by Extent (Bounds)"),
             collapsed=True,
         )
         self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())
@@ -264,13 +267,18 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
             viz_params = self.viz_widget.get_viz_params()
             serialized = serialize_color_ramp(viz_params)
-            viz_params["palette"] = serialized["palette"]
+            if serialized.get("palette"):
+                viz_params["palette"] = serialized["palette"]
             extent = self.extent_group.outputExtent()
             params = {
                 "image_collection_id": self.image_collection_id.text(),
                 "filters": filters_str,
-                "start_date": self.start_date.dateTime(),
-                "end_date": self.end_date.dateTime(),
+                "start_date": self.start_date.dateTime()
+                if self.start_date.dateTime()
+                else None,
+                "end_date": self.end_date.dateTime()
+                if self.end_date.dateTime()
+                else None,
                 "extent": (
                     f"{extent.xMinimum()},{extent.xMaximum()},{extent.yMinimum()},{extent.yMaximum()}"
                     if not extent.isEmpty()
@@ -360,7 +368,15 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 "compositing_method",
                 "Compositing Method",
-                options=["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"],
+                options=[
+                    "Mosaic",
+                    "Mean",
+                    "Max",
+                    "Min",
+                    "Median",
+                    "Percentile",
+                    "First",
+                ],
                 optional=False,
                 defaultValue=0,
             )
@@ -466,24 +482,41 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
                     )
 
         # Apply compositing logic
-        compositing_dict = {
-            "Mean": ic.mean(),
-            "Max": ic.max(),
-            "Min": ic.min(),
-            "Median": ic.median(),
-            "Percentile": ic.reduce(ee.Reducer.percentile([percentile_value])),
-        }
-
-        ic = compositing_dict.get(compositing_method, ic.mosaic())
-
-        # Add the image collection to the map
-        if compositing_method == "Percentile":
+        compositing_options = [
+            "Mosaic",
+            "Mean",
+            "Max",
+            "Min",
+            "Median",
+            "Percentile",
+            "First",
+        ]
+        compositing_name = compositing_options[compositing_method]
+        if compositing_name == "Mean":
+            ic = ic.mean()
+        elif compositing_name == "Max":
+            ic = ic.max()
+        elif compositing_name == "Min":
+            ic = ic.min()
+        elif compositing_name == "Median":
+            ic = ic.median()
+        elif compositing_name == "Percentile":
             if percentile_value is None:
                 raise ValueError(
-                    "Percentile value is required for 'Percentile' method."
+                    "Percentile value must be provided for 'Percentile' method."
                 )
-            if percentile_value < 0 or percentile_value > 100:
+            if not (0 <= percentile_value <= 100):
                 raise ValueError("Percentile value must be between 0 and 100.")
+            ic = ic.reduce(ee.Reducer.percentile([percentile_value]))
+        elif compositing_name == "First":
+            logger.warning(
+                "Using 'First' compositing method, which returns the first image in the collection."
+            )
+            ic = ic.first()
+        elif compositing_name == "Mosaic":
+            ic = ic.mosaic()
+        else:
+            raise ValueError(f"Unsupported compositing method: {compositing_name}")
 
         if isinstance(viz_params, str):
             try:
@@ -495,9 +528,6 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
                 "Visualization parameters must be a JSON string or dictionary."
             )
 
-        # compositing method is an index
-        compositing_options = ["Mosaic", "Mean", "Max", "Min", "Median", "Percentile"]
-        compositing_name = compositing_options[compositing_method]
         if compositing_name == "Percentile":
             name = f"IC: {image_collection_id} ({compositing_name} {percentile_value}%)"
         else:

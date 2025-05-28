@@ -2,7 +2,7 @@
 
 # Google Earth Engine Plugin for QGIS
 
-The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthengine.google.com) with [QGIS](https://qgis.org/) using the [EE Python API](https://github.com/google/earthengine-api/tree/master/python).
+The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthengine.google.com) with [QGIS](https://qgis.org/) using the [EE Python API](https://github.com/google/earthengine-api/tree/main/python).
 
 📖 **[User Guide](https://gee-community.github.io/qgis-earthengine-plugin/)**
 
@@ -10,7 +10,7 @@ The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthen
 
 🐞 **[Issue Tracker](https://github.com/gee-community/qgis-earthengine-plugin/issues)**
 
-![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/master/media/add_map_layer.png)
+![Add Sentinel-2 image](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/main/media/add_map_layer.png)
 
 ---
 
@@ -79,7 +79,7 @@ Earth Engine algorithms can be integrated into QGIS **Model Designer** workflows
 - Add and chain EE algorithms with other QGIS algorithms
 - Save your custom processing model for repeated use
 
-An [example model](https://github.com/gee-community/qgis-earthengine-plugin/blob/master/examples/srtm_hillshade.model3) is provided for the hillshade example below:
+An [example model](https://github.com/gee-community/qgis-earthengine-plugin/blob/main/examples/srtm_hillshade.model3) is provided for the hillshade example below:
 ![Example Model](./media/example_model.png)
 
 

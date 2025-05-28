@@ -53,25 +53,32 @@ def ee_initialize_with_project(ee_config: EarthEngineConfig, force=False) -> Non
     ee_config.project = project_id
 
 
+set_project_docs_html = """<br>
+    Make sure your Google Cloud project is registered properly for Earth Engine access. To find your Project ID:
+    <ul>
+        <li> Go to the <a href="https://console.cloud.google.com/">Google Cloud Console</a>. </li>
+        <li> Your Project ID is visible in the URL or can be selected from the resource list. </li>
+        <li> For more details, refer to the official <a href="https://cloud.google.com/resource-manager/docs/creating-managing-projects">Google Cloud Project Management Guide</a>. </li>
+    </ul>"""
+
+
 def prompt_for_project(cur_project: Optional[str]) -> Optional[str]:
     """Show a dialog to prompt user to specify project"""
 
-    msg_no_project = """Google Cloud Project is empty.<br>
+    msg_no_project = f"""Google Cloud Project is empty.<br>
     <br>
     Starting November 13, 2024, users will need to use a Google Cloud Project to access the Earth Engine platform.<br>
     See <a href="https://developers.google.com/earth-engine/guides/transition_to_cloud_projects">Transition to Cloud projects</a> for more info.<br>
-    <br>
-    Make sure your Google Cloud project is registered properly for Earth Engine access<br>
-    <br>
-    Then set the project name in the text field baloe and click OK or click Cancel to skip<br>
-    <br>
-    Google Cloud Project:"""
+    {set_project_docs_html}
+    Then set the project name in the text field below and click OK or click Cancel to skip.
 
-    msg_with_project = """Change Google Cloud project field below to a new value.<br>
+<br><br><b>Google Cloud Project:</b>"""
+
+    msg_with_project = f"""Change Google Cloud project field below to a new value.<br>
     <br>
-    Make sure your project is registered properly for Earth Engine access and click OK or click Cancel to skip this step<br>
-    <br>
-    Google Cloud Project:"""
+    Make sure your project is registered properly for Earth Engine access and click OK or click Cancel to skip this step. <br>
+    {set_project_docs_html}
+<br><b>Google Cloud Project:</b>"""
 
     msg = msg_with_project if cur_project else msg_no_project
     (project, _ok) = QInputDialog.getText(

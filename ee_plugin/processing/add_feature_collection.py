@@ -15,7 +15,6 @@ from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QLineEdit,
-    QCheckBox,
     QFormLayout,
     QSpinBox,
     QPushButton,
@@ -23,8 +22,9 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
     QComboBox,
 )
+from qgis.PyQt.QtGui import QColor
 
-from .. import Map, utils
+from .. import Map
 from ..ui.widgets import FilterWidget
 from ..processing.custom_algorithm_dialog import BaseAlgorithmDialog
 from ..utils import translate as _, get_ee_properties, filter_functions
@@ -53,7 +53,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         return """
     <html>
     <b>Add Feature Collection</b><br>
-    This algorithm adds an Earth Engine Feature Collection to the map either as a styled vector layer (downloaded locally) or as a styled raster overlay.<br>
+    This algorithm adds an Earth Engine Feature Collection to the map as a styled raster overlay.<br>
     You can filter the collection by properties, dates, or geographic extent.<br>
  
     <h3>Parameters:</h3>
@@ -62,8 +62,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         <li><b>Filter Properties:</b> Filters to apply to the Feature Collection. Feature properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details.</li>
         <li><b>Start and End Date:</b> Optional start and end dates for filtering. Applies only to collections with <code>system:time_start</code>.</li>
         <li><b>Geographic Extent:</b> Optional bounding box filter using the format xmin,ymin,xmax,ymax.</li>
-        <li><b>Visualization Parameters:</b> Includes outline color, fill color, line width, and opacity. These apply to both vector and raster styles.</li>
-        <li><b>Retain as Vector Layer:</b> If checked, the features are downloaded as a local vector layer in QGIS use with caution for large datasets. Otherwise, the styled result is added as a raster overlay.</li>
+        <li><b>Visualization Parameters:</b> Includes outline color, fill color, line width, and opacity. </li>
     </ul>
  
     <b>Earth Engine Data Catalog:</b>
@@ -153,15 +152,6 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             )
         )
 
-        self.addParameter(
-            QgsProcessingParameterString(
-                "as_vector",
-                _("Retain as Vector Layer"),
-                defaultValue="false",
-                optional=True,
-            )
-        )
-
         self.addOutput(
             QgsProcessingOutputVectorLayer(
                 "OUTPUT_VECTOR",
@@ -199,7 +189,6 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         viz_color_hex = self.parameterAsString(parameters, "viz_color_hex", context)
         viz_fill_color = self.parameterAsString(parameters, "viz_fill_color", context)
         viz_width = self.parameterAsString(parameters, "viz_width", context)
-        as_vector = self.parameterAsString(parameters, "as_vector", context)
         opacity = self.parameterAsString(parameters, "opacity", context)
 
         fc = ee.FeatureCollection(feature_collection_id)
@@ -245,35 +234,17 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             except Exception as e:
                 raise ValueError(f"Invalid extent format: {extent}") from e
 
-        # result can contain either vector or raster layer
-        # depending on the as_vector parameter
         result = {}
         layer_name = f"FC: {feature_collection_id}"
-        if as_vector.lower() in ("true", "1", "yes"):
-            try:
-                utils.add_ee_vector_layer(
-                    fc,
-                    layer_name,
-                    shown=True,
-                    style_params={
-                        "color": viz_color_hex,
-                        "fillColor": viz_fill_color,
-                        "width": int(viz_width),
-                        "opacity": int(opacity) / 100,
-                    },
-                )
-                result["OUTPUT_VECTOR"] = layer_name
-            except ee.ee_exception.EEException as e:
-                logger.error(f"Failed to load the Feature Collection: {e}")
-        else:
-            styled_fc = fc.style(
-                color=viz_color_hex, fillColor=viz_fill_color, width=int(viz_width)
-            )
-            # opacity can't be set from EE, we must apply in QGIS
-            layer = Map.addLayer(styled_fc, {}, layer_name)
-            if opacity != "":
-                layer.setOpacity(int(opacity) / 100)
-            result["OUTPUT_RASTER"] = layer
+
+        styled_fc = fc.style(
+            color=viz_color_hex, fillColor=viz_fill_color, width=int(viz_width)
+        )
+        # opacity can't be set from EE, we must apply in QGIS
+        layer = Map.addLayer(styled_fc, {}, layer_name)
+        if opacity != "":
+            layer.setOpacity(int(opacity) / 100)
+        result["OUTPUT_RASTER"] = layer
 
         if fc.size().getInfo() == 0:
             logger.warning(
@@ -296,14 +267,16 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
     def _build_visualization_group(self):
         group = gui.QgsCollapsibleGroupBox("Visualization")
-        group.setCollapsed(True)
+        group.setCollapsed(False)
         layout = QFormLayout()
 
         self.outline_color = gui.QgsColorButton()
+        self.outline_color.setColor(QColor("#000000"))
         self.outline_color.setObjectName("viz_color_hex")
         layout.addRow(QLabel("Outline Color"), self.outline_color)
 
         self.fill_color = gui.QgsColorButton()
+        self.fill_color.setColor(QColor("#FFFFFF"))
         self.fill_color.setObjectName("viz_fill_color")
         layout.addRow(QLabel("Fill Color"), self.fill_color)
 
@@ -317,7 +290,7 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.opacity = QSpinBox()
         self.opacity.setMinimum(0)
         self.opacity.setMaximum(100)
-        self.opacity.setValue(100)
+        self.opacity.setValue(80)
         self.opacity.setObjectName("opacity")
         layout.addRow(QLabel("Opacity (%)"), self.opacity)
 
@@ -381,6 +354,8 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         return filter_group
 
     def buildDialog(self):
+        from qgis.PyQt.QtCore import QDate
+
         layout = QVBoxLayout()
 
         # --- Feature Collection ID ---
@@ -392,10 +367,6 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout.addWidget(QLabel("Feature Collection ID"))
         layout.addWidget(self.fc_id)
 
-        # --- Retain as Vector Layer ---
-        self.as_vector = QCheckBox("Retain as vector layer")
-        layout.addWidget(self.as_vector)
-
         # --- Filters ---
         self.filter_widget = FilterWidget(property_list=self.feature_properties)
         layout.addWidget(self.filter_widget)
@@ -406,8 +377,11 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         date_layout = QFormLayout()
         self.start_date = gui.QgsDateEdit(objectName="start_date")
         self.start_date.setToolTip(_("Start date for filtering"))
+        self.start_date.setDate(QDate(1990, 1, 1))
+
         self.end_date = gui.QgsDateEdit(objectName="end_date")
         self.end_date.setToolTip(_("End date for filtering"))
+        self.end_date.setDate(QDate.currentDate())
 
         date_layout.addRow(_("Start"), self.start_date)
         date_layout.addRow(_("End"), self.end_date)
@@ -417,7 +391,7 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         # --- Filter by Extent ---
         self.extent_group = gui.QgsExtentGroupBox(
             objectName="extent",
-            title=_("Filter by Coordinates"),
+            title=_("Filter by Extent (Bounds)"),
             collapsed=True,
         )
         self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())
@@ -450,7 +424,6 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
         return {
             "feature_collection_id": self.fc_id.text().strip(),
-            "as_vector": str(self.as_vector.isChecked()),
             "filters": filters_str,
             "start_date": self.start_date.date().toString("yyyy-MM-dd"),
             "end_date": self.end_date.date().toString("yyyy-MM-dd"),

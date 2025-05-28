@@ -25,7 +25,7 @@ class TestInit(unittest.TestCase):
     Based heavily on the validator class by Alessandro
     Passoti available here:
 
-    http://github.com/qgis/qgis-django/blob/master/qgis-app/
+    http://github.com/qgis/qgis-django/blob/main/qgis-app/
              plugins/validator.py
 
     """
@@ -34,7 +34,7 @@ class TestInit(unittest.TestCase):
         """Test that the plugin __init__ will validate on plugins.qgis.org."""
 
         # You should update this list according to the latest in
-        # https://github.com/qgis/qgis-django/blob/master/qgis-app/
+        # https://github.com/qgis/qgis-django/blob/main/qgis-app/
         #        plugins/validator.py
 
         required_metadata = [

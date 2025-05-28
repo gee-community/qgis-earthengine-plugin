@@ -135,11 +135,6 @@ def setup_logger(plugin_name: str, logger_name: str = MODULE_NAME) -> None:
     )
     logger.addHandler(qgis_log_handler)
 
-    qgis_bar_handler = QGISMessageBarHandler(plugin_name=plugin_name, duration=5)
-    qgis_bar_handler.setLevel(logging.WARNING)
-    qgis_bar_handler.setFormatter(logging.Formatter("%(message)s"))
-    logger.addHandler(qgis_bar_handler)
-
     feedback_handler = QGISFeedbackHandler()
     feedback_handler.setLevel(logging.INFO)
     feedback_handler.setFormatter(logging.Formatter("%(message)s"))

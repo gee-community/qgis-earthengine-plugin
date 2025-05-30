@@ -90,4 +90,16 @@ The plugin can be debugged within [Visual Studio Code](https://code.visualstudio
 
 If you have any questions or need assistance, feel free to reach out by creating an [issue](https://github.com/gee-community/qgis-earthengine-plugin/issues) or adding a post in the [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions).
 
+
+## Release Process
+
+When preparing a new release, follow these steps:
+
+1. Update the version number in the `metadata.txt` file and any other relevant locations.
+2. Update the `CHANGELOG.md` file with a summary of changes since the last release.
+3. Tag the release 
+4. Build the plugin package for distribution verifying the `ext_libs` doesn't contain dev dependencies: `paver package`
+5. Uploading the new release version to the QGIS Plugin Manager, ensuring metadata and version compatibility are correctly set in the `metadata.txt` file. Currently this step must be taken by maintainers (@gena or @zacdezgeo).
+6. Announce the release in the repository’s Releases with the ZIP of the plugin section.
+
 Thank you for contributing to the QGIS Earth Engine Plugin!

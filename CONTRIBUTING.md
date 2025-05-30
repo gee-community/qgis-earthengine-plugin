@@ -95,12 +95,10 @@ If you have any questions or need assistance, feel free to reach out by creating
 
 When preparing a new release, follow these steps:
 
-1. Update the version number in the `metadata.txt` file and any other relevant locations.
-2. Update the `CHANGELOG.md` file with a summary of changes since the last release.
-3. Tag the release
-4. Build the plugin package for distribution, verifying the `ext_libs` don't contain dev dependencies: `paver package`
-5. Uploading the new release version to the QGIS Plugin Manager, ensuring metadata and version compatibility are correctly set in the `metadata.txt` file. Currently, maintainers (@gena or @zacdezgeo) must take this step. If it is a new version, QGIS maintainers must review and approve the upload, which can take several days.
-6. Announce the release in the repository’s Releases with the ZIP of the plugin section.
+1. Update the version number in the `ee_plugin/metadata.txt` file and any other relevant locations.
+2. Build the plugin package for distribution, verifying the `ext_libs` don't contain dev dependencies (re-run `paver setup` if you installed dependencies from `dev-requirements.txt`): `paver package`
+3. Upload the new release version to the [QGIS Plugin Manager](https://plugins.qgis.org/plugins/ee_plugin/#plugin-versions), ensuring metadata and version compatibility are correctly set in the `metadata.txt` file. Currently, maintainers (@gena or @zacdezgeo) must take this step. If it is a new version, QGIS maintainers must review and approve the upload, which can take several days.
+4. Create the new release in GitHub with the ZIP of the plugin section. GitHub will require you add a tag of the version.
 
 > Releases on GitHub can be incremented by 0.0.0.X while the releases on the QGIS plugin repository are incremented by 0.0.X. We can publish release on GitHub and update the underlying ZIP on the plugin repository release as long as it is still an experimental version. This enables us to release more frequently without waiting on QGIS maintainers approval.
 

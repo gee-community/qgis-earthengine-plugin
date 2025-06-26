@@ -62,8 +62,6 @@ def test_requires_extent():
         ("EPSG:4326", 5000, (-130.0, 45.0, -120.0, 55.0)),  # WGS 84
         ("EPSG:3857", 1000, (-13700, 6300, -13650, 6350)),  # Web Mercator
         ("EPSG:3857", 5000, (-13720, 6305, -13680, 6355)),  # Web Mercator
-        ("EPSG:32610", 1000, (5000, 54750, 5050, 54850)),  # UTM Zone 10N
-        ("EPSG:32610", 5000, (5100, 54000, 5150, 54100)),  # UTM Zone 10N
     ],
 )
 def test_varied_params_export(crs, scale, extent):

@@ -99,3 +99,44 @@ def test_varied_params_export(crs, scale, extent):
         assert ds.width > 0 and ds.height > 0, "Invalid raster size"
 
     os.remove(out_path)
+
+
+def test_extent_transformed_to_target_crs():
+    """Ensure extent is transformed correctly from EPSG:3857 to EPSG:4326 before export."""
+
+    # Add a layer reprojected to EPSG:3857 (Web Mercator)
+    img = ee.Image("USGS/SRTMGL1_003").reproject("EPSG:3857", None, 30)
+    Map.addLayer(img, {}, "DEM_WEB")
+
+    alg = ExportGeoTIFFAlgorithm()
+    alg.initAlgorithm(config=None)
+
+    context = QgsProcessingContext()
+    feedback = QgsProcessingFeedback()
+    alg.raster_layers = ["DEM_WEB"]
+
+    # The original layer is in EPSG:3857 (meters); extent should be in meters
+    # Let's take a small area in meters around Vancouver
+    extent_3857 = "-13700000,-13680000,6300000,6320000 [EPSG:3857]"
+
+    out_path = "test_extent_transformed.tif"
+    params = {
+        "EE_IMAGE": 0,
+        "EXTENT": extent_3857,
+        "SCALE": 30,
+        "PROJECTION": "EPSG:4326",
+        "OUTPUT": out_path,
+    }
+
+    alg.processAlgorithm(params, context=context, feedback=feedback)
+
+    with rio.open(out_path) as ds:
+        assert (
+            ds.width < 5000 and ds.height < 5000
+        ), "Raster size indicates extent not transformed correctly"
+        assert (
+            "WGS 84" in ds.crs.to_wkt() or "4326" in ds.crs.to_string()
+        ), f"Unexpected CRS: {ds.crs}"
+        assert ds.count == 1
+
+    os.remove(out_path)

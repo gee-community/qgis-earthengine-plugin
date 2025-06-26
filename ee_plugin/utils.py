@@ -388,8 +388,6 @@ def validate_extent_projection(
             and -20037508.34 <= extent[1] <= 20037508.34
         ):
             raise ValueError("Extent coordinates are out of bounds for EPSG:3857.")
-    else:
-        raise ValueError(f"Unsupported projection: {projection}")
 
 
 def tile_extent(

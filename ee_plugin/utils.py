@@ -68,7 +68,7 @@ def get_layer_by_name(name: str) -> Optional[QgsMapLayer]:
 
 def get_ee_image_url(image: ee.Image) -> str:
     map_id = ee.data.getMapId({"image": image})
-    url = map_id["tile_fetcher"].url_format + "&zmax=25"
+    url = map_id["tile_fetcher"].url_format + "&zmax=12&minzoom=5&cache=1"
     logger.debug(f"Generated EE image URL: {url}")
     return url
 
@@ -371,6 +371,27 @@ def merge_geotiffs_gdal(in_files: List[str], out_file: str) -> None:
         vrt = None
 
 
+def validate_extent_projection(
+    extent: Tuple[float, float, float, float], projection: str
+) -> None:
+    """
+    Validate that the extent coordinates match the expected projection.
+    For EPSG:4326, coordinates should be in degrees (longitude, latitude).
+    For EPSG:3857, coordinates should be in meters.
+    """
+    if projection == "EPSG:4326":
+        if not (-180 <= extent[0] <= 180 and -90 <= extent[1] <= 90):
+            raise ValueError("Extent coordinates are out of bounds for EPSG:4326.")
+    elif projection == "EPSG:3857":
+        if not (
+            -20037508.34 <= extent[0] <= 20037508.34
+            and -20037508.34 <= extent[1] <= 20037508.34
+        ):
+            raise ValueError("Extent coordinates are out of bounds for EPSG:3857.")
+    else:
+        raise ValueError(f"Unsupported projection: {projection}")
+
+
 def tile_extent(
     ee_image: ee.Image,
     extent: Tuple[float, float, float, float],
@@ -378,6 +399,10 @@ def tile_extent(
     projection: str = "EPSG:4326",
 ) -> List[Tuple[float, float, float, float]]:
     logger.debug(f"Tiling extent {extent} with scale {scale}, projection {projection}")
+
+    logger.debug(f"Validating extent projection for {projection}")
+    validate_extent_projection(extent, projection)
+
     num_bands = ee_image.bandNames().size().getInfo()
     bytes_per_pixel = num_bands * 2
     max_bytes = 30 * 1024 * 1024

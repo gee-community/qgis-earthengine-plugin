@@ -71,8 +71,20 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         selected_index = self.parameterAsEnum(parameters, "EE_IMAGE", context)
         ee_img = self.raster_layers[selected_index]
         rect = self.parameterAsExtent(parameters, "EXTENT", context)
+        rect_source_crs = self.parameterAsExtentCrs(parameters, "EXTENT", context)
         if rect is None or rect.toString() == "Null":
             raise ValueError("Bounding box extent is required for export")
+
+        target_crs = self.parameterAsCrs(parameters, "PROJECTION", context)
+
+        if rect_source_crs != target_crs:
+            from qgis.core import QgsCoordinateTransform, QgsProject
+
+            tr = QgsCoordinateTransform(
+                rect_source_crs, target_crs, QgsProject.instance()
+            )
+            rect = tr.transformBoundingBox(rect)
+
         extent = [rect.xMinimum(), rect.yMinimum(), rect.xMaximum(), rect.yMaximum()]
         scale = self.parameterAsDouble(parameters, "SCALE", context)
         projection = self.parameterAsCrs(parameters, "PROJECTION", context).authid()

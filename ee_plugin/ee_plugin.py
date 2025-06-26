@@ -64,7 +64,7 @@ class GoogleEarthEnginePlugin(object):
         self.toolButton = None
 
         # initialize locale
-        locale = QSettings().value("locale/userLocale")[0:2]
+        locale = str(QSettings().value("locale/userLocale"))[0:2]
         locale_path = os.path.join(
             PLUGIN_DIR, "i18n", "GoogleEarthEnginePlugin_{}.qm".format(locale)
         )

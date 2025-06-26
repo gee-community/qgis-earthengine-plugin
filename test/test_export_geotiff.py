@@ -134,7 +134,9 @@ def test_extent_transformed_to_target_crs():
         assert (
             ds.width < 5000 and ds.height < 5000
         ), "Raster size indicates extent not transformed correctly"
-        assert "WGS 84" in ds.crs.to_string(), "CRS should be WGS84 (EPSG:4326)"
+        assert (
+            "WGS 84" in ds.crs.to_wkt() or "4326" in ds.crs.to_string()
+        ), f"Unexpected CRS: {ds.crs}"
         assert ds.count == 1
 
     os.remove(out_path)

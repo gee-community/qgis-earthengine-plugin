@@ -189,9 +189,9 @@ def collection_to_atlas(collection: ee.ImageCollection,
     map = None
 
     layouts = manager.layouts()
-    for l in layouts:
-       if l.name()==layout_name:
-          layout = l
+    for L in layouts:
+       if L.name()==layout_name:
+          layout = L
           break
 
     if not layout:

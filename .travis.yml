@@ -9,7 +9,7 @@ env:
   global:
   - PLUGIN_NAME=ee_plugin
   matrix:
-  - QGIS_VERSION_TAG=master PYTHON_EXECUTABLE=python3 PIP_EXECUTABLE=pip3
+  - QGIS_VERSION_TAG=main PYTHON_EXECUTABLE=python3 PIP_EXECUTABLE=pip3
 before_install:
 - docker pull elpaso/qgis-testing-environment:${QGIS_VERSION_TAG}
 - docker tag elpaso/qgis-testing-environment:${QGIS_VERSION_TAG} qgis-testing-environment

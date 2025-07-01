@@ -1,5 +1,5 @@
 ratelim
-pyCrypto
-earthengine-api
+earthengine-api>=0.1.335
 six>=1.13
 httplib2
+requests>2.4

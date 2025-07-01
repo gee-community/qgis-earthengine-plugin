@@ -1,0 +1,53 @@
+name: QGIS Plugin CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up QGIS environment 
+        run: |
+          sudo apt update
+          sudo apt install -y qgis python3-qgis python3-pyqt5 python3-pytest
+      
+      - name: Set Environment Variables
+        run: |
+          echo "QGIS_HOME=/usr" >> $GITHUB_ENV
+          echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Start Virtual Display
+        run: Xvfb :99 -screen 0 1024x768x24 &
+
+      - name: Configure Earth Engine Credentials 
+        run: |
+          mkdir -p ~/.config/earthengine  
+          echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+
+      - name: Run pre-commit checks
+        run: |
+          pre-commit run --all-files
+
+      - name: Run tests with coverage
+        run: |
+          python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/

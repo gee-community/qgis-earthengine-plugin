@@ -1,0 +1,39 @@
+# This file contains metadata for your plugin. Since 
+# version 2.0 of QGIS this is the proper way to supply 
+# information about a plugin. The old method of 
+# embedding metadata in __init__.py will 
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Google Earth Engine
+qgisMinimumVersion=3.22
+description=Integrates QGIS with Google Earth Engine
+version=0.0.9
+author=Gennadii Donchyts, Xavier C. Llano, Fedor Baart, Zac Deziel, Anthony Lukach
+email=gennadiy.donchyts@gmail.com
+
+about=Integrates Google Earth Engine (GEE) by wrapping GEE Python API.
+
+tracker=https://github.com/gee-community/qgis-earthengine-plugin/issues
+repository=https://github.com/gee-community/qgis-earthengine-plugin
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=cloud, analysis, dem, geojson, geometry, google, landsat, land cover, processing, raster, remote sensing, statistics, topography, webservice
+
+homepage=https://qgis-ee-plugin.appspot.com/
+category=Plugins
+icon=icons/earth-engine.svg
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+

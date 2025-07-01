@@ -6,10 +6,12 @@ __pycache__
 *.qgs~
 
 help/build
-extlibs_darwin
-extlibs_linux
-extlibs_windows
-media/
+extlibs*
 
-*.qgs~
+ee_plugin.zip
 
+temp
+venv
+.DS_Store
+htmlcov
+.coverage

@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/plugins/ee_plugin/icons" >
+        <file>earth-engine.svg</file>
+        <file>google-cloud.svg</file>
+        <file>google-cloud-project.svg</file>
+    </qresource>
+</RCC>

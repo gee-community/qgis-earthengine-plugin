@@ -1,4 +1,3 @@
-import re
 import logging
 from typing import List
 
@@ -27,7 +26,7 @@ from qgis.PyQt.QtGui import QColor
 from .. import Map
 from ..ui.widgets import FilterWidget
 from ..processing.custom_algorithm_dialog import BaseAlgorithmDialog
-from ..utils import translate as _, get_ee_properties, filter_functions
+from ..utils import translate as _, get_ee_properties, filter_functions, get_ee_extent
 
 
 logger = logging.getLogger(__name__)
@@ -185,7 +184,8 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         filters = self.parameterAsString(parameters, "filters", context)
         start_date = self.parameterAsString(parameters, "start_date", context)
         end_date = self.parameterAsString(parameters, "end_date", context)
-        extent = self.parameterAsString(parameters, "extent", context)
+        extent = parameters["extent"]
+        extent_crs = parameters["extent_crs"]
         viz_color_hex = self.parameterAsString(parameters, "viz_color_hex", context)
         viz_fill_color = self.parameterAsString(parameters, "viz_fill_color", context)
         viz_width = self.parameterAsString(parameters, "viz_width", context)
@@ -222,15 +222,10 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
                     "Skipping date filter: no system:time_start property found."
                 )
         # Apply extent filter if provided
-        if extent and extent.lower() != "null":
+        if extent:
             try:
-                # Split on commas and colons
-                parts = re.split(r"[,:]", extent)
-                coords = list(map(float, parts))
-                if len(coords) == 4:
-                    fc = fc.filterBounds(ee.Geometry.Rectangle(coords))
-                else:
-                    raise ValueError
+                ee_extent = get_ee_extent(extent, extent_crs, context.project())
+                fc = fc.filterBounds(ee_extent)
             except Exception as e:
                 raise ValueError(f"Invalid extent format: {extent}") from e
 
@@ -427,7 +422,8 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
             "filters": filters_str,
             "start_date": self.start_date.date().toString("yyyy-MM-dd"),
             "end_date": self.end_date.date().toString("yyyy-MM-dd"),
-            "extent": self.extent_group.outputExtent().toString(),
+            "extent": self.extent_group.outputExtent(),
+            "extent_crs": self.extent_group.outputCrs(),
             "opacity": str(self.opacity.value()),
             "viz_color_hex": self.outline_color.color().name(),
             "viz_fill_color": self.fill_color.color().name(),

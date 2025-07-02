@@ -12,8 +12,6 @@ from qgis.core import (
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
 )
 from qgis.PyQt.QtCore import QTimer, QDate
 from qgis.PyQt.QtWidgets import (
@@ -37,6 +35,7 @@ from ..utils import (
     get_ee_properties,
     get_available_bands,
     filter_functions,
+    get_ee_extent,
 )
 from ..ui.utils import serialize_color_ramp
 
@@ -445,20 +444,8 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         if extent and extent_crs:
             # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
             try:
-                crs_4326 = QgsCoordinateReferenceSystem("EPSG:4326")
-                transform = QgsCoordinateTransform(
-                    extent_crs, crs_4326, context.project()
-                )
-                extent_4326 = transform.transformBoundingBox(extent)
-                ee_extent = ee.Geometry.Rectangle(
-                    [
-                        extent_4326.xMinimum(),
-                        extent_4326.yMinimum(),
-                        extent_4326.xMaximum(),
-                        extent_4326.yMaximum(),
-                    ]
-                )
-                ic = ic.filter(ee.Filter.bounds(ee_extent))
+                ee_extent = get_ee_extent(extent, extent_crs, context.project())
+                ic = ic.filterBounds(ee_extent)
             except Exception as e:
                 raise ValueError(f"Invalid extent format: {extent}") from e
 

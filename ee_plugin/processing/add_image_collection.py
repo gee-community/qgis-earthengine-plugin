@@ -508,6 +508,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             if not (0 <= percentile_value <= 100):
                 raise ValueError("Percentile value must be between 0 and 100.")
             ic = ic.reduce(ee.Reducer.percentile([percentile_value]))
+            ic = ic.regexpRename("_p.*", "")
         elif compositing_name == "First":
             logger.warning(
                 "Using 'First' compositing method, which returns the first image in the collection."

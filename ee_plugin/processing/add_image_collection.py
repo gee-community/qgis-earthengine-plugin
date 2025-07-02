@@ -12,7 +12,6 @@ from qgis.core import (
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
-    QgsRectangle,
 )
 from qgis.PyQt.QtCore import QTimer, QDate
 from qgis.PyQt.QtWidgets import (
@@ -447,17 +446,10 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         if extent and isinstance(extent, str):
             # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
             try:
-                coords = (
-                    extent.split(" [")[0].replace(" : ", ",").replace(":", ",")
-                )  # Normalize separator
-                xmin, ymin, xmax, ymax = map(float, coords.split(","))
-                extent = QgsRectangle(xmin, ymin, xmax, ymax)
-                min_lon = extent.xMinimum()
-                max_lon = extent.xMaximum()
-                min_lat = extent.yMinimum()
-                max_lat = extent.yMaximum()
+                coords = extent.split(" [")[0]
+                min_lon, max_lon, min_lat, max_lat = map(float, coords.split(","))
                 ee_extent = ee.Geometry.Rectangle([min_lon, min_lat, max_lon, max_lat])
-                ic = ic.filterBounds(ee_extent)
+                ic = ic.filter(ee.Filter.bounds(ee_extent))
             except Exception as e:
                 raise ValueError(f"Invalid extent format: {extent}") from e
 
@@ -533,6 +525,9 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             name = f"IC: {image_collection_id} ({compositing_name} {percentile_value}%)"
         else:
             name = f"IC: {image_collection_id} ({compositing_name})"
+
+        # Final clip ensures the composite image has correct footprint and masked pixels
+        ic = ic.clip(ee_extent) if "ee_extent" in locals() else ic
 
         layer = Map.addLayer(ic, viz_params, name)
 

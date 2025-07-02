@@ -12,6 +12,8 @@ from qgis.core import (
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
 )
 from qgis.PyQt.QtCore import QTimer, QDate
 from qgis.PyQt.QtWidgets import (
@@ -268,7 +270,6 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
             serialized = serialize_color_ramp(viz_params)
             if serialized.get("palette"):
                 viz_params["palette"] = serialized["palette"]
-            extent = self.extent_group.outputExtent()
             params = {
                 "image_collection_id": self.image_collection_id.text(),
                 "filters": filters_str,
@@ -278,11 +279,8 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                 "end_date": self.end_date.dateTime()
                 if self.end_date.dateTime()
                 else None,
-                "extent": (
-                    f"{extent.xMinimum()},{extent.xMaximum()},{extent.yMinimum()},{extent.yMaximum()}"
-                    if not extent.isEmpty()
-                    else ""
-                ),
+                "extent": self.extent_group.outputExtent(),
+                "extent_crs": self.extent_group.outputCrs(),
                 "compositing_method": self.compositing_method.currentIndex(),
                 "percentile_value": self.percentile_value.value(),
                 "viz_params": viz_params,
@@ -421,6 +419,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         start_date = parameters["start_date"]
         end_date = parameters["end_date"]
         extent = parameters["extent"]  # This is the extent parameter as a string
+        extent_crs = parameters["extent_crs"]  # CRS of the extent
         compositing_method = parameters["compositing_method"]
         percentile_value = (
             int(parameters["percentile_value"])
@@ -443,12 +442,22 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         # If extent is provided, convert it to a QgsRectangle and then to ee.Geometry
         if not extent:
             logger.warning("Extent is not provided. The entire globe will be used.")
-        if extent and isinstance(extent, str):
+        if extent and extent_crs:
             # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
             try:
-                coords = extent.split(" [")[0]
-                min_lon, max_lon, min_lat, max_lat = map(float, coords.split(","))
-                ee_extent = ee.Geometry.Rectangle([min_lon, min_lat, max_lon, max_lat])
+                crs_4326 = QgsCoordinateReferenceSystem("EPSG:4326")
+                transform = QgsCoordinateTransform(
+                    extent_crs, crs_4326, context.project()
+                )
+                extent_4326 = transform.transformBoundingBox(extent)
+                ee_extent = ee.Geometry.Rectangle(
+                    [
+                        extent_4326.xMinimum(),
+                        extent_4326.yMinimum(),
+                        extent_4326.xMaximum(),
+                        extent_4326.yMaximum(),
+                    ]
+                )
                 ic = ic.filter(ee.Filter.bounds(ee_extent))
             except Exception as e:
                 raise ValueError(f"Invalid extent format: {extent}") from e

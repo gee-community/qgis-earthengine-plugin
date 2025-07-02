@@ -222,7 +222,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
                     "Skipping date filter: no system:time_start property found."
                 )
         # Apply extent filter if provided
-        if extent:
+        if extent and extent_crs:
             try:
                 ee_extent = get_ee_extent(extent, extent_crs, context.project())
                 fc = fc.filterBounds(ee_extent)

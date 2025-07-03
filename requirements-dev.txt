@@ -10,3 +10,4 @@ pyqt5
 future
 paver
 rasterio
+qgis-plugin-ci

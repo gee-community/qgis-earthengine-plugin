@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.0.9-exp] – 2025-07-03
+## [0.0.9-beta] – 2025-07-03
 ### Added
 - Interactive UI for Earth Engine authentication, replacing the previous manual flow.
 - Support for styled visualization of image layers using custom palettes and opacity control.

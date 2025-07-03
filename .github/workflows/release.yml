@@ -30,7 +30,7 @@ jobs:
           find ee_plugin/extlibs -type d -name "*.dist-info" -exec rm -rf {} +
 
       - name: Get tag version
-        run: echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+        run: echo "TAG_NAME=${GITHUB_REF##*/v}" >> $GITHUB_ENV
 
       - name: Package plugin
         run: |

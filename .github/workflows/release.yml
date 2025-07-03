@@ -3,10 +3,10 @@ name: Release QGIS Plugin
 on:
   push:
     tags:
-      - '*.*.*'
+      - 'v*.*.*'  # Trigger only on version tags like v1.2.3
 
 jobs:
-  build-and-release:
+  release:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,35 +17,40 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          pip install qgis-plugin-ci
+      - name: Install qgis-plugin-ci
+        run: pip install qgis-plugin-ci
 
       - name: Vendor extlibs dependencies
         run: |
-          # Install required Python packages into ee_plugin/extlibs
           pip install -r requirements.txt -t ee_plugin/extlibs
           find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
-          # Optionally clean metadata folders
-          find ee_plugin/extlibs -type d -name "*.dist-info" -exec rm -rf {} +
+          find ee_plugin/extlibs -type d -name '*.dist-info' -exec rm -rf {} +
 
       - name: Get tag version
         run: |
-          # Strip "refs/tags/" prefix, then leading "v"
           raw="${GITHUB_REF#refs/tags/}"
-          export VERSION_TAG="${raw}"
-          echo "TAG_NAME=$VERSION_TAG" >> $GITHUB_ENV
+          VERSION="${raw#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Package plugin
         run: |
-          qgis-plugin-ci package "$VERSION_TAG" \
+          qgis-plugin-ci package "$VERSION" \
             --asset-path ee_plugin/extlibs
 
-      - name: Package and publish release
+      - name: Create GitHub Release (attach ZIP)
         run: |
-          qgis-plugin-ci package "$TAG_NAME" \
-            --asset-path ee_plugin/extlibs
-          qgis-plugin-ci release "$TAG_NAME" \
-            --github-token ${{ secrets.GITHUB_TOKEN }} \
-            --osgeo-user ${{ secrets.OSGEO_USER }} \
-            --osgeo-pass ${{ secrets.OSGEO_PASS }} \
+          gh release create "v$VERSION" \
+            --title "Release v$VERSION" \
+            --notes "Automated release for v$VERSION" \
+            "ee_plugin.$VERSION.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish plugin via QGIS‑Plugin‑CI
+        run: |
+          qgis-plugin-ci release "$VERSION" \
+            --release-tag "v$VERSION" \
+            --github-token "${{ secrets.GITHUB_TOKEN }}" \
+            --osgeo-username "${{ secrets.OSGEO_USER }}" \
+            --osgeo-password "${{ secrets.OSGEO_PASS }}" \
+            --create-plugin-repo

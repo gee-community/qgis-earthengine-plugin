@@ -52,10 +52,17 @@ jobs:
             exit 1
           fi
 
+      - name: Create GitHub Release
+        run: |
+          gh release create "v${{ env.TAG_NAME }}" \
+            --title "Release v${{ env.TAG_NAME }}" \
+            --notes "Automated release for version v${{ env.TAG_NAME }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish release
         run: |
           qgis-plugin-ci release "$TAG_NAME" \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            --create-plugin-repo
             --osgeo-user ${{ secrets.OSGEO_USER }} \
-            --osgeo-pass ${{ secrets.OSGEO_PASS }} \ 
+            --osgeo-pass ${{ secrets.OSGEO_PASS }} \

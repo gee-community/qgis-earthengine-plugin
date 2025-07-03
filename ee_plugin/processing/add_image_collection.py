@@ -24,6 +24,7 @@ from qgis.PyQt.QtWidgets import (
     QHBoxLayout,
     QWidget,
     QColorDialog,
+    QCheckBox,
 )
 from qgis import gui
 
@@ -220,6 +221,14 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         viz_layout.addWidget(self.viz_widget)
         viz_group.setLayout(viz_layout)
 
+        # --- Clip to Extent Checkbox ---
+        self.clip_checkbox = QCheckBox(_("Clip to Extent"))
+        self.clip_checkbox.setChecked(True)
+        self.clip_checkbox.setToolTip(
+            _("Whether to clip the final image to the specified extent.")
+        )
+        viz_layout.addWidget(self.clip_checkbox)
+
         # finally
         layout.addWidget(viz_group)
 
@@ -283,6 +292,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                 "compositing_method": self.compositing_method.currentIndex(),
                 "percentile_value": self.percentile_value.value(),
                 "viz_params": viz_params,
+                "clip_to_extent": self.clip_checkbox.isChecked(),
             }
             return params
 
@@ -333,6 +343,8 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         """
 
     def initAlgorithm(self, config):
+        from qgis.core import QgsProcessingParameterBoolean
+
         # Define parameters
         self.addParameter(
             QgsProcessingParameterString(
@@ -390,6 +402,11 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
                 optional=True,
             )
         )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "clip_to_extent", "Clip to extent", defaultValue=True
+            )
+        )
 
         self.addOutput(QgsProcessingOutputRasterLayer("OUTPUT", "EE Image"))
         self.addOutput(QgsProcessingOutputString("LAYER_NAME", "Layer Name"))
@@ -426,6 +443,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             else None
         )
         viz_params = parameters.get("viz_params", None)
+        clip_to_extent = parameters.get("clip_to_extent", True)
 
         # Initialize Earth Engine ImageCollection
         ic = ee.ImageCollection(image_collection_id)
@@ -523,7 +541,8 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             name = f"IC: {image_collection_id} ({compositing_name})"
 
         # Final clip ensures the composite image has correct footprint and masked pixels
-        ic = ic.clip(ee_extent) if "ee_extent" in locals() else ic
+        if clip_to_extent and extent and extent_crs:
+            ic = ic.clip(ee_extent)
 
         layer = Map.addLayer(ic, viz_params, name)
 

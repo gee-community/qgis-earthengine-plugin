@@ -22,6 +22,10 @@ from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
     QgsMapLayer,
+    QgsRectangle,
+    QgsCoordinateReferenceSystem,
+    QgsProcessingContext,
+    QgsCoordinateTransform,
 )
 from qgis.PyQt.QtCore import QCoreApplication
 
@@ -532,3 +536,28 @@ def get_available_bands(
         if not silent:
             logger.exception(f"Error retrieving bands from asset {asset_id!r}")
         return None
+
+
+def get_ee_extent(
+    extent: QgsRectangle,
+    extent_crs: QgsCoordinateReferenceSystem,
+    context: QgsProcessingContext,
+) -> ee.Geometry:
+    """
+    Convert a QGIS extent and CRS to an Earth Engine Geometry which must always be in EPSG:4326.
+    The extent is expected to be in the same CRS as the provided extent_crs.
+    """
+    crs_4326 = QgsCoordinateReferenceSystem("EPSG:4326")
+    transform = QgsCoordinateTransform(extent_crs, crs_4326, context)
+
+    extent_4326 = transform.transform(extent)
+    ee_extent = ee.Geometry.Rectangle(
+        [
+            extent_4326.xMinimum(),
+            extent_4326.yMinimum(),
+            extent_4326.xMaximum(),
+            extent_4326.yMaximum(),
+        ]
+    )
+
+    return ee_extent

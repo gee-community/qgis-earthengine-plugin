@@ -12,6 +12,7 @@ from qgis.core import (
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
+    QgsProcessingParameterBoolean,
 )
 from qgis.PyQt.QtCore import QTimer, QDate
 from qgis.PyQt.QtWidgets import (
@@ -24,6 +25,7 @@ from qgis.PyQt.QtWidgets import (
     QHBoxLayout,
     QWidget,
     QColorDialog,
+    QCheckBox,
 )
 from qgis import gui
 
@@ -35,6 +37,7 @@ from ..utils import (
     get_ee_properties,
     get_available_bands,
     filter_functions,
+    get_ee_extent,
 )
 from ..ui.utils import serialize_color_ramp
 
@@ -219,6 +222,14 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         viz_layout.addWidget(self.viz_widget)
         viz_group.setLayout(viz_layout)
 
+        # --- Clip to Extent Checkbox ---
+        self.clip_checkbox = QCheckBox(
+            _("Clip to Extent"),
+            checked=True,
+            toolTip=_("Whether to clip the final image to the specified extent."),
+        )
+        viz_layout.addWidget(self.clip_checkbox)
+
         # finally
         layout.addWidget(viz_group)
 
@@ -268,7 +279,6 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
             serialized = serialize_color_ramp(viz_params)
             if serialized.get("palette"):
                 viz_params["palette"] = serialized["palette"]
-            extent = self.extent_group.outputExtent()
             params = {
                 "image_collection_id": self.image_collection_id.text(),
                 "filters": filters_str,
@@ -278,14 +288,12 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                 "end_date": self.end_date.dateTime()
                 if self.end_date.dateTime()
                 else None,
-                "extent": (
-                    f"{extent.xMinimum()},{extent.xMaximum()},{extent.yMinimum()},{extent.yMaximum()}"
-                    if not extent.isEmpty()
-                    else ""
-                ),
+                "extent": self.extent_group.outputExtent(),
+                "extent_crs": self.extent_group.outputCrs(),
                 "compositing_method": self.compositing_method.currentIndex(),
                 "percentile_value": self.percentile_value.value(),
                 "viz_params": viz_params,
+                "clip_to_extent": self.clip_checkbox.isChecked(),
             }
             return params
 
@@ -393,6 +401,11 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
                 optional=True,
             )
         )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "clip_to_extent", "Clip to extent", defaultValue=True
+            )
+        )
 
         self.addOutput(QgsProcessingOutputRasterLayer("OUTPUT", "EE Image"))
         self.addOutput(QgsProcessingOutputString("LAYER_NAME", "Layer Name"))
@@ -421,6 +434,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         start_date = parameters["start_date"]
         end_date = parameters["end_date"]
         extent = parameters["extent"]  # This is the extent parameter as a string
+        extent_crs = parameters["extent_crs"]  # CRS of the extent
         compositing_method = parameters["compositing_method"]
         percentile_value = (
             int(parameters["percentile_value"])
@@ -428,6 +442,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             else None
         )
         viz_params = parameters.get("viz_params", None)
+        clip_to_extent = parameters.get("clip_to_extent", True)
 
         # Initialize Earth Engine ImageCollection
         ic = ee.ImageCollection(image_collection_id)
@@ -443,13 +458,11 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         # If extent is provided, convert it to a QgsRectangle and then to ee.Geometry
         if not extent:
             logger.warning("Extent is not provided. The entire globe will be used.")
-        if extent and isinstance(extent, str):
+        if extent and extent_crs:
             # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
             try:
-                coords = extent.split(" [")[0]
-                min_lon, max_lon, min_lat, max_lat = map(float, coords.split(","))
-                ee_extent = ee.Geometry.Rectangle([min_lon, min_lat, max_lon, max_lat])
-                ic = ic.filter(ee.Filter.bounds(ee_extent))
+                ee_extent = get_ee_extent(extent, extent_crs, context.project())
+                ic = ic.filterBounds(ee_extent)
             except Exception as e:
                 raise ValueError(f"Invalid extent format: {extent}") from e
 
@@ -527,7 +540,8 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             name = f"IC: {image_collection_id} ({compositing_name})"
 
         # Final clip ensures the composite image has correct footprint and masked pixels
-        ic = ic.clip(ee_extent) if "ee_extent" in locals() else ic
+        if clip_to_extent and extent and extent_crs:
+            ic = ic.clip(ee_extent)
 
         layer = Map.addLayer(ic, viz_params, name)
 

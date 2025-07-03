@@ -30,7 +30,11 @@ jobs:
           find ee_plugin/extlibs -type d -name "*.dist-info" -exec rm -rf {} +
 
       - name: Get tag version
-        run: echo "TAG_NAME=${GITHUB_REF##*/v}" >> $GITHUB_ENV
+        run: |
+          # Strip "refs/tags/" prefix, then leading "v"
+          raw="${GITHUB_REF#refs/tags/}"
+          export TAG_NAME="${raw#v}"
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
       - name: Package plugin
         run: |
@@ -48,11 +52,9 @@ jobs:
             exit 1
           fi
 
-      - name: Publish release and upload to QGIS repo
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OSGEO_USER: ${{ secrets.OSGEO_USER }}
-          OSGEO_PASS: ${{ secrets.OSGEO_PASS }}
+      - name: Publish release
         run: |
-          qgis-plugin-ci release "$TAG_NAME" --github-token $GITHUB_TOKEN \
-            --osgeo-user $OSGEO_USER --osgeo-pass $OSGEO_PASS
+          qgis-plugin-ci release "$TAG_NAME" \
+            --github-token ${{ secrets.GITHUB_TOKEN }} \
+            --osgeo-user ${{ secrets.OSGEO_USER }} \
+            --osgeo-pass ${{ secrets.OSGEO_PASS }}

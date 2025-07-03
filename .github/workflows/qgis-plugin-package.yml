@@ -27,12 +27,26 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install paver
-    - name: Package QGIS Plugin
+        pip install qgis-plugin-ci
+    - name: Install plugin dependencies into extlibs
       run: |
-        paver setup
-        paver package
+        mkdir -p ee_plugin/extlibs
+        pip install -r requirements.txt -t ee_plugin/extlibs
+        find ee_plugin/extlibs -type f \( -name '*.so' -o -name '*.pyd' -o -name '*.dylib' \) -delete
+        find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
+
+    - name: Package QGIS Plugin with qgis-plugin-ci
+      run: |
+        qgis-plugin-ci package latest --asset-path ee_plugin.zip
+
+    - name: Check plugin package size
+      run: |
+        max_size=$((50 * 1024 * 1024))  # 50 MB
+        actual_size=$(stat --format="%s" ee_plugin.zip)
+        if [ "$actual_size" -gt "$max_size" ]; then
+          echo "Plugin package size exceeds 50MB limit."
+          exit 1
+        fi
    
     - name: Upload artifact
       uses: actions/upload-artifact@v4

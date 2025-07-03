@@ -1,0 +1,55 @@
+name: Release QGIS Plugin
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install qgis-plugin-ci
+
+      - name: Vendor extlibs dependencies
+        run: |
+          # Install required Python packages into ee_plugin/extlibs
+          pip install -r requirements.txt -t ee_plugin/extlibs
+          find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
+          # Optionally clean metadata folders
+          find ee_plugin/extlibs -type d -name "*.dist-info" -exec rm -rf {} +
+
+      - name: Package plugin
+        run: |
+          qgis-plugin-ci package latest \
+            --asset-path ee_plugin/extlibs
+
+      - name: Check package size
+        run: |
+          MAX_SIZE=$((25 * 1024 * 1024))
+          ZIP_FILE=$(ls dist/*.zip)
+          ACTUAL_SIZE=$(stat -c%s "$ZIP_FILE")
+          echo "Package size: $ACTUAL_SIZE bytes"
+          if [ "$ACTUAL_SIZE" -gt "$MAX_SIZE" ]; then
+            echo "::error ::Package exceeds 25 MB limit!"
+            exit 1
+          fi
+
+      - name: Publish release and upload to QGIS repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OSGEO_USER: ${{ secrets.OSGEO_USER }}
+          OSGEO_PASS: ${{ secrets.OSGEO_PASS }}
+        run: |
+          qgis-plugin-ci release latest --github-token $GITHUB_TOKEN \
+            --osgeo-user $OSGEO_USER --osgeo-pass $OSGEO_PASS

@@ -17,40 +17,20 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install qgis-plugin-ci
-        run: pip install qgis-plugin-ci
-
-      - name: Vendor extlibs dependencies
-        run: |
-          pip install -r requirements.txt -t ee_plugin/extlibs
-          find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
-          find ee_plugin/extlibs -type d -name '*.dist-info' -exec rm -rf {} +
-
       - name: Get tag version
         run: |
           raw="${GITHUB_REF#refs/tags/}"
           VERSION="${raw#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - name: Package plugin
-        run: |
-          qgis-plugin-ci package "$VERSION" \
-            --asset-path ee_plugin/extlibs
-
-      - name: Create GitHub Release (attach ZIP)
-        run: |
-          gh release create "v$VERSION" \
-            --title "Release v$VERSION" \
-            --notes "Automated release for v$VERSION" \
-            "ee_plugin.$VERSION.zip"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Publish plugin via QGIS‑Plugin‑CI
         run: |
+          pip install -r requirements.txt -t ee_plugin/extlibs
+          find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
+          find ee_plugin/extlibs -type d -name '*.dist-info' -exec rm -rf {} +
           qgis-plugin-ci release "$VERSION" \
             --release-tag "v$VERSION" \
             --github-token "${{ secrets.GITHUB_TOKEN }}" \
             --osgeo-username "${{ secrets.OSGEO_USER }}" \
             --osgeo-password "${{ secrets.OSGEO_PASS }}" \
-            --create-plugin-repo
+            --asset-path ee_plugin/extlibs \

@@ -3,7 +3,7 @@ name: Release QGIS Plugin
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - '*.*.*'
 
 jobs:
   build-and-release:

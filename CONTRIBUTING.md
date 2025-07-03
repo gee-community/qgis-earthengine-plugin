@@ -4,7 +4,7 @@ Thank you for your interest in contributing to the QGIS Earth Engine Plugin! We 
 
 ## Setting Up for Local Development
 
-Follow these steps to set up the plugin locally for development:
+To contribute locally, follow these steps:
 
 1. Clone the repository:
    ```bash
@@ -12,17 +12,29 @@ Follow these steps to set up the plugin locally for development:
    cd qgis-earthengine-plugin
    ```
 
-2. Install dependencies and set up the QGIS python environment using [`paver`](https://github.com/paver/paver):
+2. Create a virtual environment and install development dependencies:
+
    ```bash
-   paver setup
+   python3 -m venv .venv
+   source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
+   pip install -r requirements.txt
+   pip install -r requirements-dev.txt
    ```
 
-3. Create a symlink of this project into the QGIS plugin directory:
+3. Create a symlink to your plugin directory so it can be loaded directly into QGIS:
    ```bash
-   paver install
+   # macOS/Linux
+   ln -sf "$(pwd)/ee_plugin" "$HOME/Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/ee_plugin"
    ```
 
-4. Open QGIS and enable the plugin via the plugin manager. Verify that the custom `about` message is displayed.
+   ```powershell
+   # Windows PowerShell (as Administrator)
+   $src = "$(pwd)\ee_plugin"
+   $dst = "$env:APPDATA\QGIS\QGIS3\profiles\default\python\plugins\ee_plugin"
+   New-Item -ItemType SymbolicLink -Path $dst -Target $src
+   ```
+
+4. Restart QGIS and enable the plugin via the Plugin Manager. Use the [Plugin Reloader](https://plugins.qgis.org/plugins/plugin_reloader/) for a faster development loop.
 
 ## Debugging within VSCode
 
@@ -60,7 +72,7 @@ The plugin can be debugged within [Visual Studio Code](https://code.visualstudio
 
 4. Test your changes locally including reinstalling new dependencies for the QGIS environment with:
    ```bash
-   paver setup
+   pip install -r requirements.txt -t ee_plugin/extlibs  
    ```
 
 5. Commit your changes with a clear and descriptive message:
@@ -84,6 +96,13 @@ The plugin can be debugged within [Visual Studio Code](https://code.visualstudio
 ## Testing
 
 - Test your changes thoroughly before submitting a PR.
+
+- Run unit tests using pytest from your virtual environment:
+
+  ```bash
+  pytest
+  ```
+
 - If possible, add tests to cover your changes and ensure they pass.
 
 ## Questions or Help?
@@ -91,15 +110,29 @@ The plugin can be debugged within [Visual Studio Code](https://code.visualstudio
 If you have any questions or need assistance, feel free to reach out by creating an [issue](https://github.com/gee-community/qgis-earthengine-plugin/issues) or adding a post in the [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions).
 
 
-## Release Process
+## Building and Releasing with qgis-plugin-ci
 
-When preparing a new release, follow these steps:
+We now use [`qgis-plugin-ci`](https://github.com/opengisch/qgis-plugin-ci) to manage packaging and release. Here’s how:
 
-1. Update the version number in the `ee_plugin/metadata.txt` file and any other relevant locations.
-2. Build the plugin package for distribution, verifying the `ext_libs` don't contain dev dependencies (re-run `paver setup` if you installed dependencies from `dev-requirements.txt`): `paver package`
-3. Upload the new release version to the [QGIS Plugin Manager](https://plugins.qgis.org/plugins/ee_plugin/#plugin-versions), ensuring metadata and version compatibility are correctly set in the `metadata.txt` file. Currently, maintainers (@gena or @zacdezgeo) must take this step. If it is a new version, QGIS maintainers must review and approve the upload, which can take several days.
-4. Create the new release in GitHub with the ZIP of the plugin section. GitHub will require you add a tag of the version.
+1. Build `extlibs`:
+   ```bash
+   pip install -r requirements.txt -t ee_plugin/extlibs  
+   ```
 
-> Releases on GitHub can be incremented by 0.0.0.X while the releases on the QGIS plugin repository are incremented by 0.0.X. We can publish release on GitHub and update the underlying ZIP on the plugin repository release as long as it is still an experimental version. This enables us to release more frequently without waiting on QGIS maintainers approval.
+2. Package plugin (including `extlibs`) and verify size:
+   ```bash
+   qgis-plugin-ci package <version> --asset-path ee_plugin/extlibs
+   ```
+
+   Replace `<version>` with your desired version tag (e.g., `1.3.0`). This will produce a zip under `dist/`.
+
+3. Optionally publish to GitHub:
+   ```bash
+   git tag <version>
+   git push origin <version>
+   qgis-plugin-ci release <version>
+   ```
+
+   Make sure the changelog is up to date and version is bumped in `metadata.txt`.
 
 Thank you for contributing to the QGIS Earth Engine Plugin!

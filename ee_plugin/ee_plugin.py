@@ -33,7 +33,13 @@ PLUGIN_DIR = os.path.dirname(__file__)
 # read the plugin version from metadata
 cfg = configparser.ConfigParser()
 cfg.read(os.path.join(PLUGIN_DIR, "metadata.txt"))
-VERSION = cfg.get("general", "version")
+
+try:
+    VERSION = cfg.get("general", "version")
+except configparser.NoOptionError:
+    # if version is not set, use a default value
+    VERSION = "0.0.0-dev"
+
 version_checked = False
 
 

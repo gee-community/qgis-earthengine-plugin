@@ -1,0 +1,37 @@
+name: Release QGIS Plugin
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger only on version tags like v1.2.3
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Get tag version
+        run: |
+          raw="${GITHUB_REF#refs/tags/}"
+          VERSION="${raw#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Publish plugin via QGIS‑Plugin‑CI
+        run: |
+          pip install qgis-plugin-ci
+          pip install -r requirements.txt -t ee_plugin/extlibs
+          find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
+          find ee_plugin/extlibs -type d -name '*.dist-info' -exec rm -rf {} +
+          qgis-plugin-ci release "$VERSION" \
+            --release-tag "v$VERSION" \
+            --github-token "${{ secrets.GITHUB_TOKEN }}" \
+            --osgeo-username "${{ secrets.OSGEO_USER }}" \
+            --osgeo-password "${{ secrets.OSGEO_PASS }}" \
+            --asset-path ee_plugin/extlibs \

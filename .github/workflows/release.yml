@@ -25,6 +25,7 @@ jobs:
 
       - name: Publish plugin via QGIS‑Plugin‑CI
         run: |
+          pip install qgis-plugin-ci
           pip install -r requirements.txt -t ee_plugin/extlibs
           find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
           find ee_plugin/extlibs -type d -name '*.dist-info' -exec rm -rf {} +

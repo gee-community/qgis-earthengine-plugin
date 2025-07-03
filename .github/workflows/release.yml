@@ -31,7 +31,13 @@ jobs:
 
       - name: Package plugin
         run: |
-          qgis-plugin-ci package latest \
+          TAG_NAME=${GITHUB_REF##*/}
+          if [[ "$TAG_NAME" == *-exp ]]; then
+            EXP_FLAG="--experimental"
+          else
+            EXP_FLAG=""
+          fi
+          qgis-plugin-ci package latest $EXP_FLAG \
             --asset-path ee_plugin/extlibs
 
       - name: Check package size

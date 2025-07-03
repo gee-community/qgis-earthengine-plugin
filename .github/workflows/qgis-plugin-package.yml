@@ -37,8 +37,11 @@ jobs:
 
     - name: Package QGIS Plugin with qgis-plugin-ci
       run: |
-        qgis-plugin-ci package latest --asset-path ee_plugin.zip
-
+        VERSION=$(grep -Eo '^version=[0-9]+\.[0-9]+(\.[0-9]+)?' ee_plugin/metadata.txt | cut -d'=' -f2) && \
+            qgis-plugin-ci package "${VERSION}-dev" \
+              --asset-path ee_plugin/extlibs \
+              --allow-uncommitted-changes
+              
     - name: Check plugin package size
       run: |
         max_size=$((50 * 1024 * 1024))  # 50 MB

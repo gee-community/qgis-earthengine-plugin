@@ -33,18 +33,18 @@ jobs:
         run: |
           # Strip "refs/tags/" prefix, then leading "v"
           raw="${GITHUB_REF#refs/tags/}"
-          export TAG_NAME="${raw#v}"
-          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          export VERSION_TAG="${raw#v}"
+          echo "TAG_NAME=$VERSION_TAG" >> $GITHUB_ENV
 
       - name: Package plugin
         run: |
-          qgis-plugin-ci package "$TAG_NAME" \
+          qgis-plugin-ci package "$VERSION_TAG" \
             --asset-path ee_plugin/extlibs
 
       - name: Check package size
         run: |
           MAX_SIZE=$((25 * 1024 * 1024))
-          ZIP_FILE="ee_plugin.${TAG_NAME}.zip"
+          ZIP_FILE="ee_plugin.${VERSION_TAG}.zip"
           ACTUAL_SIZE=$(stat -c%s "$ZIP_FILE")
           echo "Package size: $ACTUAL_SIZE bytes"
           if [ "$ACTUAL_SIZE" -gt "$MAX_SIZE" ]; then
@@ -57,4 +57,5 @@ jobs:
           qgis-plugin-ci release "$TAG_NAME" \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             --osgeo-user ${{ secrets.OSGEO_USER }} \
-            --osgeo-pass ${{ secrets.OSGEO_PASS }}
+            --osgeo-pass ${{ secrets.OSGEO_PASS }} \ 
+            -r

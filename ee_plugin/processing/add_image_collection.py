@@ -12,6 +12,7 @@ from qgis.core import (
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
+    QgsProcessingParameterBoolean,
 )
 from qgis.PyQt.QtCore import QTimer, QDate
 from qgis.PyQt.QtWidgets import (
@@ -222,10 +223,10 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         viz_group.setLayout(viz_layout)
 
         # --- Clip to Extent Checkbox ---
-        self.clip_checkbox = QCheckBox(_("Clip to Extent"))
-        self.clip_checkbox.setChecked(True)
-        self.clip_checkbox.setToolTip(
-            _("Whether to clip the final image to the specified extent.")
+        self.clip_checkbox = QCheckBox(
+            _("Clip to Extent"),
+            checked=True,
+            toolTip=_("Whether to clip the final image to the specified extent."),
         )
         viz_layout.addWidget(self.clip_checkbox)
 
@@ -343,8 +344,6 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         """
 
     def initAlgorithm(self, config):
-        from qgis.core import QgsProcessingParameterBoolean
-
         # Define parameters
         self.addParameter(
             QgsProcessingParameterString(

@@ -56,6 +56,6 @@ jobs:
         run: |
           qgis-plugin-ci release "$TAG_NAME" \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
+            --create-plugin-repo
             --osgeo-user ${{ secrets.OSGEO_USER }} \
             --osgeo-pass ${{ secrets.OSGEO_PASS }} \ 
-            -r

@@ -29,10 +29,12 @@ jobs:
           # Optionally clean metadata folders
           find ee_plugin/extlibs -type d -name "*.dist-info" -exec rm -rf {} +
 
+      - name: Get tag version
+        run: echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
       - name: Package plugin
         run: |
-          # experimental gets sets via tag versions with *-exp
-          qgis-plugin-ci package latest \
+          qgis-plugin-ci package "$TAG_NAME" \
             --asset-path ee_plugin/extlibs
 
       - name: Check package size
@@ -52,5 +54,5 @@ jobs:
           OSGEO_USER: ${{ secrets.OSGEO_USER }}
           OSGEO_PASS: ${{ secrets.OSGEO_PASS }}
         run: |
-          qgis-plugin-ci release latest --github-token $GITHUB_TOKEN \
+          qgis-plugin-ci release "$TAG_NAME" --github-token $GITHUB_TOKEN \
             --osgeo-user $OSGEO_USER --osgeo-pass $OSGEO_PASS

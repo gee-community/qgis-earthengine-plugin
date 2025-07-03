@@ -45,7 +45,7 @@ jobs:
     - name: Check plugin package size
       run: |
         max_size=$((50 * 1024 * 1024))  # 50 MB
-        actual_size=$(stat --format="%s" ee_plugin.zip)
+        actual_size=$(stat --format="%s" ee_plugin.*.zip)
         if [ "$actual_size" -gt "$max_size" ]; then
           echo "Plugin package size exceeds 50MB limit."
           exit 1

@@ -23,6 +23,11 @@ jobs:
           VERSION="${raw#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
+      - name: Create release (if it doesn't exist)
+        run: gh release create v${{ env.VERSION }} --title "v${{ env.VERSION }}" --generate-notes || echo "Release already exists"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish plugin via QGIS‑Plugin‑CI
         run: |
           pip install qgis-plugin-ci

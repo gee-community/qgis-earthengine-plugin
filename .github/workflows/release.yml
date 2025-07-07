@@ -50,3 +50,4 @@ jobs:
             --osgeo-username "${{ secrets.OSGEO_USER }}" \
             --osgeo-password "${{ secrets.OSGEO_PASS }}" \
             --asset-path ee_plugin/extlibs \
+            --allow-uncommitted-changes

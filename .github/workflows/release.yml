@@ -28,16 +28,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set version in metadata.txt
-        run: |
-          if grep -q '^version=' ee_plugin/metadata.txt; then
-            sed -i'' "s/^version=.*/version=$VERSION/" ee_plugin/metadata.txt
-          else
-            echo "version=$VERSION" >> ee_plugin/metadata.txt
-          fi
-        env:
-          VERSION: ${{ env.VERSION }}
-
       - name: Publish plugin via QGIS‑Plugin‑CI
         run: |
           pip install qgis-plugin-ci

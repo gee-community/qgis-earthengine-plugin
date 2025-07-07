@@ -35,3 +35,4 @@ icon=icons/earth-engine.svg
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
+experimental=

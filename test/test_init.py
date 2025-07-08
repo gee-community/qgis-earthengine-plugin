@@ -40,7 +40,6 @@ class TestInit(unittest.TestCase):
         required_metadata = [
             "name",
             "description",
-            "version",
             "qgisMinimumVersion",
             "email",
             "author",

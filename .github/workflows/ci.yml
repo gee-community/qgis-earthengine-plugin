@@ -3,10 +3,10 @@ name: QGIS Plugin CI
 on:
   push:
     branches:
-      - '**'
+      - main
   pull_request:
     branches:
-      - main
+      - '**'
 
 jobs:
   test:
@@ -51,3 +51,4 @@ jobs:
         with:
           name: coverage-report
           path: htmlcov/
+          

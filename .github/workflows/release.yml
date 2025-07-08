@@ -1,41 +1,54 @@
-name: Release QGIS Plugin
+name: 📦 Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'  # Trigger only on version tags like v1.2.3
+    branches:
+      - main
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  release:
+  release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: googleapis/release-please-action@v4
+        id: rp
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: .github/release-please-config.json
+
+  package-and-publish:
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v')
+    needs: release-please
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Get tag version
+      - name: Extract version
         run: |
-          raw="${GITHUB_REF#refs/tags/}"
-          VERSION="${raw#v}"
+          VERSION="${{ github.event.release.tag_name#v }}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - name: Create release (if it doesn't exist)
-        run: gh release create v${{ env.VERSION }} --title "v${{ env.VERSION }}" --generate-notes || echo "Release already exists"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish plugin via QGIS‑Plugin‑CI
+      - name: Install deps
         run: |
           pip install qgis-plugin-ci
           pip install -r requirements.txt -t ee_plugin/extlibs
-          find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
-          find ee_plugin/extlibs -type d -name '*.dist-info' -exec rm -rf {} +
+
+      - name: Package & Release plugin
+        run: |
           qgis-plugin-ci release "$VERSION" \
-            --release-tag "v$VERSION" \
+            --release-tag "${{ github.event.release.tag_name }}" \
             --github-token "${{ secrets.GITHUB_TOKEN }}" \
             --osgeo-username "${{ secrets.OSGEO_USER }}" \
             --osgeo-password "${{ secrets.OSGEO_PASS }}" \

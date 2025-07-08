@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.10](https://github.com/gee-community/qgis-earthengine-plugin/compare/0.0.9-beta...v0.0.10) (2025-07-08)
+
+
+### Bug Fixes
+
+* conventional commit ([9c5e592](https://github.com/gee-community/qgis-earthengine-plugin/commit/9c5e59267fc218c1547966b48275c46b7c729be0))
+* release please issue permission ([6faf31f](https://github.com/gee-community/qgis-earthengine-plugin/commit/6faf31fa1780d7453a47df2610a842022141d6ae))
+* remove release please version from metadata ([2c97c97](https://github.com/gee-community/qgis-earthengine-plugin/commit/2c97c979dd7537c8e0db0401592966e775df01ec))
+* update release please config ([b837525](https://github.com/gee-community/qgis-earthengine-plugin/commit/b83752568bc0f2b3459c581c4d67ac00334b64c3))
+
 ## [0.0.9-beta] – 2025-07-03
 ### Added
 - Interactive UI for Earth Engine authentication, replacing the previous manual flow.

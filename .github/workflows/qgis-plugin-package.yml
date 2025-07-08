@@ -13,7 +13,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -51,17 +50,4 @@ jobs:
           echo "Plugin package size exceeds 50MB limit."
           exit 1
         fi
-   
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ee_plugin-${{ matrix.os }}.zip
-        path: ee_plugin.zip
-  package:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v4.1.7
-        
         

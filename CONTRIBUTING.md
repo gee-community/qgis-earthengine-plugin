@@ -110,29 +110,8 @@ The plugin can be debugged within [Visual Studio Code](https://code.visualstudio
 If you have any questions or need assistance, feel free to reach out by creating an [issue](https://github.com/gee-community/qgis-earthengine-plugin/issues) or adding a post in the [Discussions](https://github.com/gee-community/qgis-earthengine-plugin/discussions).
 
 
-## Building and Releasing with qgis-plugin-ci
+## Building and Releasing
 
-We now use [`qgis-plugin-ci`](https://github.com/opengisch/qgis-plugin-ci) to manage packaging and release. Here’s how:
-
-1. Build `extlibs`:
-   ```bash
-   pip install -r requirements.txt -t ee_plugin/extlibs  
-   ```
-
-2. Package plugin (including `extlibs`) and verify size:
-   ```bash
-   qgis-plugin-ci package <version> --asset-path ee_plugin/extlibs
-   ```
-
-   Replace `<version>` with your desired version tag (e.g., `1.3.0`). This will produce a zip under `dist/`.
-
-3. Optionally publish to GitHub:
-   ```bash
-   git tag <version>
-   git push origin <version>
-   qgis-plugin-ci release <version>
-   ```
-
-   Make sure the changelog is up to date and version is bumped in `metadata.txt`.
+We use ReleasePlease to publish the plugin. Versions using the suffix `beta` are published as experimental via the `qgis-plugin-ci`. Make sure the changelog is up to date.
 
 Thank you for contributing to the QGIS Earth Engine Plugin!

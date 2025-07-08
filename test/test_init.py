@@ -40,8 +40,6 @@ class TestInit(unittest.TestCase):
         required_metadata = [
             "name",
             "description",
-            # version is not required for the plugin given switch to qgis-plugin-ci
-            # "version",
             "qgisMinimumVersion",
             "email",
             "author",

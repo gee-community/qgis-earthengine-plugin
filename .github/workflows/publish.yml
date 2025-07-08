@@ -1,0 +1,39 @@
+name: Publish QGIS Plugin
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Extract version
+        run: |
+          VERSION="${{ github.event.release.tag_name#v }}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: |
+          pip install qgis-plugin-ci
+          pip install -r requirements.txt -t ee_plugin/extlibs
+
+      - name: Package & Release plugin
+        run: |
+          qgis-plugin-ci release "$VERSION" \
+            --release-tag "${{ github.event.release.tag_name }}" \
+            --github-token "${{ secrets.GITHUB_TOKEN }}" \
+            --osgeo-username "${{ secrets.OSGEO_USER }}" \
+            --osgeo-password "${{ secrets.OSGEO_PASS }}" \
+            --asset-path ee_plugin/extlibs \
+            --allow-uncommitted-changes

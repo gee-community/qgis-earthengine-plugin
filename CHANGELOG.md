@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.9](https://github.com/gee-community/qgis-earthengine-plugin/compare/0.0.8...v0.0.9) (2025-07-09)
+
+
+### Bug Fixes
+
+* clean extra dependencies folder ([6ab50e0](https://github.com/gee-community/qgis-earthengine-plugin/commit/6ab50e08e44b7e6bdcb893760c3d1e5768399cf9))
+* qgis plugin ci ([#335](https://github.com/gee-community/qgis-earthengine-plugin/issues/335)) ([6ab50e0](https://github.com/gee-community/qgis-earthengine-plugin/commit/6ab50e08e44b7e6bdcb893760c3d1e5768399cf9))
+* reset release please version and set experimental to false ([6ab50e0](https://github.com/gee-community/qgis-earthengine-plugin/commit/6ab50e08e44b7e6bdcb893760c3d1e5768399cf9))
+* update tag extration ([6ab50e0](https://github.com/gee-community/qgis-earthengine-plugin/commit/6ab50e08e44b7e6bdcb893760c3d1e5768399cf9))
+* update token release please ([6ab50e0](https://github.com/gee-community/qgis-earthengine-plugin/commit/6ab50e08e44b7e6bdcb893760c3d1e5768399cf9))
+* version number ([31c436b](https://github.com/gee-community/qgis-earthengine-plugin/commit/31c436b9d219ecbd3c368b9e237f9e83b0d36cf0))
+* version number ([6ab50e0](https://github.com/gee-community/qgis-earthengine-plugin/commit/6ab50e08e44b7e6bdcb893760c3d1e5768399cf9))
+
 ## [0.0.8] – 2025-05-16
 *Experimental channel release*  [oai_citation:0‡github.com](https://github.com/gee-community/qgis-earthengine-plugin) [oai_citation:1‡gee-community.github.io](https://gee-community.github.io/qgis-earthengine-plugin/) [oai_citation:2‡developers.google.com](https://developers.google.com/earth-engine/docs/release-notes) [oai_citation:3‡plugins.qgis.org](https://plugins.qgis.org/plugins/ee_plugin/)  
 ### Changed

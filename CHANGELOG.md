@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.13](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.0.12...v0.0.13) (2025-07-09)
+
+
+### Bug Fixes
+
+* clean extra dependencies folder ([01e050e](https://github.com/gee-community/qgis-earthengine-plugin/commit/01e050ee79f66a051a5f20bd05fa8ff14cc1a274))
+
 ## [0.0.12](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.0.11...v0.0.12) (2025-07-09)
 
 

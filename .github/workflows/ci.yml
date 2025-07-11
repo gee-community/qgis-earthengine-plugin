@@ -34,22 +34,17 @@ jobs:
           mkdir -p ~/.config/earthengine  
           echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
-          cache: 'pip'
-          cache-dependency-path: requirements-dev.txt
-
       - name: Install dependencies
-        run: /usr/bin/qgis-python -m pip install -r requirements-dev.txt
+        run: |
+          pip install -r requirements-dev.txt
 
       - name: Run pre-commit checks
         run: |
           pre-commit run --all-files
 
       - name: Run tests with coverage
-        run: /usr/bin/qgis-python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
+        run: |
+          python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

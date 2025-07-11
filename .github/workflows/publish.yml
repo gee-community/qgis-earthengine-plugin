@@ -25,7 +25,7 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Setup extlibs
-        uses: ./.github/actions/setup-extlibs
+        uses: ./.github/workflows/actions/setup-extlibs
 
       - name: Package & Release plugin
         run: |

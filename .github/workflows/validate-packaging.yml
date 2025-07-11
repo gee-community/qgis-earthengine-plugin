@@ -29,7 +29,7 @@ jobs:
         pip install qgis-plugin-ci
 
     - name: Setup extlibs
-      uses: ./.github/actions/setup-extlibs
+      uses: ./.github/workflows/actions/setup-extlibs
 
     - name: Package QGIS Plugin with qgis-plugin-ci
       run: |

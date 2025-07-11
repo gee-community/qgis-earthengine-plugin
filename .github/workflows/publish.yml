@@ -24,12 +24,8 @@ jobs:
           VERSION="${TAG#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - name: Install dependencies
-        run: |
-          pip install qgis-plugin-ci
-          pip install -r requirements.txt -t ee_plugin/extlibs
-          find ee_plugin/extlibs -type f \( -name '*.so' -o -name '*.pyd' -o -name '*.dylib' \) -delete
-          find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
+      - name: Setup extlibs
+        uses: ./.github/workflows/actions/setup-extlibs
 
       - name: Package & Release plugin
         run: |

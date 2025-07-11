@@ -42,15 +42,14 @@ jobs:
           cache-dependency-path: requirements-dev.txt
 
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt
+        run: /usr/bin/qgis-python -m pip install -r requirements-dev.txt
 
       - name: Run pre-commit checks
         run: |
           pre-commit run --all-files
 
       - name: Run tests with coverage
-        run: |
-          python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
+        run: /usr/bin/qgis-python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

@@ -1,5 +1,5 @@
 ratelim
-earthengine-api>=0.1.335
+earthengine-api>=1.5.12
 six>=1.13
 httplib2
 requests>2.4

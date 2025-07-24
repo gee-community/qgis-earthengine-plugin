@@ -86,21 +86,41 @@ def add_or_update_ee_layer(
 ) -> QgsMapLayer:
     logger.info(f"Adding/updating EE layer: {name}")
     if isinstance(eeObject, ee.Image):
-        return add_or_update_ee_raster_layer(eeObject, name, vis_params, shown, opacity)
-    if isinstance(eeObject, ee.FeatureCollection):
+        layer = add_or_update_ee_raster_layer(
+            eeObject, name, vis_params, shown, opacity
+        )
+    elif isinstance(eeObject, ee.FeatureCollection):
         if is_named_dataset(eeObject):
-            return add_or_update_named_vector_layer(
+            layer = add_or_update_named_vector_layer(
                 eeObject, name, vis_params, shown, opacity
             )
-        return add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
-    if isinstance(eeObject, ee.Geometry):
-        return add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
-
-    if isinstance(eeObject, ee.ImageCollection):
+        else:
+            layer = add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+    elif isinstance(eeObject, ee.Geometry):
+        layer = add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+    elif isinstance(eeObject, ee.ImageCollection):
         reduce_image = eeObject.reduce(ee.Reducer.median())
-        return add_or_update_ee_raster_layer(reduce_image, name, vis_params, shown)
+        layer = add_or_update_ee_raster_layer(reduce_image, name, vis_params, shown)
+    else:
+        raise TypeError("Unsupported EE object type")
 
-    raise TypeError("Unsupported EE object type")
+    # Set extent from eeObject geometry
+    try:
+        bounds = eeObject.geometry().bounds().getInfo()["coordinates"][0]
+        xs = [pt[0] for pt in bounds]
+        ys = [pt[1] for pt in bounds]
+        rect4326 = QgsRectangle(min(xs), min(ys), max(xs), max(ys))
+
+        crs_src = QgsCoordinateReferenceSystem("EPSG:4326")
+        crs_dest = QgsCoordinateReferenceSystem("EPSG:3857")
+        xform = QgsCoordinateTransform(crs_src, crs_dest, QgsProject.instance())
+        rect3857 = xform.transform(rect4326)
+
+        layer.setExtent(rect3857)
+    except Exception as e:
+        logger.warning(f"Could not set extent from eeObject: {e}")
+
+    return layer
 
 
 def add_or_update_ee_raster_layer(
@@ -128,6 +148,15 @@ def add_ee_image_layer(
     check_version()
     url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
     layer = QgsRasterLayer(url, name, "EE")
+    # Set extent from ee_object geometry
+    try:
+        bounds = image.geometry().bounds().getInfo()["coordinates"][0]
+        xs = [pt[0] for pt in bounds]
+        ys = [pt[1] for pt in bounds]
+        rect = QgsRectangle(min(xs), min(ys), max(xs), max(ys))
+        layer.setExtent(rect)
+    except Exception as e:
+        logger.warning(f"Could not set layer extent from ee_object: {e}")
     assert layer.isValid(), f"Failed to load layer: {name}"
     layer.dataProvider().set_ee_object(image)
     QgsProject.instance().addMapLayer(layer)

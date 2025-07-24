@@ -2,18 +2,27 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: QGIS LTR",
+      "name": "Run All Tests",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/test", 
       "module": "pytest",
-      "args": [],
+      "args": ["test"],
       "console": "integratedTerminal",
       "python": "/Applications/QGIS-LTR.app/Contents/MacOS/bin/python3",
       "env": {
         "DYLD_FRAMEWORK_PATH": "/Applications/QGIS-LTR.app/Contents/Frameworks",
         "DYLD_LIBRARY_PATH": "/Applications/QGIS-LTR.app/Contents/MacOS/lib"
       }
+    },
+    {
+      "name": "Attach to QGIS Python",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5678
+      },
+      "justMyCode": false
     }
   ]
 }

@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.0.9...v0.1.0) (2025-07-30)
+
+### Important Notes
+
+* The `earthengine-api` dependency was updated, which changes the required authentication scopes.
+  Users must reauthenticate using the **Sign-in** tool from the plugin toolbar to generate a new token.
+
+### Features
+
+* Add support for date range handling in processing algorithms ([#356](https://github.com/gee-community/qgis-earthengine-plugin/pull/356))
+* Fix zoom to the extent of added layers ([#355](https://github.com/gee-community/qgis-earthengine-plugin/pull/355)
+* Create separate launch commands for debugger vs. testing ([#353](https://github.com/gee-community/qgis-earthengine-plugin/pull/353))
+* Update earthengineapi version, remove PyQt5 dependency, pin pyOpenSSL ([#352](update earthengineapi version, demove PyQt5 dependency, pin pyOpenSSL))
+
+### CI/CD
+
+* Make composite job for building extlibs and update CI python and paths ([#349](https://github.com/gee-community/qgis-earthengine-plugin/pull/349))
+
+
+### Maintenance
+
+* Update version number to 0.1.0 and regenerate manifest and changelog
+
 ## [0.0.9](https://github.com/gee-community/qgis-earthengine-plugin/compare/0.0.8...v0.0.9) (2025-07-09)
 
 

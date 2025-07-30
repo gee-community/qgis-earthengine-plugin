@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.0.9...v0.1.0) (2025-07-30)
 
+### Important Notes
+
+* The `earthengine-api` dependency was updated, which changes the required authentication scopes.
+  Users must reauthenticate using the **Sign-in** tool from the plugin toolbar to generate a new token.
+
 ### Features
 
 * Add support for date range handling in processing algorithms ([#356](https://github.com/gee-community/qgis-earthengine-plugin/pull/356))

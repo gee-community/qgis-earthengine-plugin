@@ -12,7 +12,7 @@ qgisMinimumVersion=3.22
 description=Integrates QGIS with Google Earth Engine
 author=Gennadii Donchyts, Xavier C. Llano, Fedor Baart, Zac Deziel, Anthony Lukach
 email=gennadiy.donchyts@gmail.com
-version=0.0.8
+version=0.1.0
 about=Integrates Google Earth Engine (GEE) by wrapping GEE Python API.
 
 tracker=https://github.com/gee-community/qgis-earthengine-plugin/issues

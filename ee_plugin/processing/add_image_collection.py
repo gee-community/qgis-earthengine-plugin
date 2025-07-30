@@ -441,6 +441,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             if parameters["percentile_value"]
             else None
         )
+
         viz_params = parameters.get("viz_params", None)
         clip_to_extent = parameters.get("clip_to_extent", True)
 
@@ -451,6 +452,12 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         if start_date and end_date:
             start_date_str = start_date.toString("yyyy-MM-dd")
             end_date_str = end_date.toString("yyyy-MM-dd")
+
+            if start_date_str > end_date_str:
+                msg = "Start date must be earlier than or equal to end date."
+                logger.error(msg)
+                raise ValueError(msg)
+
             ic = ic.filter(
                 ee.Filter.date(ee.Date(start_date_str), ee.Date(end_date_str))
             )

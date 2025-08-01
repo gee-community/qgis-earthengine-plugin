@@ -27,9 +27,12 @@ jobs:
       - name: Setup extlibs
         uses: ./.github/workflows/actions/setup-extlibs
 
-      - name: Package & Release plugin
+      - name: Install QGIS Plugin CI
         run: |
           pip install qgis-plugin-ci
+          
+      - name: Package & Release plugin
+        run: |
           qgis-plugin-ci release "$VERSION" \
             --release-tag "${{ github.event.release.tag_name }}" \
             --github-token "${{ secrets.GITHUB_TOKEN }}" \

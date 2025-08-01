@@ -29,6 +29,7 @@ jobs:
 
       - name: Package & Release plugin
         run: |
+          pip install qgis-plugin-ci
           qgis-plugin-ci release "$VERSION" \
             --release-tag "${{ github.event.release.tag_name }}" \
             --github-token "${{ secrets.GITHUB_TOKEN }}" \

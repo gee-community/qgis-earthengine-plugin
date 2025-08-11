@@ -144,13 +144,9 @@ def test_extent_transformed_to_target_crs():
 
 def test_multiband_s2_export_hits_request_size_limit():
     """
-    Reproduces #367 more deterministically by using a region around Paris.
-
     Creates a multiband Sentinel-2 median composite over the Paris region
     so the export hits the request/tiling limits without synthetic bands.
     """
-    time.sleep(1)  # keep EE connection pool happy
-
     # Paris bbox
     roi = ee.Geometry.Rectangle([2.252, 48.815, 2.424, 48.902])
 
@@ -166,7 +162,9 @@ def test_multiband_s2_export_hits_request_size_limit():
     img = collection.median().select(collection.first().bandNames())
 
     # Add to map so the algorithm can resolve EE_IMAGE=0 by layer index
-    Map.addLayer(img, {}, "S2_MEDIAN_HUGE")
+    Map.addLayer(
+        img, {"bands": ["B4", "B3", "B2"], "min": 0, "max": 3000}, "S2_MEDIAN_HUGE"
+    )
 
     alg = ExportGeoTIFFAlgorithm()
     alg.initAlgorithm(config=None)
@@ -176,14 +174,15 @@ def test_multiband_s2_export_hits_request_size_limit():
     feedback = QgsProcessingFeedback()
 
     # Paris Web Mercator extent
-    extent_3857 = "253657.1743,268012.9419,6245507.9284,6256461.8554 [EPSG:3857]"
+    extent_3857 = "256528.32782,265141.78838,6247698.7138,6254271.07 [EPSG:3857]"
 
+    out_path = "test_s2_multiband_3857_10m.tif"
     params = {
         "EE_IMAGE": 0,
         "EXTENT": extent_3857,
         "SCALE": 10,
         "PROJECTION": "EPSG:3857",
-        "OUTPUT": "test_s2_multiband_3857_10m.tif",
+        "OUTPUT": out_path,
     }
 
     try:
@@ -201,11 +200,11 @@ def test_multiband_s2_export_hits_request_size_limit():
         else:
             raise e
 
+    os.remove(out_path)
+
 
 def test_s2_first_export_paris_succeeds():
     """Explicit check that a simple 'first' composite exports successfully over Paris."""
-    time.sleep(1)
-
     # Paris bbox
     roi = ee.Geometry.Rectangle([2.252, 48.815, 2.424, 48.902])
 

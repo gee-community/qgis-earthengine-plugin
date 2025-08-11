@@ -29,8 +29,64 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import QCoreApplication
 
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Change as needed (DEBUG/INFO/WARNING/ERROR)
+
+# --- Encoding-size helpers (module-level; used by tile_extent) ---
+
+
+def _bytes_for_data_type(dt: dict) -> int:
+    """Best-effort bytes-per-sample from EE band data_type metadata.
+    EE returns { 'precision': 'int'|'float'|'double', 'min': ..., 'max': ... }.
+    We infer width from precision and/or min/max when present. Defaults to 2 bytes.
+    """
+    if not isinstance(dt, dict):
+        return 2
+    precision = dt.get("precision")
+    if precision == "double":
+        return 8
+    if precision == "float":
+        return 4
+    if precision == "int":
+        minv = dt.get("min")
+        maxv = dt.get("max")
+        if isinstance(minv, (int, float)) and isinstance(maxv, (int, float)):
+            # 8-bit ranges
+            if (0 <= minv <= 255 and 0 <= maxv <= 255) or (
+                -128 <= minv <= 127 and -128 <= maxv <= 127
+            ):
+                return 1
+            # 16-bit ranges
+            if (0 <= minv <= 65535 and 0 <= maxv <= 65535) or (
+                -32768 <= minv <= 32767 and -32768 <= maxv <= 32767
+            ):
+                return 2
+            # Otherwise assume 32-bit int
+            return 4
+        # No bounds: default typical int16
+        return 2
+    # Unknown precision: conservative default
+    return 2
+
+
+def estimate_bytes_per_pixel(img: ee.Image) -> int:
+    """Estimate bytes-per-pixel for an EE image by summing per-band sizes.
+    Falls back to band_count * 2 when metadata is missing.
+    """
+    try:
+        info = img.getInfo()
+        bands_info = info.get("bands", []) if isinstance(info, dict) else []
+        if bands_info:
+            return sum(_bytes_for_data_type(b.get("data_type", {})) for b in bands_info)
+    except Exception as e:
+        logger.debug(f"Could not read band data types from getInfo(): {e}")
+    try:
+        n_bands = img.bandNames().size().getInfo()
+        return int(n_bands) * 2
+    except Exception as e:
+        logger.debug(f"Could not read band count; defaulting to 2 bytes-per-pixel: {e}")
+        return 2
 
 
 filter_functions = {
@@ -434,9 +490,10 @@ def tile_extent(
     logger.debug(f"Validating extent projection for {projection}")
     validate_extent_projection(extent, projection)
 
-    num_bands = ee_image.bandNames().size().getInfo()
-    bytes_per_pixel = num_bands * 2
+    bytes_per_pixel = estimate_bytes_per_pixel(ee_image)
     max_bytes = 30 * 1024 * 1024
+    if bytes_per_pixel <= 0:
+        bytes_per_pixel = 2
     max_pixels = max_bytes // bytes_per_pixel
 
     xmin, ymin, xmax, ymax = extent

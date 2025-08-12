@@ -140,3 +140,111 @@ def test_extent_transformed_to_target_crs():
         assert ds.count == 1
 
     os.remove(out_path)
+
+
+def test_multiband_s2_export_hits_request_size_limit():
+    """
+    Creates a multiband Sentinel-2 median composite over the Paris region
+    so the export hits the request/tiling limits without synthetic bands.
+    """
+    # Paris bbox
+    roi = ee.Geometry.Rectangle([2.252, 48.815, 2.424, 48.902])
+
+    # Build a June 2021 S2 collection over ROI
+    collection = (
+        ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+        .filterBounds(roi)
+        .filterDate("2021-06-01", "2021-06-30")
+        .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 20))
+    )
+
+    # Median composite with native S2 bands only
+    img = collection.median().select(collection.first().bandNames())
+
+    # Add to map so the algorithm can resolve EE_IMAGE=0 by layer index
+    Map.addLayer(
+        img, {"bands": ["B4", "B3", "B2"], "min": 0, "max": 3000}, "S2_MEDIAN_HUGE"
+    )
+
+    alg = ExportGeoTIFFAlgorithm()
+    alg.initAlgorithm(config=None)
+    alg.raster_layers = ["S2_MEDIAN_HUGE"]
+
+    context = QgsProcessingContext()
+    feedback = QgsProcessingFeedback()
+
+    # Paris Web Mercator extent
+    extent_3857 = "256528.32782,265141.78838,6247698.7138,6254271.07 [EPSG:3857]"
+
+    out_path = "test_s2_multiband_3857_10m.tif"
+    params = {
+        "EE_IMAGE": 0,
+        "EXTENT": extent_3857,
+        "SCALE": 10,
+        "PROJECTION": "EPSG:3857",
+        "OUTPUT": out_path,
+    }
+
+    try:
+        alg.processAlgorithm(params, context=context, feedback=feedback)
+    except Exception as e:
+        msg = str(e)
+        if (
+            "Total request size" in msg
+            or "thumbnails" in msg
+            or "HttpError 400" in msg
+            or "must be less than or equal to 50331648" in msg
+            or "must be less than or equal to" in msg
+        ):
+            raise AssertionError(f"Export failed due to request size limit: {msg}")
+        else:
+            raise e
+
+    os.remove(out_path)
+
+
+def test_s2_first_export_paris_succeeds():
+    """Explicit check that a simple 'first' composite exports successfully over Paris."""
+    # Paris bbox
+    roi = ee.Geometry.Rectangle([2.252, 48.815, 2.424, 48.902])
+
+    # June 2021 S2 collection
+    collection = (
+        ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+        .filterBounds(roi)
+        .filterDate("2021-06-01", "2021-06-30")
+        .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 20))
+    )
+
+    # Use only the first image (lighter request graph)
+    img = ee.Image(collection.first()).select(collection.first().bandNames())
+
+    layer_name = "S2_FIRST"
+    Map.addLayer(img, {}, layer_name)
+
+    alg = ExportGeoTIFFAlgorithm()
+    alg.initAlgorithm(config=None)
+    alg.raster_layers = [layer_name]
+
+    context = QgsProcessingContext()
+    feedback = QgsProcessingFeedback()
+
+    extent_3857 = "253657.1743,268012.9419,6245507.9284,6256461.8554 [EPSG:3857]"
+    out_path = "test_s2_first_3857_10m.tif"
+
+    params = {
+        "EE_IMAGE": 0,
+        "EXTENT": extent_3857,
+        "SCALE": 10,
+        "PROJECTION": "EPSG:3857",
+        "OUTPUT": out_path,
+    }
+
+    # Should complete without hitting the 48 MiB request-size limit
+    alg.processAlgorithm(params, context=context, feedback=feedback)
+
+    assert os.path.exists(out_path) and os.path.getsize(out_path) > 0
+    with rio.open(out_path) as ds:
+        assert ds.width > 0 and ds.height > 0
+        assert ds.count >= 1
+    os.remove(out_path)

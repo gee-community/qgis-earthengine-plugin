@@ -86,6 +86,13 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
             title="Extent",
             collapsed=False,
         )
+        # Keep extent output CRS synced with the chosen projection
+        self.extent_group.setOutputCrs(self.proj_widget.crs())
+        try:
+            self.proj_widget.crsChanged.connect(self.extent_group.setOutputCrs)
+        except Exception:
+            # Older QGIS may not emit crsChanged on this widget; ignore if unavailable
+            pass
         self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())
         layout.addWidget(self.extent_group)
 

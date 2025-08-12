@@ -1,0 +1,45 @@
+site_name: QGIS Earth Engine Plugin
+site_description: Documentation for the QGIS Earth Engine Plugin
+site_url: https://gee-community.github.io/qgis-earthengine-plugin/
+repo_url: https://github.com/gee-community/qgis-earthengine-plugin
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.integrate
+  language: en
+
+nav:
+  - Home: index.md
+  - Tutorials: tutorials/index.md
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      type: date
+
+repo_name: gee-community/qgis-earthengine-plugin
+
+watch:
+  - README.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/gee-community/qgis-earthengine-plugin
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets:
+      base_path:
+        - .
+        - docs
+      check_paths: true

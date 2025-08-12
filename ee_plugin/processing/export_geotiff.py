@@ -94,6 +94,12 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
             # Older QGIS may not emit crsChanged on this widget; ignore if unavailable
             pass
         self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())
+        # As a final safeguard, clear any pre-filled line edits inside the extent widget
+        try:
+            for le in self.extent_group.findChildren(QLineEdit):
+                le.clear()
+        except Exception:
+            pass
         layout.addWidget(self.extent_group)
 
         # --- Bands selector ---
@@ -286,8 +292,15 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         ee_img = self.raster_layers[selected_index]
         rect = self.parameterAsExtent(parameters, "EXTENT", context)
         rect_source_crs = self.parameterAsExtentCrs(parameters, "EXTENT", context)
-        if rect is None or rect.toString() == "Null":
-            raise ValueError("Bounding box extent is required for export")
+        if (
+            (rect is None)
+            or (hasattr(rect, "isEmpty") and rect.isEmpty())
+            or (hasattr(rect, "isValid") and not rect.isValid())
+            or (hasattr(rect, "toString") and rect.toString() == "Null")
+        ):
+            raise ValueError(
+                "Extent is not set. Please choose an extent (Map Canvas, Draw, or Layer) before exporting."
+            )
 
         target_crs = self.parameterAsCrs(parameters, "PROJECTION", context)
 
@@ -368,6 +381,8 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
             "<li><b>Extent</b>: Coordinates defining the current map extent for the export region.</li>"
             "<li><b>Scale</b>: Resolution in meters per pixel.</li>"
             "<li><b>Projection</b>: Target projection for the exported image (e.g., EPSG:4326).</li>"
+            "<li><b>Bands</b>: Select which bands to export (optional).</li>"
+            "<li><b>Output File</b>: Destination path for the exported GeoTIFF file.</li>"
             "</ul>"
         )
 

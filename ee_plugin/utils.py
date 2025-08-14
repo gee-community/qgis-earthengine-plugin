@@ -128,7 +128,7 @@ def get_layer_by_name(name: str) -> Optional[QgsMapLayer]:
 
 def get_ee_image_url(image: ee.Image) -> str:
     map_id = ee.data.getMapId({"image": image})
-    url = map_id["tile_fetcher"].url_format + "&zmax=12&minzoom=5&cache=1"
+    url = map_id["tile_fetcher"].url_format
     logger.debug(f"Generated EE image URL: {url}")
     return url
 

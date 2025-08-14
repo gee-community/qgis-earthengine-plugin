@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.0...v0.2.0) (2025-08-14)
+
+
+### Features
+
+* add band selection ([#374](https://github.com/gee-community/qgis-earthengine-plugin/issues/374)) ([df2ba45](https://github.com/gee-community/qgis-earthengine-plugin/commit/df2ba45475ec6080eae5bd11473a1ca804c71b14))
+* implement async runs, unified progress, and cancellation of tasks ([#376](https://github.com/gee-community/qgis-earthengine-plugin/issues/376)) ([fbf5bbd](https://github.com/gee-community/qgis-earthengine-plugin/commit/fbf5bbdd34ec501d103b971d343c65f66ec1173a))
+
+
+### Bug Fixes
+
+* export geotiff bugs ([#369](https://github.com/gee-community/qgis-earthengine-plugin/issues/369)) ([28b6105](https://github.com/gee-community/qgis-earthengine-plugin/commit/28b61052075dcb8b1e1bcf9d8175cd195e734dec))
+
 ## [0.1.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.0.9...v0.1.0) (2025-07-30)
 
 ### Important Notes

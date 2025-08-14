@@ -10,7 +10,7 @@ import math
 import json
 import tempfile
 import logging
-from typing import Optional, TypedDict, Tuple, Any, List
+from typing import Optional, TypedDict, Tuple, Any, List, Callable
 
 import ee
 import qgis
@@ -404,6 +404,7 @@ def ee_image_to_geotiff(
     base_name: str = "tiles_",
     merge_output: Optional[str] = None,
     feedback: QgsFeedback = None,
+    progress: Optional[Callable[[int, Optional[str]], None]] = None,
 ) -> None:
     logger.info(
         f"Exporting EE image to GeoTIFF with scale {scale}, projection {projection}"
@@ -423,15 +424,30 @@ def ee_image_to_geotiff(
     tile_paths = []
 
     with tempfile.TemporaryDirectory() as temp_dir:
+        n_tiles = len(tiles)
         for idx, tile in enumerate(tiles):
             if feedback and feedback.isCanceled():
                 logger.info("Export cancelled by user.")
                 return
+            # Progress update inside loop, proportional to idx/n_tiles (0–100)
+            pct = int((idx / n_tiles) * 100) if n_tiles > 0 else 0
+            if feedback:
+                feedback.setProgress(pct)
+            if progress is not None:
+                try:
+                    progress(pct, f"Downloading tile {idx + 1}/{n_tiles}…")
+                except Exception:
+                    pass
             out_path = os.path.join(temp_dir, f"{base_name}_tile{idx}.tif")
-            logger.info(f"Downloading tile {idx + 1}/{len(tiles)} to {out_path}")
-            download_tile(ee_image, tile, scale, projection, out_path)
+            logger.info(f"Downloading tile {idx + 1}/{n_tiles} to {out_path}")
+            download_tile(
+                ee_image, tile, scale, projection, out_path, feedback=feedback
+            )
             tile_paths.append(out_path)
         logger.info(f"Merging {len(tile_paths)} tiles into {merge_output}")
+        if feedback and feedback.isCanceled():
+            logger.info("Export cancelled by user before merge.")
+            return
         merge_geotiffs_gdal(tile_paths, merge_output)
 
 
@@ -539,12 +555,12 @@ def download_tile(
     scale: float,
     projection: str,
     out_path: str,
+    feedback: Optional[QgsFeedback] = None,
 ) -> None:
     logger.debug(
         f"Downloading tile {tile_extent} with scale {scale}, projection {projection}"
     )
     ee_proj = ee.Projection(projection)
-    region_geom = ee.Geometry.Rectangle(tile_extent, proj=ee_proj, geodesic=False)
     region_geom = ee.Geometry.Rectangle(tile_extent, proj=ee_proj, geodesic=False)
     # Transform region to EPSG:4326 before getting bounds
     region_geom_wgs84 = region_geom.transform("EPSG:4326", maxError=1)
@@ -561,11 +577,27 @@ def download_tile(
     download_id = ee.data.getDownloadId(download_params)
     url = ee.data.makeDownloadUrl(download_id)
 
-    response = requests.get(url)
-    response.raise_for_status()
-
-    with open(out_path, "wb") as f:
-        f.write(response.content)
+    # Stream the response so we can honor cancellation promptly
+    with requests.get(url, stream=True, timeout=(10, 120)) as resp:
+        resp.raise_for_status()
+        with open(out_path, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=1024 * 512):  # 512 KB
+                if feedback is not None and feedback.isCanceled():
+                    logger.info(
+                        "Cancel detected during tile download; removing partial file."
+                    )
+                    try:
+                        f.close()
+                    finally:
+                        try:
+                            if os.path.exists(out_path):
+                                os.remove(out_path)
+                        except Exception:
+                            pass
+                    return
+                if not chunk:
+                    continue
+                f.write(chunk)
     logger.debug(f"Tile saved to {out_path}")
 
 

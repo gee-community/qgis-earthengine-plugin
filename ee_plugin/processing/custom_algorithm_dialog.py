@@ -2,6 +2,7 @@ import typing
 from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, Dict
+import os
 
 from osgeo import gdal
 from qgis.core import (
@@ -9,12 +10,37 @@ from qgis.core import (
     QgsProcessingContext,
     QgsProcessingFeedback,
     QgsProcessingAlgorithm,
+    QgsTask,
+    QgsApplication,
 )
 from qgis.PyQt.QtCore import Qt, QT_VERSION_STR
+from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis.PyQt.QtWidgets import QWidget
 from qgis import gui, processing
 
+
 from ..logging import local_context
+
+
+def safe_set_progress(
+    feedback: Optional[QgsProcessingFeedback], value: int, message: Optional[str] = None
+) -> None:
+    try:
+        if feedback is None:
+            return
+        pct = int(max(0, min(100, value)))
+        feedback.setProgress(pct)
+        if message:
+            feedback.pushInfo(str(message))
+    except Exception:
+        # Never let progress updates crash the UI
+        pass
+
+
+class _RunSignals(QObject):
+    finished = pyqtSignal(dict)  # results
+    failed = pyqtSignal(Exception)  # error
+    canceled = pyqtSignal()
 
 
 class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
@@ -66,12 +92,83 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         return super().createFeedback()
 
     def runAlgorithm(self) -> None:
+        """Run the algorithm asynchronously via QgsTask (with an optional sync fallback for tests)."""
+        # Synchronous fallback for headless/unit tests
+        if os.environ.get("EE_PLUGIN_SYNC_RUN") == "1":
+            context = self.processingContext()
+            feedback = self.createFeedback()
+            # Keep a handle so we can propagate UI cancel to processing feedback
+            self._active_feedback = feedback
+            self._cancel_requested = False
+            local_context.set_feedback(feedback)
+
+            params = self.getParameters()
+            params = (
+                self.transformParameters(params)
+                if hasattr(self, "transformParameters")
+                else params
+            )
+
+            # Environment/info logging (preserve existing behavior)
+            self.pushDebugInfo(f"QGIS version: {Qgis.QGIS_VERSION}")
+            self.pushDebugInfo(f"QGIS code revision: {Qgis.QGIS_DEV_VERSION}")
+            self.pushDebugInfo(f"Qt version: {QT_VERSION_STR}")
+            self.pushDebugInfo(f"GDAL version: {gdal.VersionInfo('--version')}")
+            try:
+                from shapely import geos
+
+                self.pushInfo(f"GEOS version: {geos.geos_version_string}")
+            except Exception:
+                self.pushInfo("GEOS version: not available")
+            self.pushCommandInfo(
+                f"Algorithm started at: {datetime.now().isoformat(timespec='seconds')}"
+            )
+            self.pushCommandInfo(
+                f"Algorithm '{self.algorithm().displayName()}' starting…"
+            )
+            self.pushCommandInfo("Input parameters:")
+            for k, v in params.items():
+                self.pushCommandInfo(f"  {k}: {v}")
+
+            try:
+                if hasattr(self, "beforeRun"):
+                    self.beforeRun(params)
+                results = processing.run(
+                    self.algorithm(), params, context=context, feedback=feedback
+                )
+                self.setResults(results)
+                if hasattr(self, "afterRun"):
+                    self.afterRun(results)
+            except Exception as e:
+                # Centralized progress reset on failure
+                try:
+                    if feedback:
+                        feedback.setProgress(0)
+                except Exception:
+                    pass
+                if hasattr(self, "onError"):
+                    self.onError(e)
+                self.pushInfo(f"Algorithm failed: {e}")
+            finally:
+                self.showLog()
+            return
+
+        # Asynchronous path using QgsTask
         context = self.processingContext()
         feedback = self.createFeedback()
+        # Keep a handle so we can propagate UI cancel to processing feedback
+        self._active_feedback = feedback
+        self._cancel_requested = False
         local_context.set_feedback(feedback)
 
         params = self.getParameters()
+        params = (
+            self.transformParameters(params)
+            if hasattr(self, "transformParameters")
+            else params
+        )
 
+        # Environment/info logging (preserve existing behavior)
         self.pushDebugInfo(f"QGIS version: {Qgis.QGIS_VERSION}")
         self.pushDebugInfo(f"QGIS code revision: {Qgis.QGIS_DEV_VERSION}")
         self.pushDebugInfo(f"Qt version: {QT_VERSION_STR}")
@@ -90,11 +187,185 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         for k, v in params.items():
             self.pushCommandInfo(f"  {k}: {v}")
 
-        results = processing.run(
-            self.algorithm(), params, context=context, feedback=feedback
+        self.pushInfo("Queued task…")
+
+        if hasattr(self, "beforeRun"):
+            self.beforeRun(params)
+
+        alg = self.algorithm()
+        signals = _RunSignals()
+
+        def _on_finished(results: dict):
+            try:
+                self.setResults(results)
+                if hasattr(self, "afterRun"):
+                    self.afterRun(results)
+                self.showLog()
+            finally:
+                self._teardown_task_ui()
+
+        def _on_failed(exc: Exception):
+            try:
+                # Centralized progress reset on failure
+                try:
+                    fb = getattr(self, "_active_feedback", None)
+                    if fb:
+                        fb.setProgress(0)
+                except Exception:
+                    pass
+                if hasattr(self, "onError"):
+                    self.onError(exc)
+                self.pushInfo(f"Algorithm failed: {exc}")
+                self.showLog()
+            finally:
+                self._teardown_task_ui()
+
+        def _on_canceled():
+            try:
+                # Centralized progress reset on cancel
+                try:
+                    fb = getattr(self, "_active_feedback", None)
+                    if fb:
+                        fb.setProgress(0)
+                except Exception:
+                    pass
+                self.pushInfo("Algorithm canceled by user.")
+                self.showLog()
+            finally:
+                self._teardown_task_ui()
+
+        signals.finished.connect(_on_finished)
+        signals.failed.connect(_on_failed)
+        signals.canceled.connect(_on_canceled)
+
+        class _ProcTask(QgsTask):
+            def __init__(self, description, alg, params, context, feedback, signals):
+                super().__init__(description, QgsTask.CanCancel)
+                self._alg = alg
+                self._params = params
+                self._context = context
+                self._feedback = feedback
+                self._signals = signals
+                self._results = None
+                self._exc = None
+
+            def run(self):
+                if self.isCanceled() or self._feedback.isCanceled():
+                    return False
+                try:
+                    # small progress pulse so the bar moves
+                    if self.isCanceled() or self._feedback.isCanceled():
+                        return False
+                    res = processing.run(
+                        self._alg,
+                        self._params,
+                        context=self._context,
+                        feedback=self._feedback,
+                    )
+                    if self.isCanceled():
+                        return False
+                    self._results = res
+                    # near-complete pulse
+                    return True
+                except Exception as e:
+                    self._exc = e
+                    return False
+
+            def finished(self, ok):
+                # This runs on the main thread
+                if self.isCanceled():
+                    self._signals.canceled.emit()
+                elif ok:
+                    self._signals.finished.emit(self._results or {})
+                else:
+                    self._signals.failed.emit(self._exc or Exception("Unknown error"))
+
+        self._current_task = _ProcTask(
+            description=f"Run {alg.displayName()}",
+            alg=alg,
+            params=params,
+            context=context,
+            feedback=feedback,
+            signals=signals,
         )
-        self.setResults(results)
-        self.showLog()
+
+        # Disable dialog buttons during run, and repurpose Cancel to stop the task
+        if self.buttonBox():
+            self.buttonBox().setEnabled(False)
+        if self.cancelButton():
+            try:
+                self.cancelButton().clicked.disconnect()
+            except Exception:
+                pass
+            self.cancelButton().clicked.connect(self._cancel_task)
+            self.cancelButton().setEnabled(True)
+
+        QgsApplication.taskManager().addTask(self._current_task)
+
+    def _task_body(
+        self,
+        task: QgsTask,
+        alg: QgsProcessingAlgorithm,
+        params: Dict,
+        context: QgsProcessingContext,
+        feedback: QgsProcessingFeedback,
+    ) -> Dict:
+        try:
+            feedback.setProgress(0)
+            results = processing.run(alg, params, context=context, feedback=feedback)
+            if task.isCanceled():
+                raise RuntimeError("Canceled")
+            return results
+        except Exception as e:
+            # Re-raise to be handled by on_failed
+            raise e
+
+    def _cancel_task(self):
+        task = getattr(self, "_current_task", None)
+        self._cancel_requested = True
+        # Try to cancel the feedback first so inner loops can stop
+        fb = getattr(self, "_active_feedback", None)
+        try:
+            if fb:
+                fb.cancel()
+        except Exception:
+            pass
+        # Give algorithm-specific dialogs a chance to cancel remote jobs (e.g., EE export)
+        try:
+            if hasattr(self, "onCancelRequested"):
+                self.onCancelRequested()
+        except Exception:
+            # best-effort; do not crash the UI
+            pass
+        if not task:
+            return
+        try:
+            task.cancel()
+            self.pushInfo("Cancel requested…")
+        except RuntimeError:
+            # Task object may already be finalized/deleted by QGIS; restore UI.
+            self._teardown_task_ui()
+
+    def _teardown_task_ui(self):
+        # Ensure progress is reset after cancel
+        try:
+            if getattr(self, "_cancel_requested", False):
+                fb = getattr(self, "_active_feedback", None)
+                if fb:
+                    fb.setProgress(0)
+        except Exception:
+            pass
+        self._active_feedback = None
+        self._current_task = None
+        # Restore default cancel behavior
+        if self.cancelButton():
+            try:
+                self.cancelButton().clicked.disconnect()
+            except Exception:
+                pass
+            self.cancelButton().clicked.connect(self.reject)
+        if self.buttonBox():
+            self.buttonBox().setEnabled(True)
 
     def createProcessingParameters(self, flags) -> typing.Dict[str, typing.Any]:
         # TODO: We are currently unable to copy parameters from the algorithm to the dialog.

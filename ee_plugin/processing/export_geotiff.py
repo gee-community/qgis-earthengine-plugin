@@ -19,7 +19,7 @@ from qgis.PyQt.QtWidgets import (
     QFileDialog,
 )
 
-from .custom_algorithm_dialog import BaseAlgorithmDialog
+from .custom_algorithm_dialog import BaseAlgorithmDialog, safe_set_progress
 
 from qgis.core import (
     QgsProcessingAlgorithm,
@@ -230,6 +230,31 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
             self.selected_list.item(i).text() for i in range(self.selected_list.count())
         ]
 
+    # Hook called by BaseAlgorithmDialog when user presses Cancel
+    def onCancelRequested(self):
+        try:
+            alg = self.algorithm()
+        except Exception:
+            alg = None
+        # Try to cancel a v1 operations export if the algorithm stored its name
+        try:
+            if alg is not None and getattr(alg, "_ee_operation_name", None):
+                import ee
+
+                ee.data.cancelOperation(alg._ee_operation_name)
+                local_context.pushInfo(
+                    f"Requested cancel of EE operation: {alg._ee_operation_name}"
+                )
+        except Exception:
+            pass
+        # Try to cancel an old ee.batch.Task if present
+        try:
+            if alg is not None and getattr(alg, "_ee_task", None):
+                alg._ee_task.cancel()
+                local_context.pushInfo("Requested cancel of EE batch task")
+        except Exception:
+            pass
+
 
 class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
     """Export an EE Image to a GeoTIFF file."""
@@ -288,6 +313,7 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
     ) -> dict:
         # add logs to algorithm dialog
         local_context.set_feedback(feedback)
+        feedback.pushInfo("Validating parameters…")
         selected_index = self.parameterAsEnum(parameters, "EE_IMAGE", context)
         ee_img = self.raster_layers[selected_index]
         rect = self.parameterAsExtent(parameters, "EXTENT", context)
@@ -314,6 +340,8 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         scale = self.parameterAsDouble(parameters, "SCALE", context)
         projection = self.parameterAsCrs(parameters, "PROJECTION", context).authid()
         out_path = self.parameterAsFile(parameters, "OUTPUT", context)
+        if feedback.isCanceled():
+            raise RuntimeError("Canceled")
 
         layer = next(
             (
@@ -345,7 +373,12 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
             tile_dir = os.getcwd()
         base_name = os.path.splitext(os.path.basename(out_path))[0]
 
-        ee_image_to_geotiff(
+        feedback.pushInfo("Starting EE export to GeoTIFF…")
+
+        if feedback.isCanceled():
+            raise RuntimeError("Canceled")
+
+        handle = ee_image_to_geotiff(
             ee_image=ee_image,
             extent=extent,
             scale=scale,
@@ -354,8 +387,23 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
             base_name=base_name,
             merge_output=out_path,
             feedback=feedback,
+            progress=lambda pct, message=None: safe_set_progress(
+                feedback, pct, message
+            ),
         )
 
+        # If the helper returns an EE operation or task, keep a reference for cancel
+        try:
+            if isinstance(handle, dict) and "name" in handle:
+                # v1 operation dict {"name": "operations/XYZ"}
+                self._ee_operation_name = handle.get("name")
+            elif hasattr(handle, "id") or hasattr(handle, "task_type"):
+                # ee.batch.Task-like
+                self._ee_task = handle
+        except Exception:
+            pass
+
+        feedback.pushInfo("Export complete.")
         return {self.OUTPUT: out_path}
 
     def name(self) -> str:

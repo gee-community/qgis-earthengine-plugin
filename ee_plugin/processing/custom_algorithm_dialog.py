@@ -116,6 +116,12 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             for k, v in params.items():
                 self.pushCommandInfo(f"  {k}: {v}")
 
+            # Switch to the Log tab as soon as the run begins so users see progress
+            try:
+                self.showLog()
+            except Exception:
+                pass
+
             try:
                 if hasattr(self, "beforeRun"):
                     self.beforeRun(params)
@@ -180,6 +186,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             self.pushCommandInfo(f"  {k}: {v}")
 
         self.pushInfo("Queued task…")
+        # Switch to the Log tab immediately so progress/messages are visible
+        self.showLog()
 
         if hasattr(self, "beforeRun"):
             self.beforeRun(params)

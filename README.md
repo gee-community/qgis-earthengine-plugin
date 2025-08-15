@@ -69,7 +69,7 @@ Earth Engine algorithms are available from:
 
 See [available algorithms](#-available-algorithms) for more details.
 
-![example algorithm](./media/example_algorithm.png)
+![example algorithm](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/main/media/example_algorithm.png)
 
 ### Model Designer
 
@@ -80,7 +80,7 @@ Earth Engine algorithms can be integrated into QGIS **Model Designer** workflows
 - Save your custom processing model for repeated use
 
 An [example model](https://github.com/gee-community/qgis-earthengine-plugin/blob/main/examples/srtm_hillshade.model3) is provided for the hillshade example below:
-![Example Model](./media/example_model.png)
+![Example Model](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/main/media/example_model.png)
 
 
 ### Saving Your Project
@@ -91,7 +91,7 @@ Be sure to re-authenticate if opening the project on a new machine or after toke
 
 ---
 
-## ⚙️ Available Algorithms
+## ⚙️ Available Algorithms {#available-algorithms}
 
 The following algorithms are currently implemented in the plugin:
 
@@ -155,7 +155,7 @@ More on authentication troubleshooting: [Earth Engine Guide](https://developers.
 
 We warmly welcome contributions! If you'd like to contribute:
 
-1. Check out [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions.
+1. Check out [CONTRIBUTING.md](https://github.com/gee-community/qgis-earthengine-plugin/blob/main/CONTRIBUTING.md) for setup instructions.
 2. Ensure your contribution relates to an existing [issue](https://github.com/gee-community/qgis-earthengine-plugin/issues) or discussion.
 3. Open a pull request or issue before starting major changes.
 

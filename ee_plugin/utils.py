@@ -10,14 +10,14 @@ import math
 import json
 import tempfile
 import logging
-from typing import Optional, TypedDict, Tuple, Any, List, Callable
+from typing import Optional, TypedDict, Tuple, Any, List
 
 import ee
 import qgis
 import requests
 from osgeo import gdal
 from qgis.core import (
-    QgsFeedback,
+    QgsProcessingFeedback,
     QgsProject,
     QgsRasterLayer,
     QgsVectorLayer,
@@ -403,8 +403,7 @@ def ee_image_to_geotiff(
     out_dir: str = "/vsimem/",
     base_name: str = "tiles_",
     merge_output: Optional[str] = None,
-    feedback: QgsFeedback = None,
-    progress: Optional[Callable[[int, Optional[str]], None]] = None,
+    feedback: Optional[QgsProcessingFeedback] = None,
 ) -> None:
     logger.info(
         f"Exporting EE image to GeoTIFF with scale {scale}, projection {projection}"
@@ -423,6 +422,13 @@ def ee_image_to_geotiff(
         )
     tile_paths = []
 
+    if feedback is not None:
+        try:
+            feedback.pushInfo("Preparing export…")
+            feedback.setProgress(0)
+        except Exception:
+            pass
+
     with tempfile.TemporaryDirectory() as temp_dir:
         n_tiles = len(tiles)
         for idx, tile in enumerate(tiles):
@@ -431,11 +437,10 @@ def ee_image_to_geotiff(
                 return
             # Progress update inside loop, proportional to idx/n_tiles (0–100)
             pct = int((idx / n_tiles) * 100) if n_tiles > 0 else 0
-            if feedback:
-                feedback.setProgress(pct)
-            if progress is not None:
+            if feedback is not None:
                 try:
-                    progress(pct, f"Downloading tile {idx + 1}/{n_tiles}…")
+                    feedback.setProgress(pct)
+                    feedback.pushInfo(f"Downloading tile {idx + 1}/{n_tiles}…")
                 except Exception:
                     pass
             out_path = os.path.join(temp_dir, f"{base_name}_tile{idx}.tif")
@@ -448,7 +453,22 @@ def ee_image_to_geotiff(
         if feedback and feedback.isCanceled():
             logger.info("Export cancelled by user before merge.")
             return
+
+        if feedback is not None:
+            try:
+                feedback.setProgress(90)
+                feedback.pushInfo("Merging tiles…")
+            except Exception:
+                pass
+
         merge_geotiffs_gdal(tile_paths, merge_output)
+
+        if feedback is not None:
+            try:
+                feedback.setProgress(100)
+                feedback.pushInfo("Merging tiles complete.")
+            except Exception:
+                pass
 
 
 def merge_geotiffs_gdal(in_files: List[str], out_file: str) -> None:
@@ -555,7 +575,7 @@ def download_tile(
     scale: float,
     projection: str,
     out_path: str,
-    feedback: Optional[QgsFeedback] = None,
+    feedback: Optional[QgsProcessingFeedback] = None,
 ) -> None:
     logger.debug(
         f"Downloading tile {tile_extent} with scale {scale}, projection {projection}"

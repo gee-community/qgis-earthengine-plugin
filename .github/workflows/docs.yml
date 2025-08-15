@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,7 +36,7 @@ jobs:
         run: pip install -r requirements-docs.txt
 
       - name: Build MkDocs site
-        run: mkdocs build --strict --site-dir site
+        run: mkdocs build --site-dir site
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

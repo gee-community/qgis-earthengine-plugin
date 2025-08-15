@@ -19,7 +19,7 @@ from qgis.PyQt.QtWidgets import (
     QFileDialog,
 )
 
-from .custom_algorithm_dialog import BaseAlgorithmDialog, safe_set_progress
+from .custom_algorithm_dialog import BaseAlgorithmDialog
 
 from qgis.core import (
     QgsProcessingAlgorithm,
@@ -387,9 +387,6 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
             base_name=base_name,
             merge_output=out_path,
             feedback=feedback,
-            progress=lambda pct, message=None: safe_set_progress(
-                feedback, pct, message
-            ),
         )
 
         # If the helper returns an EE operation or task, keep a reference for cancel

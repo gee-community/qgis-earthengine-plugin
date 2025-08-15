@@ -22,21 +22,6 @@ from qgis import gui, processing
 from ..logging import local_context
 
 
-def safe_set_progress(
-    feedback: Optional[QgsProcessingFeedback], value: int, message: Optional[str] = None
-) -> None:
-    try:
-        if feedback is None:
-            return
-        pct = int(max(0, min(100, value)))
-        feedback.setProgress(pct)
-        if message:
-            feedback.pushInfo(str(message))
-    except Exception:
-        # Never let progress updates crash the UI
-        pass
-
-
 class _RunSignals(QObject):
     finished = pyqtSignal(dict)  # results
     failed = pyqtSignal(Exception)  # error
@@ -97,6 +82,7 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         if os.environ.get("EE_PLUGIN_SYNC_RUN") == "1":
             context = self.processingContext()
             feedback = self.createFeedback()
+            feedback.setProgress(0)
             # Keep a handle so we can propagate UI cancel to processing feedback
             self._active_feedback = feedback
             self._cancel_requested = False
@@ -156,6 +142,12 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         # Asynchronous path using QgsTask
         context = self.processingContext()
         feedback = self.createFeedback()
+        # Force a UI repaint so the progress bar visibly resets before the task starts
+        try:
+            QgsApplication.processEvents()
+        except Exception:
+            pass
+
         # Keep a handle so we can propagate UI cancel to processing feedback
         self._active_feedback = feedback
         self._cancel_requested = False
@@ -311,7 +303,6 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         feedback: QgsProcessingFeedback,
     ) -> Dict:
         try:
-            feedback.setProgress(0)
             results = processing.run(alg, params, context=context, feedback=feedback)
             if task.isCanceled():
                 raise RuntimeError("Canceled")
@@ -347,12 +338,11 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             self._teardown_task_ui()
 
     def _teardown_task_ui(self):
-        # Ensure progress is reset after cancel
+        # Ensure progress is reset after finish/cancel/failure
         try:
-            if getattr(self, "_cancel_requested", False):
-                fb = getattr(self, "_active_feedback", None)
-                if fb:
-                    fb.setProgress(0)
+            fb = getattr(self, "_active_feedback", None)
+            if fb:
+                fb.setProgress(0)
         except Exception:
             pass
         self._active_feedback = None

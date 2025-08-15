@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.1...v0.1.2) (2025-08-15)
+
+
+### Features
+
+* refine async runs of algorithms ([#378](https://github.com/gee-community/qgis-earthengine-plugin/issues/378)) ([2191cd6](https://github.com/gee-community/qgis-earthengine-plugin/commit/2191cd66b42e01ecf3a762d9930ba92d08d03a2d))
+
 ## [0.1.1](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.0...v0.1.1) (2025-08-14)
 
 

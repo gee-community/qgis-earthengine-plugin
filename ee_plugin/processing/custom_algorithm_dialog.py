@@ -3,6 +3,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, Dict
 import os
+import sip
 
 from osgeo import gdal
 from qgis.core import (
@@ -50,6 +51,13 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         layout = self.buildDialog()
         self.panel.setLayout(layout)
         self.setMainWidget(self.panel)
+
+        # Don't destroy the dialog on close; we hide while tasks run
+        try:
+            self.setAttribute(Qt.WA_DeleteOnClose, False)
+        except Exception:
+            pass
+        self._reopen_widget = None
 
         self.cancelButton().clicked.connect(self.reject)
 
@@ -146,6 +154,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             return
 
         # Asynchronous path using QgsTask
+        # Keep a strong reference while running to avoid premature deletion
+        self._keepalive = self
         context = self.processingContext()
         feedback = self.createFeedback()
         # Force a UI repaint so the progress bar visibly resets before the task starts
@@ -196,15 +206,34 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         signals = _RunSignals()
 
         def _on_finished(results: dict):
+            # If dialog object got deleted, bail out safely
+            try:
+                if sip.isdeleted(self):
+                    return
+            except Exception:
+                pass
             try:
                 self.setResults(results)
-                if hasattr(self, "afterRun"):
-                    self.afterRun(results)
-                self.showLog()
+                try:
+                    after = getattr(self, "afterRun", None)
+                except RuntimeError:
+                    return
+                if callable(after):
+                    after(results)
+                try:
+                    self.showLog()
+                except Exception:
+                    pass
             finally:
                 self._teardown_task_ui()
 
         def _on_failed(exc: Exception):
+            # If dialog object got deleted, bail out safely
+            try:
+                if sip.isdeleted(self):
+                    return
+            except Exception:
+                pass
             try:
                 # Centralized progress reset on failure
                 try:
@@ -213,14 +242,27 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                         fb.setProgress(0)
                 except Exception:
                     pass
-                if hasattr(self, "onError"):
-                    self.onError(exc)
+                try:
+                    on_err = getattr(self, "onError", None)
+                except RuntimeError:
+                    return
+                if callable(on_err):
+                    on_err(exc)
                 self.pushInfo(f"Algorithm failed: {exc}")
-                self.showLog()
+                try:
+                    self.showLog()
+                except Exception:
+                    pass
             finally:
                 self._teardown_task_ui()
 
         def _on_canceled():
+            # If dialog object got deleted, bail out safely
+            try:
+                if sip.isdeleted(self):
+                    return
+            except Exception:
+                pass
             try:
                 # Centralized progress reset on cancel
                 try:
@@ -230,7 +272,10 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                 except Exception:
                     pass
                 self.pushInfo("Algorithm canceled by user.")
-                self.showLog()
+                try:
+                    self.showLog()
+                except Exception:
+                    pass
             finally:
                 self._teardown_task_ui()
 
@@ -289,9 +334,7 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             signals=signals,
         )
 
-        # Disable dialog buttons during run, and repurpose Cancel to stop the task
-        if self.buttonBox():
-            self.buttonBox().setEnabled(False)
+        # Keep Close enabled; only repurpose Cancel to stop the task
         if self.cancelButton():
             try:
                 self.cancelButton().clicked.disconnect()
@@ -299,6 +342,19 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                 pass
             self.cancelButton().clicked.connect(self._cancel_task)
             self.cancelButton().setEnabled(True)
+        # Optionally disable the Run/OK button if present, but do NOT disable Close
+        try:
+            if hasattr(self, "buttonBox") and self.buttonBox():
+                from qgis.PyQt.QtWidgets import QDialogButtonBox
+
+                bb = self.buttonBox()
+                run_btn = (
+                    bb.button(QDialogButtonBox.Ok) if hasattr(bb, "button") else None
+                )
+                if run_btn:
+                    run_btn.setEnabled(False)
+        except Exception:
+            pass
 
         QgsApplication.taskManager().addTask(self._current_task)
 
@@ -346,6 +402,17 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             self._teardown_task_ui()
 
     def _teardown_task_ui(self):
+        # If dialog object got deleted, bail out safely
+        try:
+            if sip.isdeleted(self):
+                return
+        except Exception:
+            pass
+        try:
+            # Accessing QWidget API can raise RuntimeError if underlying C++ is gone
+            _ = self.cancelButton
+        except RuntimeError:
+            return
         # Ensure progress is reset after finish/cancel/failure
         try:
             fb = getattr(self, "_active_feedback", None)
@@ -356,14 +423,117 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         self._active_feedback = None
         self._current_task = None
         # Restore default cancel behavior
-        if self.cancelButton():
+        try:
+            if self.cancelButton():
+                try:
+                    self.cancelButton().clicked.disconnect()
+                except Exception:
+                    pass
+                self.cancelButton().clicked.connect(self.reject)
+        except RuntimeError:
+            return
+        # Re-enable Run/OK button; Close remains enabled already
+        try:
+            if hasattr(self, "buttonBox") and self.buttonBox():
+                from qgis.PyQt.QtWidgets import QDialogButtonBox
+
+                bb = self.buttonBox()
+                run_btn = (
+                    bb.button(QDialogButtonBox.Ok) if hasattr(bb, "button") else None
+                )
+                if run_btn:
+                    run_btn.setEnabled(True)
+        except Exception:
+            pass
+        try:
+            if self._reopen_widget:
+                self._reopen_widget.close()
+                self._reopen_widget = None
+        except Exception:
+            pass
+        try:
+            self._keepalive = None
+        except Exception:
+            pass
+
+    def closeEvent(self, event):
+        """If a task is running, hide instead of closing to keep signals/objects alive."""
+        task = getattr(self, "_current_task", None)
+        try:
+            running = bool(task) and not task.isCanceled()
+        except Exception:
+            running = bool(task)
+        if running:
+            # Do not destroy the dialog while the background task is active
+            self.pushInfo(
+                "Task is running in background. Closing the window will not stop it."
+            )
+            event.ignore()
             try:
-                self.cancelButton().clicked.disconnect()
+                self._post_reopen_message()
             except Exception:
                 pass
-            self.cancelButton().clicked.connect(self.reject)
-        if self.buttonBox():
-            self.buttonBox().setEnabled(True)
+            self.hide()
+            return
+        super().closeEvent(event)
+
+    def reject(self):
+        task = getattr(self, "_current_task", None)
+        try:
+            running = bool(task) and not task.isCanceled()
+        except Exception:
+            running = bool(task)
+        if running:
+            # mirror closeEvent behavior
+            self.pushInfo(
+                "Task is running in background. Closing the window will not stop it."
+            )
+            try:
+                self._post_reopen_message()
+            except Exception:
+                pass
+            self.hide()
+            return
+        super().reject()
+
+    def _post_reopen_message(self):
+        try:
+            from qgis.utils import iface
+            from qgis.PyQt.QtWidgets import QPushButton
+        except Exception:
+            return
+        try:
+            if self._reopen_widget:
+                # already posted
+                return
+            bar = iface.messageBar()
+            msg = bar.createMessage(
+                "Earth Engine Export", "Task running in background."
+            )
+            btn = QPushButton("Show")
+
+            def _show_again():
+                try:
+                    if not sip.isdeleted(self):
+                        self.show()
+                        self.raise_()
+                        self.activateWindow()
+                except Exception:
+                    pass
+                # close the message once shown
+                try:
+                    if self._reopen_widget:
+                        self._reopen_widget.close()
+                        self._reopen_widget = None
+                except Exception:
+                    pass
+
+            btn.clicked.connect(_show_again)
+            msg.layout().addWidget(btn)
+            bar.pushWidget(msg, Qgis.Info)
+            self._reopen_widget = msg
+        except Exception:
+            pass
 
     def createProcessingParameters(self, flags) -> typing.Dict[str, typing.Any]:
         # TODO: We are currently unable to copy parameters from the algorithm to the dialog.

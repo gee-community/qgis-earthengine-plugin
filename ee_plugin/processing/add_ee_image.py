@@ -24,6 +24,8 @@ from qgis.core import (
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
     QgsProcessingParameterBoolean,
+    QgsProcessingParameterCrs,
+    QgsProcessingUtils,
 )
 
 from ..Map import addLayer
@@ -146,6 +148,9 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
+            QgsProcessingParameterCrs("EXTENT_CRS", "Extent CRS", optional=True)
+        )
+        self.addParameter(
             QgsProcessingParameterBoolean(
                 "CLIP_TO_EXTENT",
                 "Clip to extent",
@@ -185,13 +190,23 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
                 raise QgsProcessingException(f"Unsupported asset type: {asset_type}")
 
             ee_extent = None
-            if extent and extent_crs:
+            if extent:
                 try:
                     ee_extent = get_ee_extent(extent, extent_crs, context.project())
                 except Exception as e:
-                    logger.warning(f"Invalid extent provided; ignoring. Error: {e}")
-            elif extent and not extent_crs:
-                logger.warning("Extent provided without CRS; ignoring extent.")
+                    logger.debug(
+                        f"Could not filter image collection by extent: {e}. Attempting with layer reference."
+                    )
+                    # with QGIS processing models, layer could be passed for the extent
+                    # we must first resolve the layer reference
+                    try:
+                        layer = QgsProcessingUtils.mapLayerFromString(extent, context)
+                        extent_rect = layer.extent()
+                        ee_extent = get_ee_extent(
+                            extent_rect, layer.crs(), context.project()
+                        )
+                    except Exception as e:
+                        raise ValueError(f"Invalid extent format: {extent}") from e
 
             if clip_to_extent and ee_extent is not None:
                 ee_object = ee_object.clip(ee_extent)

@@ -699,3 +699,17 @@ def get_ee_extent(
     )
 
     return ee_extent
+
+
+def get_ee_extent_from_layer(
+    layer: QgsVectorLayer, context: QgsProcessingContext
+) -> ee.Geometry:
+    """
+    Get the Earth Engine extent from a QGIS vector layer.
+    """
+    logger.debug(f"Getting EE extent from layer: {layer.name()}")
+    logger.debug(f"Layer CRS: {layer}")
+    provider = layer.dataProvider()
+    extent = provider.extent()
+    extent_crs = layer.crs()
+    return get_ee_extent(extent, extent_crs, context)

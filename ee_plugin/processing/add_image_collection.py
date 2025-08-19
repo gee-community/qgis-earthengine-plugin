@@ -12,7 +12,9 @@ from qgis.core import (
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
     QgsProcessingParameterExtent,
+    QgsProcessingParameterCrs,
     QgsProcessingParameterBoolean,
+    QgsProcessingUtils,
 )
 from qgis.PyQt.QtCore import QTimer, QDate
 from qgis.PyQt.QtWidgets import (
@@ -354,6 +356,9 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterExtent("extent", "Extent", optional=True)
         )
         self.addParameter(
+            QgsProcessingParameterCrs("extent_crs", "Extent CRS", optional=True)
+        )
+        self.addParameter(
             QgsProcessingParameterString(
                 "filters",
                 "Filter Image Properties",
@@ -465,13 +470,27 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         # If extent is provided, convert it to a QgsRectangle and then to ee.Geometry
         if not extent:
             logger.warning("Extent is not provided. The entire globe will be used.")
+
         if extent and extent_crs:
             # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
             try:
                 ee_extent = get_ee_extent(extent, extent_crs, context.project())
                 ic = ic.filterBounds(ee_extent)
             except Exception as e:
-                raise ValueError(f"Invalid extent format: {extent}") from e
+                logger.warning(
+                    f"Could not filter image collection by extent: {e}. Attempting with layer reference."
+                )
+                # with QGIS processing models, layer could be passed for the extent
+                # we must first resolve the layer reference
+                try:
+                    layer = QgsProcessingUtils.mapLayerFromString(extent, context)
+                    extent_rect = layer.extent()
+                    ee_extent = get_ee_extent(
+                        extent_rect, layer.crs(), context.project()
+                    )
+                    ic = ic.filterBounds(ee_extent)
+                except Exception as e:
+                    raise ValueError(f"Invalid extent format: {extent}") from e
 
         # Apply the filters if provided
         if filters:

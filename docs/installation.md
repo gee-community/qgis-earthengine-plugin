@@ -40,7 +40,7 @@ The Google Earth Engine Plugin for QGIS can be installed by the Plugin Manager f
 
     ![](images/installation8.png)
 
-9. Copy the name of the *Cloud Project() displayed in the window.
+9. Copy the name of the *Cloud Project* displayed in the window.
 
     ![](images/installation9.png)
 

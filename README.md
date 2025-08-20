@@ -6,6 +6,8 @@ The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthen
 
 📖 **[User Guide](https://gee-community.github.io/qgis-earthengine-plugin/)**
 
+❓ **[Troubleshooting](https://gee-community.github.io/qgis-earthengine-plugin/troubleshooting)**
+
 💬 **[Discussions & Support](https://github.com/gee-community/qgis-earthengine-plugin/discussions)**
 
 🐞 **[Issue Tracker](https://github.com/gee-community/qgis-earthengine-plugin/issues)**
@@ -18,10 +20,14 @@ The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthen
 
 ### 1️⃣ Install the Plugin
 
-- Open **QGIS Plugin Manager** (`Plugins > Manage and Install Plugins`).
+- Open **QGIS Plugin Manager** (`Plugins → Manage and Install Plugins`).
 - Search for **"Google Earth Engine"** and install it.
 
-### 2️⃣ Find Your Google Cloud Project ID
+### 2️⃣ Authenticate with your Google Earth Engine account
+
+The plugin uses Google Earth Engine API and requires you to sign-in to your Google account. Complete the web-based authentication prompted by the plugin.
+
+### 3️⃣ Select your Google Cloud Project ID
 
 Google Earth Engine requires a **Google Cloud Project**. To find your Project ID:
 
@@ -29,10 +35,8 @@ Google Earth Engine requires a **Google Cloud Project**. To find your Project ID
 - Your **Project ID** is visible in the URL or can be selected from the resource list.
 - For more details, refer to the official [Google Cloud Project Management Guide](https://cloud.google.com/resource-manager/docs/creating-managing-projects).
 
-### 3️⃣ Authenticate with your project ID
 
-- Select the sign-in under `Plugins > Google Earth Engine > Sign-In`.
-- Follow prompts to enter your project ID.
+See our [Step-by-Step Installtion Guide](https://gee-community.github.io/qgis-earthengine-plugin/installation) for detailed installation instructions.
 
 ---
 
@@ -123,31 +127,6 @@ The plugin supports several **Map API functions** similar to the Earth Engine Co
 
 For more details, check the [Earth Engine API Documentation](https://developers.google.com/earth-engine/getstarted#adding-data-to-the-map).
 
----
-
-## ❓ Troubleshooting
-
-### Resetting Authentication
-
-If you experience authentication issues:
-
-- Run `earthengine authenticate` again.
-- Delete the credentials file and restart QGIS:
-  - **Windows:** `C:\Users\<USER>\.config\earthengine\credentials`
-  - **Linux:** `/home/<USER>/.config/earthengine/credentials`
-  - **MacOS:** `/Users/<USER>/.config/earthengine/credentials`
-
-More on authentication troubleshooting: [Earth Engine Guide](https://developers.google.com/earth-engine/guides/auth).
-
-### Common Errors
-
-| Error                                              | Solution                                                                                                              |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `ModuleNotFoundError: No module named 'ee_plugin'` | Ensure the plugin is installed via QGIS Plugin Manager.                                                               |
-| `earthengine authenticate` fails                   | Run `earthengine authenticate --quiet` and restart QGIS.                                                              |
-| `ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED]`   | On MacOS, run `/Applications/Python 3.x/Install Certificates.command`.                                                |
-| Plugin crashes after authentication                | Ensure your IP is not blocked by a firewall. Check [code.earthengine.google.com](http://code.earthengine.google.com). |
-| `SRE module mismatch`                              | Set `PYTHONPATH` to plugin extlibs (e.g. `export PYTHONPATH=~/Projects/qgis-earthengine-plugin/extlibs`)              |
 
 ---
 

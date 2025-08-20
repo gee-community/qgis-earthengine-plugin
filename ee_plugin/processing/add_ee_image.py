@@ -3,9 +3,17 @@ import logging
 from typing import Any, Dict, Optional
 
 import ee
-from qgis.PyQt.QtWidgets import QVBoxLayout, QFormLayout, QLabel, QLineEdit, QComboBox
+from qgis.PyQt.QtWidgets import (
+    QVBoxLayout,
+    QFormLayout,
+    QLabel,
+    QLineEdit,
+    QComboBox,
+    QCheckBox,
+)
 from qgis.PyQt.QtCore import QTimer
 from qgis.gui import QgsCollapsibleGroupBox
+from qgis import gui
 from qgis.core import (
     QgsProcessingAlgorithm,
     QgsProcessingParameterString,
@@ -14,12 +22,17 @@ from qgis.core import (
     QgsProcessingFeedback,
     QgsProcessingOutputRasterLayer,
     QgsProcessingOutputString,
+    QgsProcessingParameterExtent,
+    QgsProcessingParameterBoolean,
+    QgsProcessingParameterCrs,
+    QgsProcessingUtils,
 )
 
 from ..Map import addLayer
+from .. import Map
 from ..logging import local_context
 from ..ui.widgets import VisualizationParamsWidget
-from ..utils import get_available_bands
+from ..utils import get_available_bands, get_ee_extent
 from ..ui.utils import serialize_color_ramp
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 
@@ -47,11 +60,29 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
         )
         layout.addLayout(source_form)
 
+        # Extent controls (optional)
+        self.extent_group = gui.QgsExtentGroupBox(
+            objectName="extent",
+            title="Filter by Extent (Bounds)",
+            collapsed=True,
+        )
+        self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())
+        self.extent_group.setToolTip("Specify the geographic extent.")
+        layout.addWidget(self.extent_group)
+
+        # visualization group
         self.viz_widget = VisualizationParamsWidget()
         viz_group = QgsCollapsibleGroupBox("Visualization Parameters")
         viz_group.setCollapsed(False)
         viz_layout = QVBoxLayout()
         viz_layout.addWidget(self.viz_widget)
+        # Insert clip checkbox
+        self.clip_checkbox = QCheckBox(
+            "Clip to Extent",
+            checked=True,
+            toolTip=("Whether to clip the final image to the specified extent."),
+        )
+        viz_layout.addWidget(self.clip_checkbox)
         viz_group.setLayout(viz_layout)
         layout.addWidget(viz_group)
 
@@ -85,6 +116,9 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
             return {
                 "IMAGE_ID": image_id,
                 "VIZ_PARAMS": json.dumps(viz_data),
+                "EXTENT": self.extent_group.outputExtent(),
+                "EXTENT_CRS": self.extent_group.outputCrs(),
+                "CLIP_TO_EXTENT": self.clip_checkbox.isChecked(),
             }
         except Exception as e:
             raise ValueError(f"Invalid parameters: {e}")
@@ -106,6 +140,23 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
                 optional=True,
             )
         )
+        self.addParameter(
+            QgsProcessingParameterExtent(
+                "EXTENT",
+                "Extent",
+                optional=True,
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterCrs("EXTENT_CRS", "Extent CRS", optional=True)
+        )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                "CLIP_TO_EXTENT",
+                "Clip to extent",
+                defaultValue=True,
+            )
+        )
         self.addOutput(QgsProcessingOutputRasterLayer("OUTPUT", "EE Image"))
         self.addOutput(QgsProcessingOutputString("LAYER_NAME", "Layer Name"))
 
@@ -122,9 +173,9 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
         local_context.set_feedback(feedback)
         image_id = self.parameterAsString(parameters, "IMAGE_ID", context)
         viz_params_raw = self.parameterAsString(parameters, "VIZ_PARAMS", context)
-        logger.info(
-            f"[DEBUG] Parameters received: IMAGE_ID={image_id}, VIZ_PARAMS={viz_params_raw}"
-        )
+        extent = parameters.get("EXTENT")
+        extent_crs = parameters.get("EXTENT_CRS")
+        clip_to_extent = parameters.get("CLIP_TO_EXTENT", True)
 
         if not image_id:
             raise QgsProcessingException("Image ID is required.")
@@ -137,6 +188,28 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
                 ee_object = ee.Image(image_id)
             else:
                 raise QgsProcessingException(f"Unsupported asset type: {asset_type}")
+
+            ee_extent = None
+            if extent:
+                try:
+                    ee_extent = get_ee_extent(extent, extent_crs, context.project())
+                except Exception as e:
+                    logger.debug(
+                        f"Could not filter image collection by extent: {e}. Attempting with layer reference."
+                    )
+                    # with QGIS processing models, layer could be passed for the extent
+                    # we must first resolve the layer reference
+                    try:
+                        layer = QgsProcessingUtils.mapLayerFromString(extent, context)
+                        extent_rect = layer.extent()
+                        ee_extent = get_ee_extent(
+                            extent_rect, layer.crs(), context.project()
+                        )
+                    except Exception as e:
+                        raise ValueError(f"Invalid extent format: {extent}") from e
+
+            if clip_to_extent and ee_extent is not None:
+                ee_object = ee_object.clip(ee_extent)
 
             if viz_params_raw:
                 try:

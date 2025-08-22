@@ -699,3 +699,39 @@ def get_ee_extent(
     )
 
     return ee_extent
+
+
+def parse_extent_string(extent_str: str) -> QgsRectangle:
+    """Parse strings like "xmin,xmax,ymin,ymax [EPSG:xxxx]" to a QgsRectangle.
+    QGIS bookmarks / model extents often come in this order (x min, x max, y min, y max).
+    """
+    try:
+        # Remove optional CRS suffix like " [EPSG:4326]"
+        core = extent_str.split("[")[0].strip()
+        parts = [p.strip() for p in core.split(",")]
+        if len(parts) != 4:
+            raise ValueError("Expected four comma-separated numbers")
+        xmin, xmax, ymin, ymax = map(float, parts)
+        return QgsRectangle(xmin, ymin, xmax, ymax)
+    except Exception as e:
+        raise ValueError(f"Could not parse extent string: {extent_str}") from e
+
+
+def normalize_crs(crs, project) -> QgsCoordinateReferenceSystem:
+    """Return a valid QgsCoordinateReferenceSystem from various inputs.
+    Accepts: QgsCoordinateReferenceSystem, 'ProjectCrs', 'project', 'EPSG:xxxx', WKT, PROJ string.
+    Falls back to the current project CRS when appropriate.
+    """
+    if isinstance(crs, QgsCoordinateReferenceSystem):
+        if crs.isValid():
+            return crs
+    if crs is None or crs == "" or str(crs).lower() in ("projectcrs", "project"):
+        return project.crs()
+    # Try to parse arbitrary string input
+    try:
+        crs_obj = QgsCoordinateReferenceSystem.fromUserInput(str(crs))
+        if crs_obj.isValid():
+            return crs_obj
+    except Exception:
+        pass
+    raise ValueError(f"Invalid extent CRS: {crs}")

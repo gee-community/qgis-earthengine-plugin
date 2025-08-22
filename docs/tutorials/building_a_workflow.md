@@ -76,7 +76,7 @@ For the plot polygon, we will use a single plot polygon in Ghana supplied as a G
 
     ![](../images/workflow11.png)
 
-> Tip: The GDAL Raster Calculator algorithm is preferred over the native Raster Calculator in the Model Designer since it is easier to configure correctly.
+    > Tip: The GDAL Raster Calculator algorithm is preferred over the native Raster Calculator in the Model Designer since it is easier to configure correctly.
 
 12. In the Raster calculator dialog, change the *Description* to `Probability Thresholding`. For *Input layer A* switch to *Using algorithm output* and select `"Output File" from algorithm "Export Image to GeoTIFF"`. Since this is a one-band image, enter `1` as the *Number of raster band for A*. With this configuration, we can now write an expression using the variable **A** which will refer to the first band of the selected image.
 

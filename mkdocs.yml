@@ -15,7 +15,9 @@ theme:
 
 nav:
   - Home: index.md
+  - Quickstart: quickstart.md
   - Installation: installation.md
+  - Usage: usage.md
   - Troubleshooting: troubleshooting.md
   - Tutorials:
     - Downloading Images: tutorials/downloading_images.md

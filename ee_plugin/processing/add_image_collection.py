@@ -40,6 +40,8 @@ from ..utils import (
     get_available_bands,
     filter_functions,
     get_ee_extent,
+    parse_extent_string,
+    normalize_crs,
 )
 from ..ui.utils import serialize_color_ramp
 
@@ -471,26 +473,37 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         if not extent:
             logger.warning("Extent is not provided. The entire globe will be used.")
 
+        ee_extent = None
         if extent and extent_crs:
-            # Parse extent from string format: "xmin,ymin,xmax,ymax [CRS]"
+            project = context.project()
+            norm_extent_crs = normalize_crs(extent_crs, project)
+            # Parse extent from string format: "xmin,xmax,ymin,ymax [CRS]" (QGIS bookmark/model style)
             try:
-                ee_extent = get_ee_extent(extent, extent_crs, context.project())
+                # Handle strings passed from bookmarks / models: "xmin,xmax,ymin,ymax [EPSG:xxxx]"
+                if isinstance(extent, str):
+                    rect = parse_extent_string(extent)
+                    ee_extent = get_ee_extent(rect, norm_extent_crs, project)
+                else:
+                    # Accept QgsRectangle directly
+                    ee_extent = get_ee_extent(extent, norm_extent_crs, project)
                 ic = ic.filterBounds(ee_extent)
             except Exception as e:
                 logger.warning(
-                    f"Could not filter image collection by extent: {e}. Attempting with layer reference."
+                    f"Could not filter image collection by extent directly: {e}. Attempting to resolve as layer reference."
                 )
-                # with QGIS processing models, layer could be passed for the extent
-                # we must first resolve the layer reference
+                # With QGIS processing models, a layer (by ID/name) could be passed for the extent.
+                # Try resolving the layer reference and use its extent.
                 try:
                     layer = QgsProcessingUtils.mapLayerFromString(extent, context)
+                    if layer is None:
+                        raise ValueError(
+                            "Extent is neither a valid rectangle nor a resolvable layer reference."
+                        )
                     extent_rect = layer.extent()
-                    ee_extent = get_ee_extent(
-                        extent_rect, layer.crs(), context.project()
-                    )
+                    ee_extent = get_ee_extent(extent_rect, layer.crs(), project)
                     ic = ic.filterBounds(ee_extent)
-                except Exception as e:
-                    raise ValueError(f"Invalid extent format: {extent}") from e
+                except Exception as e2:
+                    raise ValueError(f"Invalid extent format: {extent}") from e2
 
         # Apply the filters if provided
         if filters:
@@ -550,11 +563,20 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         else:
             raise ValueError(f"Unsupported compositing method: {compositing_name}")
 
-        if isinstance(viz_params, str):
-            try:
-                viz_params = json.loads(viz_params.replace("'", '"'))
-            except json.JSONDecodeError:
-                raise ValueError("Invalid JSON for visualization parameters.")
+        if viz_params is None:
+            viz_params = {}
+        elif isinstance(viz_params, str):
+            s = viz_params.strip()
+            # Treat empty/placeholder values as empty dict
+            if s == "" or s.lower() in ("{}", "null", "none"):
+                viz_params = {}
+            else:
+                try:
+                    viz_params = json.loads(s.replace("'", '"'))
+                except json.JSONDecodeError as e:
+                    raise ValueError(
+                        f"Invalid JSON for visualization parameters: {e.msg} at pos {e.pos}."
+                    )
         elif not isinstance(viz_params, dict):
             raise ValueError(
                 "Visualization parameters must be a JSON string or dictionary."
@@ -566,7 +588,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             name = f"IC: {image_collection_id} ({compositing_name})"
 
         # Final clip ensures the composite image has correct footprint and masked pixels
-        if clip_to_extent and extent and extent_crs:
+        if clip_to_extent and ee_extent:
             ic = ic.clip(ee_extent)
 
         layer = Map.addLayer(ic, viz_params, name)

@@ -19,6 +19,7 @@ nav:
   - Troubleshooting: troubleshooting.md
   - Tutorials:
     - Downloading Images: tutorials/downloading_images.md
+    - Building a Workflow: tutorials/building_a_workflow.md
 
 plugins:
   - search

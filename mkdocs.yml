@@ -12,6 +12,9 @@ theme:
     - content.code.copy
     - toc.integrate
   language: en
+  logo: https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true
+  favicon: https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true
+    
 
 nav:
   - Home: index.md
@@ -23,10 +26,29 @@ nav:
     - Downloading Images: tutorials/downloading_images.md
     - Building a Workflow: tutorials/building_a_workflow.md
     - Visualizing Data: tutorials/visualizing_data.md
+
 plugins:
   - search
   - git-revision-date-localized:
       type: date
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      slide_effect: slide
+      width: 100%
+      height: auto
+      zoomable: true
+      draggable: true
+      skip_classes:
+        - custom-skip-class-name
+      auto_themed: false
+      auto_caption: false
+      caption_position: bottom
+      background: white
+      shadow: true
+      manual: false
+
 
 repo_name: gee-community/qgis-earthengine-plugin
 
@@ -49,3 +71,9 @@ markdown_extensions:
         - .
         - docs
       check_paths: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons

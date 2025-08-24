@@ -6,7 +6,7 @@ title: Building a Workflow
 
 The processing algorithms provided by the Google Earth Engine plugin can be used in the QGIS Model Designer to automate workflows that combine data from the Earth Engine Data Catalog with processing algorithms from QGIS. 
 
-In this tutorial, we will learn how to use a data layer of Cocoa Probability from Forest Data Partnership to calculate plot-level statistics of cocoa plantations. We will build a workflow to automate the following tasks to calculate the percentage of a farm plot covered with a cocoa plantation.
+In this tutorial, we will learn how to use a data layer of Cocoa Probability from Forest Data Partnership to calculate plot-level statistics of cocoa plantations. We will build a workflow to automate the following tasks to calculate the percentage of a farm plot covered with cocoa plantation.
 
 1. Load the Forest Data Partnership [Cocoa Probability model 2025a](https://developers.google.com/earth-engine/datasets/catalog/projects_forestdatapartnership_assets_cocoa_model_2025a) layer.
 2. Download the data for the region of interest.

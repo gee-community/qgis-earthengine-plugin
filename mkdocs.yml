@@ -22,7 +22,7 @@ nav:
   - Tutorials:
     - Downloading Images: tutorials/downloading_images.md
     - Building a Workflow: tutorials/building_a_workflow.md
-
+    - Visualizing Data: tutorials/visualizing_data.md
 plugins:
   - search
   - git-revision-date-localized:

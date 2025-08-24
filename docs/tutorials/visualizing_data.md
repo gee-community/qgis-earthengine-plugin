@@ -36,7 +36,7 @@ import ee
 from ee_plugin import Map
 
 # Use the CMIP6 Climate Projections Dataset
-cmip6 = ee.ImageCollection(`'NASA/GDDP-CMIP6'`)
+cmip6 = ee.ImageCollection('NASA/GDDP-CMIP6')
 
 # Select a model and a scenario
 
@@ -62,10 +62,10 @@ filtered = cmip6 \
 # convert to Celcius
 
 def scaleValues(image):
-return image \
-    .subtract(273.15) \
-    .copyProperties(image,
-    ['system:time_start', 'model', 'scenario'])
+    return image \
+        .subtract(273.15) \
+        .copyProperties(image,
+        ['system:time_start', 'model', 'scenario'])
 
 scaled = filtered.map(scaleValues)
 

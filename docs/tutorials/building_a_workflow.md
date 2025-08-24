@@ -28,7 +28,7 @@ Note the Image Collection ID `projects/forestdatapartnership/assets/cocoa/model_
 
 ![](../images/workflow_data2.png)
 
-For the plot polygon, we will use a single plot polygon in Ghana supplied as a GeoJSON file [`plot.geojson`](../data/plot.geojson). This plot is one of the test polygons from [WHISP](https://github.com/forestdatapartnership/whisp).
+For the plot polygon, we will use a single plot polygon in Ghana supplied as a GeoJSON file [`plot.geojson`](../data/plot.geojson) (right-click and choose *Save Link As...*). This plot is one of the test polygons from [WHISP](https://github.com/forestdatapartnership/whisp).
 
 ## Procedure
 

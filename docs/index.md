@@ -8,7 +8,7 @@ The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthen
 
 ## Description
 
-The goal of the plugin is to make it easy for QGIS users to access data from Earth Engine Data. The plugin allows you to run Earth Engine Python API code in the QGIS Python Console and visualize the results on the QGIS Canvas. The plugin provides a set of Processing algorithms with a no-code user interface to visualize and download data from Earth Engine. The procesing algorithms also integrate with QGIS Processing Framework to allow you to build workflows involving datasets from Earth Engine.
+The goal of the plugin is to make it easy for QGIS users to access data from Google Earth Engine. The plugin allows you to run Earth Engine Python API code in the QGIS Python Console and visualize the results on the QGIS Canvas. The plugin also provides a set of Processing algorithms with a no-code user interface to visualize and download data from Earth Engine.
 
 🚀 **[Quickstart Guide](quickstart.md)**
 

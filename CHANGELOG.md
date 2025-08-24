@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.2...v0.2.0) (2025-08-24)
+
+
+### Features
+
+* add clip image by extent ([#387](https://github.com/gee-community/qgis-earthengine-plugin/issues/387)) ([1679d60](https://github.com/gee-community/qgis-earthengine-plugin/commit/1679d60fca2ed2bf414f19115f861c827bbb56df))
+
+
+### Bug Fixes
+
+* add handling of layer references from processing models ([#386](https://github.com/gee-community/qgis-earthengine-plugin/issues/386)) ([69cdfa9](https://github.com/gee-community/qgis-earthengine-plugin/commit/69cdfa9946b6bcd1487ccdcff46f46f1080bf453))
+* robust extent and CRS handling in AddImageCollection ([#399](https://github.com/gee-community/qgis-earthengine-plugin/issues/399)) ([f098797](https://github.com/gee-community/qgis-earthengine-plugin/commit/f098797ca00d95c2cb32f905421201dede0a9eb8))
+
 ## [0.1.2](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.1...v0.1.2) (2025-08-15)
 
 

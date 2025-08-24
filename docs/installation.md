@@ -2,7 +2,7 @@
 title: Installation
 ---
 
-# Installation
+# ⬇️ Installation
 
 The Google Earth Engine Plugin for QGIS can be installed by the Plugin Manager from the official QGIS plugin repository. The installation process involves a few extra steps to authenticate with your Google Earth Engine account and set the Google Cloud project. This step-by-step guide will help you install and configure the plugin.
 

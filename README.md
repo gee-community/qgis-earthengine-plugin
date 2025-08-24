@@ -2,7 +2,7 @@
 
 # Google Earth Engine Plugin for QGIS
 
-The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthengine.google.com) with [QGIS](https://qgis.org/) using the [EE Python API](https://github.com/google/earthengine-api/tree/main/python).
+The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthengine.google.com) with [QGIS](https://qgis.org/) using the [EE Python API](https://github.com/google/earthengine-api/tree/master).
 
 📖 **[User Guide](https://gee-community.github.io/qgis-earthengine-plugin/)**
 

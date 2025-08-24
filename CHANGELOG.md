@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.2...v0.2.0) (2025-08-24)
+## [0.1.3](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.2...v0.1.3) (2025-08-24)
 
 
 ### Features

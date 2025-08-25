@@ -10,6 +10,7 @@ In this tutorial, we will use the [NEX-GDDP-CMIP6: NASA Earth Exchange Global Da
 
 ![](../images/visualization_globe.png)
 
+## Procedure
 
 1. Open the QGIS Python Consolve from *Plugins → Python Console*.
 

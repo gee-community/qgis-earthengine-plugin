@@ -6,6 +6,7 @@ title: Downloading Images from Earth Engine
 
 The Google Earth Engine plugin comes with a handy `Export Image to GeoTIFF` algorithm that allows you to download images from GEE directly to your computer as GeoTIFF files. In this tutorial, we will use the plugin to create a Sentinel-2 median composite for a region and download it as a GeoTIFF file.
 
+## Procedure
 
 1. Open QGIS. To help us select a region of interest, it will be helpful to have a basemap. From the QGIS Browser Panel, locate the *XYZ Tiles → OpenStreetMap* layer and drag it to the canvas.
 

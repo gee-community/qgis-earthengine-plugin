@@ -4,6 +4,8 @@ title: Downloading Images from Earth Engine
 
 # Downloading Images from Earth Engine
 
+## Overview
+
 The Google Earth Engine plugin comes with a handy `Export Image to GeoTIFF` algorithm that allows you to download images from GEE directly to your computer as GeoTIFF files. In this tutorial, we will use the plugin to create a Sentinel-2 median composite for a region and download it as a GeoTIFF file.
 
 ## Procedure

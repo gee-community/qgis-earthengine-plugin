@@ -4,12 +4,15 @@ title: Visualizing Data from Earth Engine
 
 # Visualizing Data from Earth Engine
 
+## Overview
+
 The Google Earth Engine plugin allows you to access Earth Engine datasets programmatically within QGIS using the Python Console. You can filter and pre-process the datasets using the Earth Engine Python API and then visualize the results as a WMS layer in QGIS. This enables you to quickly iterate and create visualizations without exporting large amounts of data from Earth Engine.
 
 In this tutorial, we will use the [NEX-GDDP-CMIP6: NASA Earth Exchange Global Daily Downscaled Climate Projections](https://developers.google.com/earth-engine/datasets/catalog/NASA_GDDP-CMIP6) dataset and use the GEE Python API to create a Map layer of mean maximum daily temperature for a chosen year under a chosen model and scenario. We will then load and visualize this layer in QGIS on a globe.
 
 ![](../images/visualization_globe.png)
 
+## Procedure
 
 1. Open the QGIS Python Consolve from *Plugins → Python Console*.
 

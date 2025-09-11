@@ -11,6 +11,22 @@ theme:
     - navigation.top
     - content.code.copy
     - toc.integrate
+    - navigation.footer      
+    - content.action.history  
+    - content.metadata
+    - announce.dismiss
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow  
   language: en
   logo: https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true
   favicon: https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true
@@ -30,7 +46,9 @@ nav:
 plugins:
   - search
   - git-revision-date-localized:
-      type: date
+      fallback_to_build_date: false
+      enable_creation_date: true
+
   - glightbox:
       touchNavigation: true
       loop: false
@@ -48,10 +66,15 @@ plugins:
       background: white
       shadow: true
       manual: false
+  - git-committers:
+      repository: gee-community/qgis-earthengine-plugin
+      branch: main
 
 
 repo_name: gee-community/qgis-earthengine-plugin
 
+# Copyright
+copyright: Copyright &copy; 2025  Antony Barja (geografope)
 watch:
   - README.md
 
@@ -59,7 +82,21 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/gee-community/qgis-earthengine-plugin
-
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/squidfunk
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/squidfunk/mkdocs-material/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/mkdocs-material/
+    - icon: fontawesome/brands/bluesky
+      link: https://bsky.app/profile/squidfunk.bsky.social
+    - icon: fontawesome/brands/mastodon
+      link: https://fosstodon.org/@squidfunk
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/squidfunk
+extra_css:
+   - stylesheets/gbextra.css
 markdown_extensions:
   - admonition
   - toc:
@@ -83,4 +120,4 @@ markdown_extensions:
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - pymdownx.superfences        
+  - pymdownx.superfences  

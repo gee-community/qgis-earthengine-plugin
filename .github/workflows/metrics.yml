@@ -1,0 +1,69 @@
+name: 🤖 Update QGIS plugin metrics
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "release"
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::rvest
+            any::janitor
+            any::glue
+            any::jsonlite
+
+      - name: Run R scraper and write JSON
+        run: |
+          Rscript - <<'RSCRIPT'
+          library(rvest); library(janitor); library(glue); library(jsonlite)
+
+          link <- 'https://plugins.qgis.org/plugins/most_downloaded'
+          metrics <- function(x, url){
+            u <- glue(url, '/?page={x}&&')
+            read_html(u) |> html_table() |> as.data.frame() |> clean_names()
+          }
+
+          metric_info <- do.call(rbind, lapply(1:5, metrics, url = link))
+          metric_info <- subset(metric_info, name == "Google Earth Engine")
+
+          metric_to_json <- metric_info[c("name","var_3","stars_votes")]
+          metric_to_json$stars_votes <- as.numeric(gsub("[^0-9.]", "", metric_to_json$stars_votes))
+          metric_to_json$var_3       <- as.numeric(gsub("[^0-9.]", "", metric_to_json$var_3))
+          names(metric_to_json)[names(metric_to_json)=="var_3"] <- "downloads"
+
+          out <- list(list(
+            name = metric_to_json$name[1],
+            downloads = metric_to_json$downloads[1],
+            stars_votes = metric_to_json$stars_votes[1],
+            latest_version = format(Sys.time(), "%Y-%m-%dT%H:%M:%OSZ")
+          ))
+
+          dir.create("docs/data", recursive = TRUE, showWarnings = FALSE)
+          write_json(out, "docs/data/metric_info.json", pretty = TRUE, auto_unbox = TRUE)
+          RSCRIPT
+
+      - name: Commit & push if changed
+        run: |
+          if [[ -n "$(git status --porcelain docs/data/metric_info.json)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add docs/data/metric_info.json
+            git commit -m "chore: update metric_info.json [skip ci]"
+            git push
+          else
+            echo "No changes to commit."
+          fi

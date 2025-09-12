@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.4](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.3...v0.1.4) (2025-09-12)
+
+
+### Bug Fixes
+
+* dereferencing error on windows ([#408](https://github.com/gee-community/qgis-earthengine-plugin/issues/408)) ([e52a2f1](https://github.com/gee-community/qgis-earthengine-plugin/commit/e52a2f15d082a4fb096dbc05be2cf3c14719a9d0))
+* remove query parameters to url that break xyz tile url ([#365](https://github.com/gee-community/qgis-earthengine-plugin/issues/365)) ([40ad9bc](https://github.com/gee-community/qgis-earthengine-plugin/commit/40ad9bc21bbe5d637ca2093a5c1e70d4326f0b14))
+
 ## [0.1.3](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.2...v0.1.3) (2025-08-24)
 
 

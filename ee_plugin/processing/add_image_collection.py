@@ -4,6 +4,7 @@ from typing import List
 
 import ee
 from qgis.core import (
+    Qgis,
     QgsProcessingAlgorithm,
     QgsProcessingParameterString,
     QgsProcessingParameterEnum,
@@ -433,6 +434,9 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         return parsed_filters
 
     def createCustomParametersWidget(self, parent=...):
+        # Use stock Processing dialog on older QGIS where custom dialog init is fragile
+        if Qgis.QGIS_VERSION_INT < 34000:
+            return None
         return AddImageCollectionAlgorithmDialog(algorithm=self, parent=parent)
 
     def processAlgorithm(self, parameters, context, feedback):

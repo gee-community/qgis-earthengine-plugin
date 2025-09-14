@@ -28,6 +28,9 @@
     
       <link rel="stylesheet" href="assets/stylesheets/main.7e37652d.min.css">
       
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -45,7 +48,7 @@
       
     
     
-      <link rel="stylesheet" href="stylesheets/gbextra.css">
+      <link rel="stylesheet" href="stylesheets/plugins.css">
     
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -66,7 +69,14 @@
     body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}</style> <script src="assets/javascripts/glightbox.min.js"></script></head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="gee" data-md-color-primary="light-blue" data-md-color-accent="indigo">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -86,7 +96,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="." title="QGIS Earth Engine Plugin" class="md-header__button md-logo" aria-label="QGIS Earth Engine Plugin" data-md-component="logo">
       
-  <img src="https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true" alt="logo">
+  <img src="img/earth-engine.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -109,6 +119,18 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="gee" data-md-color-primary="light-blue" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
     
     
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -336,7 +358,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="." title="QGIS Earth Engine Plugin" class="md-nav__button md-logo" aria-label="QGIS Earth Engine Plugin" data-md-component="logo">
       
-  <img src="https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true" alt="logo">
+  <img src="img/earth-engine.svg" alt="logo">
 
     </a>
     QGIS Earth Engine Plugin
@@ -625,130 +647,151 @@
   <h1>Home</h1>
 
 <style>
-.md-search-result .md-typeset h1 {display: block! important; padding-top: 0.65rem;}
-.md-typeset .md-content__button {display: none!important; }
-.md-footer__inner {   display: none!important; }
-.md-typeset h1, .md-typeset h2 {display: none}
-.md-typeset h5 {text-transform: none!important; color: #212529!important;}
-.md-typeset h3 { font-weight: bold!important; color: #212529!important;}
+.md-search-result .md-typeset h1 {display:block!important; padding-top:0.65rem;}
+.md-typeset .md-content__button {display:none!important;}
+.md-footer__inner {display:none!important;}
+.md-typeset h1, .md-typeset h2 {display:none;}
+.md-typeset h5 {text-transform:none!important; color:#212529!important;}
 </style>
-<body> 
-<header>
-  <!-- css home  -->
-<link rel="stylesheet" href="stylesheets/qgis-plugin-earth-engine-home.css"> 
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" type="text/css"/> 
-<!-- Masthead-->
-        <header class="masthead">
-            <div class="container">
+
+<!-- CSS propios y fuentes (sug.: pásalos a extra_css en mkdocs.yml) -->
+<p><link rel="stylesheet" href="stylesheets/qgis-plugin-earth-engine-home.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" type="text/css"/></p>
+<!-- Masthead -->
+<header class="masthead">
+  <div class="container"></div>
+</header>
+
+<p><br></p>
+<!-- SERVICES -->
+<section class="page-section" id="services">
+  <div class="container">
+    <div class="text-center">
+      <h3 class="main_title">Google Earth Engine Plugin for QGIS</h3>
+      <br>
+      <p class="sub_title">
+        The goal of the plugin is to make it easy for QGIS users to access data from Google Earth Engine.
+        The plugin allows you to run Earth Engine Python API code in the QGIS Python Console and visualize
+        the results on the QGIS Canvas. The plugin also provides a set of Processing algorithms with a
+        no-code user interface to visualize and download data from Earth Engine.
+      </p>
+
+      <br>
+      <hr>
+
+      <h3 class="main_title">
+        ⭐ <span id="rating-value"></span> rating votes 
+        ⬇️ <span id="downloads-value"></span> downloads
+        <!-- (Opcional) Última versión: <span id="latest-version"></span> -->
+      </h3>
+
+      <hr>
+    </div>
+
+    <!-- GRID DE TARJETAS -->
+    <div class="row">
+      <!-- Card 1 -->
+      <div class="col-lg-3 col-sm-6">
+        <a href="quickstart/" class="card-link">
+          <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.2s">
+            <div class="service_icon">
+               <i class="fas fa-rocket fa-5x"></i>
+            </div>
+            <div class="service_content">
+              <h4 class="service_title">
+                  Quickstart Guide
+              </h4>
+              <p>
+                Get started with the QGIS–Earth Engine plugin in just a few steps. Install it from the QGIS Plugin Manager or GitHub, enable it in QGIS, sign in with your Google Earth Engine account, and start exploring datasets directly in QGIS
+              </p>
+            </div>
           </div>
-          </header>
-     <br>
-        <section class="page-section" id="services">
-              <div class="container">
-                <div class="text-center">
-                <h3 class="main_title">Google Earth Engine Plugin for QGIS</h3><br>
-  <p class="sub_title">The goal of the plugin is to make it easy for QGIS users to access data from Google Earth Engine. The plugin allows you to run Earth Engine Python API code in the QGIS Python Console and visualize the results on the QGIS Canvas. The plugin also provides a set of Processing algorithms with a no-code user interface to visualize and download data from Earth Engine.</p> <br>
-  <hr>
-  <h3 class="main_title">  
-    <a href="https://hfcqgis.opendatasicilia.it/esempi/lista_esempi/" title="85 Esempi Svolti! | Programma" target="_parent">
-      ⭐ <span id="rating-value">262</span> rating votes | ⬇️ <span id="downloads-value">854610</span> downloads
-    </a>
-  </h3>
+         </a>
+      </div>
 
- <hr>
-
-  <!--  inizio blocco pubblicità -->
-
- <!--  inizio testo Gter -->
-<!-- <a href="https://github.com/pigreco/geobreack_02_by_Gter" target="_blank"><img class="center" src="img/geobreak_02_gter.jpg" alt="GeoBreak 02 Gter | Programma" title="GeoBreak 02 Gter | Programma"/></a>
-<h5 class="service_title">
- <a href="https://mailchi.mp/a50b90870c50/in-arrivo-primo-geobreak-ottobre?fbclid=IwAR1ZFUGegfy9XKiW0ien4DFi25dvEbqh3FWgUPudG7_1aMhukBWN4PRUES8" title="GeoBreak 02 Gter | Programma" target="_blank">Programma</a><br>
-  <!--  fine testo Gter -->
-
-  <!--  fine blocco pubblicità -->
-
-   <section id="services pt-115 pb-120"> 
-        <div class="container ">
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="section_title text-center pb-30">
-                </div>
+      <!-- Card 2 -->
+      <div class="col-lg-3 col-sm-6">
+         <a href="installation/" class="card-link">
+          <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.5s">
+            <div class="service_icon">
+               <i class="fas fa-download fa-5x"></i>
             </div>
-<!-- row -->
-            <div class="row">
-                <div class="col-lg-3 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.2s">
-                        <div class="service_icon">
-                           <a href="calcolatore_campi/field_calc/" title="Il calcolatore di campi" target="_parent"> <i class="fas fa-calculator fa-5x"></i></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="calcolatore_campi/field_calc/" title="Il calcolatore di campi" target="_parent">Quickstart Guide</a></h4>
-                            <p><a href="calcolatore_campi/field_calc/" title="Il calcolatore di campi" target="_parent">Il calcolatore di campi</a> consente di eseguire calcoli sulla base di valori di attributo esistenti o funzioni definite, ad esempio, per calcolare la lunghezza o l'area delle caratteristiche geometriche.<br>
-                            I risultati possono essere scritti in un nuovo campo di attributo, un campo virtuale, oppure possono essere utilizzati per aggiornare i valori in un campo esistente.</p>
-                        </div>
-                    </div> 
-    <!-- single service -->
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.5s">
-                        <div class="service_icon">
-                          <a href="gr_funzioni/gruppo_funzioni/" title="Elenco funzioni QGIS" target="_parent"> <i class="fas fa-plus fa-5x"></i></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="gr_funzioni/gruppo_funzioni/" title="Elenco funzioni QGIS" target="_parent">Installation</a></h4>
-                            <p>Questa guida nasce per rispondere alle numerose richieste di aiuto sull&rsquo;uso del calcolatore di campi e per colmare un vuoto sulla guida online di QGIS con esempi e molti screenshot.<br>
-                            Nella sezione <a href="esempi/lista_esempi/" title="USO DELLE FUNZIONI" target="_parent">ESERCIZI</a> si trovano esempi pratici e svolti step by step per rendere facile la comprensione di alcune funzioni di base come Area, lunghezza, Buffer ecc...</p>
-                        </div>
-                    </div>
-    <!-- single service -->
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.8s">
-                        <div class="service_icon">
-                    <a href="corso_formazione/corso_di_formazione/" title="Corso di formazione (Novità)" target="_parent"><i class="fas fa-user-graduate fa-5x"></i></a>
-                        </div>
-                        <div class="service_content">
-                            <h4 class="service_title"><a href="corso_formazione/corso_di_formazione/" title="Corso di formazione (Novità)" target="_parent">Using Earth Engine in QGIS</a></h4>
-                          <p>Il corso è rivolto agli utenti che conoscono l'uso generale di QGIS e desiderano approfondire l'uso della tabella attributi e del calcolatore di campi.<br>
-                              Il corso è strutturato per durare almeno 16 ore - preferibilmente fulltime (due giorni da otto ore)<br>
-                            <a href="corso_formazione/corso_di_formazione/" title="Corso di formazione | Programma" target="_parent">Programma...</a> <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;</p>
-                        </div>
-                    </div> 
-    <!-- single service -->
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.2s">
-                        <div class="service_icon">
-                          <a href="contributing/" title="Supporter" target="_parent"><i class="fas fa-user-plus fa-5x"></i></a>
-                        </div>
-                      <div class="service_content">
-                        <h4 class="service_title"><a href="contributing/" title="Supporter" target="_parent">Tutorials</a></h4>
-                          <p>Per realizzare questa guida ho impiegato del tempo e messo a disposizione tutta la mia conoscenza sullo strumento.<br>   
-                          Puoi contribuire a&nbsp;<strong>HfcQGIS</strong> con una <a href="contributing/#donazione" target="_parent">donazione</a>, divulgando questo manuale, segnalando bug, suggerendo miglioramenti, suggerendo esempi/esercizi, Pull Requests o documentare una funzione con donazione.<br>&nbsp;&nbsp;</p>
-                      </div>
-                    </div> 
-       <!-- single service -->
-                </div>
-
-                </div>
+            <div class="service_content">
+              <h4 class="service_title">
+                Installation
+              </h4>
+              <p>
+                Step-by-step guide with examples and screenshots to install and set up the plugin quickly. Follow the instructions to configure your QGIS environment.
+              </p>
             </div>
-    <!-- row -->
+          </div>
+         </a>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="col-lg-3 col-sm-6">
+        <a href="usage/" class="card-link">
+          <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.8s">
+            <div class="service_icon">
+                <i class="fas fa-globe-americas fa-5x"></i>
+            </div>
+            <div class="service_content">
+              <h4 class="service_title">
+                  Using Earth Engine in QGIS
+              </h4>
+              <p>
+                Learn how to load satellite imagery, access collections, and perform geospatial analysis inside QGIS powered by Google Earth Engine.      
+              </p>
+            </div>
+          </div>
+         </a>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="col-lg-3 col-sm-6">
+        <a href="tutorials/" class="card-link">
+          <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="1.1s">
+            <div class="service_icon">
+                <i class="fas fa-book-open fa-5x"></i>
+            </div>
+            <div class="service_content">
+              <h4 class="service_title">
+              Tutorials
+              </h4>
+              <p>
+                Browse tutorials, practical exercises, and usage examples. You can also contribute by reporting issues, suggesting improvements, or sharing workflows.
+              </p>
+            </div>
+          </div>
+         </a>
+      </div>
+
+    </div><!-- /row -->
+  </div><!-- /container -->
+</section>
+
+<!-- LA GUIDA -->
+<section class="page-section" id="guide">
+  <div class="container">
+    <div class="row align-items-center justify-content-center justify-content-lg-between">
+      <div class="col-lg-12">
+        <div class="header_hero_content mt-45">
+          <br><hr><br>
+          <h4>Note</h4>
+          <p class="wow fadeInUp" data-wow-duration="1.3s" data-wow-delay="1.1s">
+            This guide does NOT replace the <a href='https://earthengine.google.com/'><strong>Google Earth Engine</strong></a> online manual. Rather, it helps you understand how it can be integrated with <a href='https://qgis.org/'><strong>QGIS</strong></a>.  If you would like to contribute to this project, please do not forget to open an <a href='https://github.com/gee-community/qgis-earthengine-plugin/issues/new'><strong>issue</strong></a> or <a href='https://github.com/gee-community/qgis-earthengine-plugin/compare'><strong>pull request</strong></a>.
+            <br>
+            <i>This version of MkDocs was developed by <strong>Antony Barja</strong> (<a href='https://geografo.pe/'>geografope</a>) using the <a href='https://squidfunk.github.io/mkdocs-material/'>Material for MkDocs theme</a> with some <a href='https://www.r-project.org/'>R</a> pipeline <i>.
+          </p>
         </div>
-            <div class="container">
-                <div class="row align-items-center justify-content-center justify-content-lg-between">
-                    <div class="col-lg-12">
-                      <div class="header_hero_content mt-45"> 
-                        <br><hr><br>
-                        <h4 class="service_title">La guida</h4>
-                          <p class="wow fadeInUp" data-wow-duration="1.3s" data-wow-delay="1.1s">Questa guida NON sostituisce il <a href="https://qgis.org/it/docs/index.html#" title="Manuale online di QGIS" target="_blank">manuale</a> online di QGIS, cerca solo di rendere più facile la comprensione dello strumento.<br>
-La versione in formato <a href="https://squidfunk.github.io/mkdocs-material/" title="MkDocs" target="_blank">MkDocs</a> del lavoro di Salvatore FIANDACA, è stata realizzata dalla comunità <a href="https://hfcqgis-md.readthedocs.io/it/latest/ods/" title="OpenDataSicilia"><strong>OpenDataSicilia</strong></a>, in particolare da:<br> <a href="https://twitter.com/aborruso" title="Andrea Borruso" target="_blank">Andrea Borruso</a>, <a href="https://twitter.com/totofiandaca" title="Totò Fiandaca" target="_blank">Totò Fiandaca</a> e <a href="https://twitter.com/gbvitrano" title="Giovan Battista Vitrano" target="_blank">Giovan Battista Vitrano</a> utilizzando il tema <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">Material for MkDocs</a></p>
-                          </div> 
-                  </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
-document$.subscribe(() => { lightbox.reload() });
-</script></body>
+<!-- JS para actualizar métricas -->
+<script src="static/js/load_data.js"></script>
 
 
 
@@ -771,7 +814,7 @@ document$.subscribe(() => { lightbox.reload() });
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 24, 2025 19:21:25 UTC">August 24, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 11, 2025 20:50:54 UTC">September 11, 2025</span>
   </span>
 
     
@@ -872,7 +915,7 @@ document$.subscribe(() => { lightbox.reload() });
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025  Antony Barja (geografope)
+      Copyright &copy; 2025   <a href="https://geografo.pe/">Antony Barja (geografope)</a>
     </div>
   
   
@@ -893,7 +936,7 @@ document$.subscribe(() => { lightbox.reload() });
       
       
     
-    <a href="https://github.com/squidfunk" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+    <a href="https://github.com/gee-community" target="_blank" rel="noopener" title="github.com" class="md-social__link">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
     </a>
   
@@ -915,7 +958,7 @@ document$.subscribe(() => { lightbox.reload() });
       
       
     
-    <a href="https://pypi.org/project/mkdocs-material/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+    <a href="https://pypi.org/project/earthengine-api/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
     </a>
   
@@ -973,8 +1016,8 @@ document$.subscribe(() => { lightbox.reload() });
     
       <script src="assets/javascripts/bundle.92b07e13.min.js"></script>
       
-        <script src="static/js/load_data.js"></script>
-      
     
-  </body>
+  <script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(() => { lightbox.reload() });
+</script></body>
 </html>

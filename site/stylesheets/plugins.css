@@ -1,0 +1,7 @@
+.goverlay {
+    background: rgba(0,0,0,0.7) !important;
+}
+
+.glightbox-mobile .goverlay {
+    background: rgba(0,0,0,0.7) !important;
+}

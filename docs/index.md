@@ -11,7 +11,6 @@ hide:
 .md-footer__inner {display:none!important;}
 .md-typeset h1, .md-typeset h2 {display:none;}
 .md-typeset h5 {text-transform:none!important; color:#212529!important;}
-.md-typeset h3 {font-weight:bold!important; color:#212529!important;}
 </style>
 
 <!-- CSS propios y fuentes (sug.: pásalos a extra_css en mkdocs.yml) -->
@@ -43,7 +42,7 @@ hide:
       <hr>
 
       <h3 class="main_title">
-        ⭐ <span id="rating-value"></span> rating votes |
+        ⭐ <span id="rating-value"></span> rating votes 
         ⬇️ <span id="downloads-value"></span> downloads
         <!-- (Opcional) Última versión: <span id="latest-version"></span> -->
       </h3>
@@ -55,86 +54,80 @@ hide:
     <div class="row">
       <!-- Card 1 -->
       <div class="col-lg-3 col-sm-6">
-        <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.2s">
-          <div class="service_icon">
-            <a href="calcolatore_campi/field_calc/" title="Il calcolatore di campi" target="_parent">
-              <i class="fas fa-calculator fa-5x"></i>
-            </a>
+        <a href="quickstart/" class="card-link">
+          <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.2s">
+            <div class="service_icon">
+               <i class="fas fa-rocket fa-5x"></i>
+            </div>
+            <div class="service_content">
+              <h4 class="service_title">
+                  Quickstart Guide
+              </h4>
+              <p>
+                Get started with the QGIS–Earth Engine plugin in just a few steps. Install it from the QGIS Plugin Manager or GitHub, enable it in QGIS, sign in with your Google Earth Engine account, and start exploring datasets directly in QGIS
+              </p>
+            </div>
           </div>
-          <div class="service_content">
-            <h4 class="service_title">
-              <a href="calcolatore_campi/field_calc/" title="Il calcolatore di campi" target="_parent">Quickstart Guide</a>
-            </h4>
-            <p>
-              <a href="calcolatore_campi/field_calc/" target="_parent">Il calcolatore di campi</a> consente di eseguire calcoli
-              sulla base di valori di attributo esistenti o funzioni definite (area, lunghezza, buffer, ecc.).
-              I risultati possono essere scritti in un nuovo campo, un campo virtuale o aggiornare un campo esistente.
-            </p>
-          </div>
-        </div>
+         </a>
       </div>
 
       <!-- Card 2 -->
       <div class="col-lg-3 col-sm-6">
-        <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.5s">
-          <div class="service_icon">
-            <a href="gr_funzioni/gruppo_funzioni/" title="Elenco funzioni QGIS" target="_parent">
-              <i class="fas fa-plus fa-5x"></i>
-            </a>
+         <a href="installation/" class="card-link">
+          <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.5s">
+            <div class="service_icon">
+               <i class="fas fa-download fa-5x"></i>
+            </div>
+            <div class="service_content">
+              <h4 class="service_title">
+                Installation
+              </h4>
+              <p>
+                Step-by-step guide with examples and screenshots to install and set up the plugin quickly. Follow the instructions to configure your QGIS environment.
+              </p>
+            </div>
           </div>
-          <div class="service_content">
-            <h4 class="service_title">
-              <a href="gr_funzioni/gruppo_funzioni/" title="Elenco funzioni QGIS" target="_parent">Installation</a>
-            </h4>
-            <p>
-              Guida con esempi e screenshot per usare il calcolatore di campi.
-              Nella sezione <a href="esempi/lista_esempi/" target="_parent">ESERCIZI</a> trovi esercizi step-by-step.
-            </p>
-          </div>
-        </div>
+         </a>
       </div>
 
       <!-- Card 3 -->
       <div class="col-lg-3 col-sm-6">
-        <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.8s">
-          <div class="service_icon">
-            <a href="corso_formazione/corso_di_formazione/" title="Corso di formazione (Novità)" target="_parent">
-              <i class="fas fa-user-graduate fa-5x"></i>
-            </a>
+        <a href="usage/" class="card-link">
+          <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.8s">
+            <div class="service_icon">
+                <i class="fas fa-globe-americas fa-5x"></i>
+            </div>
+            <div class="service_content">
+              <h4 class="service_title">
+                  Using Earth Engine in QGIS
+              </h4>
+              <p>
+                Learn how to load satellite imagery, access collections, and perform geospatial analysis inside QGIS powered by Google Earth Engine.      
+              </p>
+            </div>
           </div>
-          <div class="service_content">
-            <h4 class="service_title">
-              <a href="corso_formazione/corso_di_formazione/" title="Corso di formazione (Novità)" target="_parent">
-                Using Earth Engine in QGIS
-              </a>
-            </h4>
-            <p>
-              Corso per utenti QGIS che vogliono approfondire tabella attributi e calcolatore di campi.
-              Durata minima 16 ore (preferibilmente 2×8h). <a href="corso_formazione/corso_di_formazione/" target="_parent">Programma…</a>
-            </p>
-          </div>
-        </div>
+         </a>
       </div>
 
       <!-- Card 4 -->
       <div class="col-lg-3 col-sm-6">
-        <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="1.1s">
-          <div class="service_icon">
-            <a href="contributing/" title="Supporter" target="_parent">
-              <i class="fas fa-user-plus fa-5x"></i>
-            </a>
+        <a href="tutorials/" class="card-link">
+          <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="1.1s">
+            <div class="service_icon">
+                <i class="fas fa-book-open fa-5x"></i>
+            </div>
+            <div class="service_content">
+              <h4 class="service_title">
+              Tutorials
+              </h4>
+              <p>
+                Browse tutorials, practical exercises, and usage examples. You can also contribute by reporting issues, suggesting improvements, or sharing workflows.
+              </p>
+            </div>
           </div>
-          <div class="service_content">
-            <h4 class="service_title">
-              <a href="contributing/" title="Supporter" target="_parent">Tutorials</a>
-            </h4>
-            <p>
-              Puoi contribuire a <strong>HfcQGIS</strong> con donazioni, segnalazione di bug, suggerimenti, pull request,
-              o documentando funzioni. <a href="contributing/#donazione" target="_parent">Scopri come</a>.
-            </p>
-          </div>
-        </div>
+         </a>
       </div>
+
     </div><!-- /row -->
   </div><!-- /container -->
 </section>
@@ -146,16 +139,13 @@ hide:
       <div class="col-lg-12">
         <div class="header_hero_content mt-45">
           <br><hr><br>
-          <h4 class="service_title">La guida</h4>
+          <h4>Note</h4>
           <p class="wow fadeInUp" data-wow-duration="1.3s" data-wow-delay="1.1s">
-            Questa guida NON sostituisce il
-            <a href="https://qgis.org/it/docs/index.html#" target="_blank">manuale</a> online di QGIS: aiuta a comprenderlo.
-            Versione <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank">MkDocs</a> del lavoro di Salvatore FIANDACA,
-            realizzata dalla comunità <a href="https://hfcqgis-md.readthedocs.io/it/latest/ods/" target="_blank"><strong>OpenDataSicilia</strong></a>:
-            <a href="https://twitter.com/aborruso" target="_blank">Andrea Borruso</a>,
-            <a href="https://twitter.com/totofiandaca" target="_blank">Totò Fiandaca</a>,
-            <a href="https://twitter.com/gbvitrano" target="_blank">Giovan Battista Vitrano</a>,
-            usando il tema <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">Material for MkDocs</a>.
+            If you encounter any problems during the installation process, we recommend visiting the <a href='troubleshooting/'><strong>troubleshooting section</strong></a>.
+            <br>
+            Finally, this guide does NOT replace the <a href='https://earthengine.google.com/'><strong>Google Earth Engine</strong></a> online manual. Rather, it helps you understand how it can be integrated with <a href='https://qgis.org/'><strong>QGIS</strong></a>.  If you would like to contribute to this project, please do not forget to open an <a href='https://github.com/gee-community/qgis-earthengine-plugin/issues/new'><strong>issue</strong></a> or <a href='https://github.com/gee-community/qgis-earthengine-plugin/compare'><strong>pull request</strong></a>.
+            <br>
+            <i>This version of MkDocs was developed by <strong>Antony Barja</strong> (<a href='https://geografo.pe/'>geografope</a>) using the <a href='https://squidfunk.github.io/mkdocs-material/'>Material for MkDocs theme</a> with some <a href='https://www.r-project.org/'>R</a> pipeline <i>.
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-name: 🤖 Update QGIS plugin metrics
+name: 🤖 Update Google Earth Engine in QGIS plugin metrics
 
 on:
   workflow_dispatch:

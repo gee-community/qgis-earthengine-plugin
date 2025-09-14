@@ -6,6 +6,9 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  palette:
+    - scheme: gee       # modo claro
+      primary: light blue
   features:
     - navigation.sections
     - navigation.top
@@ -28,10 +31,12 @@ theme:
     - search.suggest
     - toc.follow  
   language: en
-  logo: https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true
+  logo: img/earth-engine.svg
   favicon: https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true
-    
 
+extra_css:
+  - stylesheets/gee.css
+  
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
@@ -74,7 +79,7 @@ plugins:
 repo_name: gee-community/qgis-earthengine-plugin
 
 # Copyright
-copyright: Copyright &copy; 2025  Antony Barja (geografope)
+copyright: Copyright &copy; 2025   <a href="https://geografo.pe/">Antony Barja (geografope)</a>
 watch:
   - README.md
 
@@ -84,11 +89,11 @@ extra:
       link: https://github.com/gee-community/qgis-earthengine-plugin
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/squidfunk
+      link: https://github.com/gee-community
     - icon: fontawesome/brands/docker
       link: https://hub.docker.com/r/squidfunk/mkdocs-material/
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/mkdocs-material/
+      link: https://pypi.org/project/earthengine-api/
     - icon: fontawesome/brands/bluesky
       link: https://bsky.app/profile/squidfunk.bsky.social
     - icon: fontawesome/brands/mastodon
@@ -96,7 +101,7 @@ extra:
     - icon: fontawesome/brands/x-twitter
       link: https://x.com/squidfunk
 extra_css:
-   - stylesheets/gbextra.css
+   - stylesheets/plugins.css
 markdown_extensions:
   - admonition
   - toc:

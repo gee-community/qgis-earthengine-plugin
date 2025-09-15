@@ -6,13 +6,37 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  palette:
+    - scheme: gee       # modo claro
+      primary: light blue
   features:
     - navigation.sections
     - navigation.top
     - content.code.copy
     - toc.integrate
+    - navigation.footer      
+    - content.action.history  
+    - content.metadata
+    - announce.dismiss
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow  
   language: en
+  logo: img/earth-engine.svg
+  favicon: https://github.com/gee-community/qgis-earthengine-plugin/blob/main/ee_plugin/icons/earth-engine.svg?raw=true
 
+extra_css:
+  - stylesheets/gee.css
+  
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
@@ -23,13 +47,39 @@ nav:
     - Downloading Images: tutorials/downloading_images.md
     - Building a Workflow: tutorials/building_a_workflow.md
     - Visualizing Data: tutorials/visualizing_data.md
+
 plugins:
   - search
   - git-revision-date-localized:
-      type: date
+      fallback_to_build_date: false
+      enable_creation_date: true
+
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      slide_effect: slide
+      width: 100%
+      height: auto
+      zoomable: true
+      draggable: true
+      skip_classes:
+        - custom-skip-class-name
+      auto_themed: false
+      auto_caption: false
+      caption_position: bottom
+      background: white
+      shadow: true
+      manual: false
+  - git-committers:
+      repository: gee-community/qgis-earthengine-plugin
+      branch: main
+
 
 repo_name: gee-community/qgis-earthengine-plugin
 
+# Copyright
+copyright: Copyright &copy; 2025   <a href="https://geografo.pe/">Antony Barja (geografope)</a>
 watch:
   - README.md
 
@@ -37,7 +87,21 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/gee-community/qgis-earthengine-plugin
-
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/gee-community
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/squidfunk/mkdocs-material/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/earthengine-api/
+    - icon: fontawesome/brands/bluesky
+      link: https://bsky.app/profile/squidfunk.bsky.social
+    - icon: fontawesome/brands/mastodon
+      link: https://fosstodon.org/@squidfunk
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/squidfunk
+extra_css:
+   - stylesheets/plugins.css
 markdown_extensions:
   - admonition
   - toc:
@@ -49,3 +113,16 @@ markdown_extensions:
         - .
         - docs
       check_paths: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
+  - pymdownx.highlight:
+      anchor_linenums: true      
+      line_spans: __span        
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences  

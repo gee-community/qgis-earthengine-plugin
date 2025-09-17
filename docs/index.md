@@ -127,7 +127,7 @@ hide:
             <br>
             Finally, this guide does NOT replace the <a href='https://earthengine.google.com/'><strong>Google Earth Engine</strong></a> online manual. Rather, it helps you understand how it can be integrated with <a href='https://qgis.org/'><strong>QGIS</strong></a>.  If you would like to contribute to this project, please do not forget to open an <a href='https://github.com/gee-community/qgis-earthengine-plugin/issues/new'><strong>issue</strong></a> or <a href='https://github.com/gee-community/qgis-earthengine-plugin/compare'><strong>pull request</strong></a>.
             <br>
-            <i>This version of MkDocs was developed by <strong>Antony Barja</strong> (<a href='https://geografo.pe/'>geografope</a>) using the <a href='https://squidfunk.github.io/mkdocs-material/'>Material for MkDocs theme</a> with some <a href='https://www.r-project.org/'>R</a> pipeline <i>.
+            <i>This version of MkDocs was developed by <strong>Antony Barja</strong> (<a href='https://geografo.pe/'>geografope</a>) using the <a href='https://squidfunk.github.io/mkdocs-material/'>Material for MkDocs theme.</a></i>.
           </p>
         </div>
       </div>

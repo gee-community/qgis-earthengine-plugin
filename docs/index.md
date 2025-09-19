@@ -21,7 +21,7 @@ hide:
   <div class="container"></div>
 </header>
 
-<br>
+<br/>
 
 <section class="page-section" id="services">
   <div class="container">

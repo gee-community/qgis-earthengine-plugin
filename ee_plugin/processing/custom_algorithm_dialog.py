@@ -14,7 +14,7 @@ from qgis.core import (
     QgsTask,
     QgsApplication,
 )
-from qgis.PyQt.QtCore import Qt, QT_VERSION_STR
+from qgis.PyQt.QtCore import Qt, QT_VERSION_STR, QTimer
 from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis.PyQt.QtWidgets import QWidget
 from qgis import gui, processing
@@ -42,7 +42,7 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             mode=gui.QgsProcessingAlgorithmDialogBase.DialogMode.Single,
         )
         self.context = self.createContext()
-        self.setAlgorithm(algorithm)
+        QTimer.singleShot(0, lambda: self.setAlgorithm(algorithm))
         self.setModal(True)
         self.setWindowTitle(title or algorithm.displayName())
 

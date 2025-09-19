@@ -15,3 +15,5 @@ venv
 .DS_Store
 htmlcov
 .coverage
+.cache
+site

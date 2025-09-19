@@ -13,46 +13,32 @@ hide:
 .md-typeset h5 {text-transform:none!important; color:#212529!important;}
 </style>
 
-<!-- CSS propios y fuentes (sug.: pásalos a extra_css en mkdocs.yml) -->
 <link rel="stylesheet" href="stylesheets/qgis-plugin-earth-engine-home.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" type="text/css"/>
 
-<!-- Masthead -->
 <header class="masthead">
   <div class="container"></div>
 </header>
 
-<br>
+<br/>
 
-<!-- SERVICES -->
 <section class="page-section" id="services">
   <div class="container">
     <div class="text-center">
       <h3 class="main_title">Google Earth Engine Plugin for QGIS</h3>
-      <br>
+      <br/>
       <p class="sub_title">
         The goal of the plugin is to make it easy for QGIS users to access data from Google Earth Engine.
         The plugin allows you to run Earth Engine Python API code in the QGIS Python Console and visualize
         the results on the QGIS Canvas. The plugin also provides a set of Processing algorithms with a
         no-code user interface to visualize and download data from Earth Engine.
       </p>
-
-      <br>
-      <hr>
-
-      <h3 class="main_title">
-        ⭐ <span id="rating-value"></span> rating votes 
-        ⬇️ <span id="downloads-value"></span> downloads
-        <!-- (Opcional) Última versión: <span id="latest-version"></span> -->
-      </h3>
-
+      <br/>
       <hr>
     </div>
 
-    <!-- GRID DE TARJETAS -->
     <div class="row">
-      <!-- Card 1 -->
       <div class="col-lg-3 col-sm-6">
         <a href="quickstart/" class="card-link">
           <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.2s">
@@ -71,7 +57,6 @@ hide:
          </a>
       </div>
 
-      <!-- Card 2 -->
       <div class="col-lg-3 col-sm-6">
          <a href="installation/" class="card-link">
           <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.5s">
@@ -90,7 +75,6 @@ hide:
          </a>
       </div>
 
-      <!-- Card 3 -->
       <div class="col-lg-3 col-sm-6">
         <a href="usage/" class="card-link">
           <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="0.8s">
@@ -109,7 +93,6 @@ hide:
          </a>
       </div>
 
-      <!-- Card 4 -->
       <div class="col-lg-3 col-sm-6">
         <a href="tutorials/" class="card-link">
           <div class="single_service mt-30 wow fadeInUpBig" data-wow-duration="1.3s" data-wow-delay="1.1s">
@@ -128,11 +111,10 @@ hide:
          </a>
       </div>
 
-    </div><!-- /row -->
-  </div><!-- /container -->
+    </div>
+  </div>
 </section>
 
-<!-- LA GUIDA -->
 <section class="page-section" id="guide">
   <div class="container">
     <div class="row align-items-center justify-content-center justify-content-lg-between">
@@ -145,13 +127,10 @@ hide:
             <br>
             Finally, this guide does NOT replace the <a href='https://earthengine.google.com/'><strong>Google Earth Engine</strong></a> online manual. Rather, it helps you understand how it can be integrated with <a href='https://qgis.org/'><strong>QGIS</strong></a>.  If you would like to contribute to this project, please do not forget to open an <a href='https://github.com/gee-community/qgis-earthengine-plugin/issues/new'><strong>issue</strong></a> or <a href='https://github.com/gee-community/qgis-earthengine-plugin/compare'><strong>pull request</strong></a>.
             <br>
-            <i>This version of MkDocs was developed by <strong>Antony Barja</strong> (<a href='https://geografo.pe/'>geografope</a>) using the <a href='https://squidfunk.github.io/mkdocs-material/'>Material for MkDocs theme</a> with some <a href='https://www.r-project.org/'>R</a> pipeline <i>.
+            <i>This version of MkDocs was developed by <strong>Antony Barja</strong> (<a href='https://geografo.pe/'>geografope</a>) using the <a href='https://squidfunk.github.io/mkdocs-material/'>Material for MkDocs theme.</a></i>.
           </p>
         </div>
       </div>
     </div>
   </div>
 </section>
-
-<!-- JS para actualizar métricas -->
-<script src="static/js/load_data.js"></script>

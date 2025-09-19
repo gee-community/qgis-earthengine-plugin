@@ -16,3 +16,4 @@ venv
 htmlcov
 .coverage
 .cache
+site

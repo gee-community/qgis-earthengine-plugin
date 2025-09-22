@@ -4,7 +4,6 @@ name: Build & Deploy Docs (MkDocs)
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
 
 # Required for Pages
 permissions:

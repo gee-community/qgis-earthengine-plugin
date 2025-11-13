@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.5](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.4...v0.1.5) (2025-11-13)
+
+
+### Bug Fixes
+
+* update bytes-per-pixel estimation to match EE Pixel accounting ([#415](https://github.com/gee-community/qgis-earthengine-plugin/issues/415)) ([3f1ace7](https://github.com/gee-community/qgis-earthengine-plugin/commit/3f1ace7762aa30d03849a7384e4c78275aa78a07))
+
 ## [0.1.4](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.3...v0.1.4) (2025-09-12)
 
 

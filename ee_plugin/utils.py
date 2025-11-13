@@ -72,16 +72,18 @@ def _bytes_for_data_type(dt: dict) -> int:
 
 def estimate_bytes_per_pixel(img: ee.Image) -> int:
     """Estimate bytes-per-pixel for an EE image by summing per-band sizes.
-    Falls back to band_count * 2 when metadata is missing. Also add 
-    one for the mask byte to match Earth Engine bytes-per-pixel accounting.
+    Falls back to band_count * 2 when metadata is missing.
+    Adds one byte for the mask to match Earth Engine’s accounting.
     """
     ee_mask_bytes = 1
     try:
         info = img.getInfo()
         bands_info = info.get("bands", []) if isinstance(info, dict) else []
         if bands_info:
-            return sum(_bytes_for_data_type(b.get("data_type", {})) + ee_mask_bytes
-                       for b in bands_info)
+            return sum(
+                _bytes_for_data_type(band.get("data_type", {})) + ee_mask_bytes
+                for band in bands_info
+            )
     except Exception as e:
         logger.debug(f"Could not read band data types from getInfo(): {e}")
     try:

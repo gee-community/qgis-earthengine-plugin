@@ -1,5 +1,8 @@
 ratelim
-earthengine-api>=1.5.12
+# Pin the earthengine-api to a specific version.
+# Later versions require Python 3.10 which is not supported by
+# QGIS mac builds as of 2025-12-04
+earthengine-api==1.6.15
 six>=1.13
 httplib2
 requests>2.4

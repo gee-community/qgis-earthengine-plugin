@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.5...v0.1.6) (2025-12-04)
+
+
+### Bug Fixes
+
+* Pin the earthengine-api to a specific version to ensure Python compatibility ([88d4c76](https://github.com/gee-community/qgis-earthengine-plugin/commit/88d4c76a3e54bfae974e5ddc9da8cb63eb3b7736))
+* pin the earthengine-api to a specific version to ensure Python version compatibility ([ffb6464](https://github.com/gee-community/qgis-earthengine-plugin/commit/ffb6464d6251aec05162428a370b81445a6ba096))
+
 ## [0.1.5](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.4...v0.1.5) (2025-11-13)
 
 

@@ -25,7 +25,7 @@ repository=https://github.com/gee-community/qgis-earthengine-plugin
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=cloud, analysis, dem, geojson, geometry, google, landsat, land cover, processing, raster, remote sensing, statistics, topography, webservice
+tags=gee, cloud, analysis, dem, geojson, geometry, google, landsat, land cover, processing, raster, remote sensing, statistics, topography, webservice
 
 homepage=https://gee-community.github.io/qgis-earthengine-plugin/
 category=Plugins

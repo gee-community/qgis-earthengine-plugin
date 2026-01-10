@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.7](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.6...v0.1.7) (2026-01-10)
+
+
+### Bug Fixes
+
+* add gee tag to metadata.txt ([#421](https://github.com/gee-community/qgis-earthengine-plugin/issues/421)) ([1a038c5](https://github.com/gee-community/qgis-earthengine-plugin/commit/1a038c55f4a150dd48ab2854fcb5cb437acf9952))
+
 ## [0.1.6](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.5...v0.1.6) (2025-12-04)
 
 

@@ -1,29 +1,19 @@
 # coding=utf-8
-"""Resources test."""
+"""Tests that plugin icon resources exist and load."""
 
-__author__ = "gennadiy.donchyts@gmail.com"
-__date__ = "2017-06-12"
-__copyright__ = "Copyright 2017, Gennadii Donchyts"
-
-import unittest
-
+import pytest
 from qgis.PyQt.QtGui import QIcon
 
 
-class GoogleEarthEngineResourcesTest(unittest.TestCase):
-    def test_icon_png(self):
-        """Test image paths exist"""
-        paths = (
-            "ee_plugin/icons/google-cloud-project.svg",
-            "ee_plugin/icons/google-cloud.svg",
-            "ee_plugin/icons/earth-engine.svg",
-        )
-        for path in paths:
-            icon = QIcon(path)
-            self.assertFalse(icon.isNull())
-
-
-if __name__ == "__main__":
-    suite = unittest.makeSuite(GoogleEarthEngineResourcesTest)
-    runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(suite)
+@pytest.mark.parametrize(
+    "path",
+    [
+        "ee_plugin/icons/google-cloud-project.svg",
+        "ee_plugin/icons/google-cloud.svg",
+        "ee_plugin/icons/earth-engine.svg",
+    ],
+)
+def test_icon_loads(path):
+    """Test that icon SVG files load as non-null QIcons."""
+    icon = QIcon(path)
+    assert not icon.isNull(), f"Icon failed to load: {path}"

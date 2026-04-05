@@ -42,8 +42,8 @@ def test_config_project_signal(conf: config.EarthEngineConfig):
 
     conf.signals.updated.connect(m)
 
-    m.assert_not_called(), "Signal emitted before change."
+    m.assert_not_called()
 
     conf.project = "new-project"
 
-    m.assert_called_once_with({"project": "new-project"}), "Signal not emitted."
+    m.assert_called_once_with({"project": "new-project"})

@@ -9,10 +9,10 @@ from ee_plugin import ee_plugin, config
 
 @fixture(scope="session", autouse=True)
 def setup_ee():
-    """Initialize the Earth Engine API."""
+    """Authenticate and initialize the Earth Engine API."""
     print("Initializing Earth Engine API...")
-    ee.Initialize()
     ee.Authenticate(auth_mode="localhost", quiet=True)
+    ee.Initialize()
 
 
 @fixture(scope="session", autouse=True)

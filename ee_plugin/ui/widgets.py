@@ -235,7 +235,8 @@ def build_vbox_dialog(
     # Add OK/Cancel buttons
     main_layout.addWidget(
         QDialogButtonBox(
-            standardButtons=QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok,
+            standardButtons=QDialogButtonBox.StandardButton.Cancel
+            | QDialogButtonBox.StandardButton.Ok,
             accepted=dialog.accept,
             rejected=dialog.reject,
         )
@@ -267,7 +268,8 @@ def build_vbox_widget(
     # Add OK/Cancel buttons
     main_layout.addWidget(
         QDialogButtonBox(
-            standardButtons=QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok,
+            standardButtons=QDialogButtonBox.StandardButton.Cancel
+            | QDialogButtonBox.StandardButton.Ok,
         )
     )
 

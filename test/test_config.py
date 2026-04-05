@@ -29,9 +29,9 @@ def test_config_write_project(conf: config.EarthEngineConfig):
     conf.project = "new-project"
     assert conf.project == "new-project", "Project ID not set correctly."
     with open(conf.credentials_path, "r") as f:
-        assert (
-            json.load(f)["project"] == "new-project"
-        ), "Project ID not written correctly."
+        assert json.load(f)["project"] == "new-project", (
+            "Project ID not written correctly."
+        )
 
 
 def test_config_project_signal(conf: config.EarthEngineConfig):

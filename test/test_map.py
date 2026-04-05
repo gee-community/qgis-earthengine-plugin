@@ -19,9 +19,9 @@ def test_get_bounds():
     """Test getting the bounds of the map."""
     bounds = Map.getBounds()
     assert len(bounds) == 4, "Bounds do not have the expected format."
-    assert all(
-        isinstance(coord, (float, int)) for coord in bounds
-    ), "Bounds coordinates are not numeric."
+    assert all(isinstance(coord, (float, int)) for coord in bounds), (
+        "Bounds coordinates are not numeric."
+    )
 
 
 def test_get_scale():

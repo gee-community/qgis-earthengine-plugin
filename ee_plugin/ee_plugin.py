@@ -173,7 +173,7 @@ class GoogleEarthEnginePlugin(object):
         self.toolButton.setDefaultAction(
             QtWidgets.QAction(
                 icon=icon("earth-engine.svg"),
-                text=f'<strong>{self.tr("Google Earth Engine")}</strong>',
+                text=f"<strong>{self.tr('Google Earth Engine')}</strong>",
                 parent=self.iface.mainWindow(),
             )
         )

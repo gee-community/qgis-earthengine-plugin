@@ -256,7 +256,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         band_values = [value[band_name] for band_name in band_names]
 
         value = dict(zip(band_indices, band_values))
-        result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormat.IdentifyFormatValue, value)
+        result = QgsRasterIdentifyResult(
+            QgsRaster.IdentifyFormat.IdentifyFormatValue, value
+        )
 
         return result
 

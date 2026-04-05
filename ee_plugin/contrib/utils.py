@@ -222,7 +222,9 @@ def collection_to_atlas(
 
     pages = layout.pageCollection()
     page = pages.page(0)
-    map.attemptResize(QgsLayoutSize(width, width, QgsUnitTypes.LayoutUnit.LayoutMillimeters))
+    map.attemptResize(
+        QgsLayoutSize(width, width, QgsUnitTypes.LayoutUnit.LayoutMillimeters)
+    )
     map.setAtlasMargin(margin)
     if transparent_bg:
         page.setOpacity(0)
@@ -276,5 +278,6 @@ def collection_to_atlas(
     map.setAtlasDriven(True)
     map.setFollowVisibilityPreset(True)
     map.dataDefinedProperties().setProperty(
-        QgsLayoutItemMap.DataDefinedProperty.MapStylePreset, QgsProperty.fromExpression(layer_attr)
+        QgsLayoutItemMap.DataDefinedProperty.MapStylePreset,
+        QgsProperty.fromExpression(layer_attr),
     )

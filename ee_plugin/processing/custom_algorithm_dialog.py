@@ -353,7 +353,9 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
                 bb = self.buttonBox()
                 run_btn = (
-                    bb.button(QDialogButtonBox.StandardButton.Ok) if hasattr(bb, "button") else None
+                    bb.button(QDialogButtonBox.StandardButton.Ok)
+                    if hasattr(bb, "button")
+                    else None
                 )
                 if run_btn:
                     run_btn.setEnabled(False)
@@ -443,7 +445,9 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
                 bb = self.buttonBox()
                 run_btn = (
-                    bb.button(QDialogButtonBox.StandardButton.Ok) if hasattr(bb, "button") else None
+                    bb.button(QDialogButtonBox.StandardButton.Ok)
+                    if hasattr(bb, "button")
+                    else None
                 )
                 if run_btn:
                     run_btn.setEnabled(True)

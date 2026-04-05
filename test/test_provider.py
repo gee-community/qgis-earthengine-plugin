@@ -21,7 +21,9 @@ def test_raster_identify():
         qgis_instance = QgsProject.instance()
         layer = qgis_instance.mapLayersByName("DEM")[0]
         assert layer is not None, "Layer 'DEM' was not added to the project"
-        assert layer.crs().authid() == "EPSG:3857", "Layer CRS does not match project CRS"
+        assert layer.crs().authid() == "EPSG:3857", (
+            "Layer CRS does not match project CRS"
+        )
 
         provider = layer.dataProvider()
         qgis_point = QgsPointXY(-13551778.88787266425788403, 5917193.28679858986288309)
@@ -34,15 +36,15 @@ def test_raster_identify():
         )
 
         assert raster_identify_result, "Identify operation returned no results"
-        assert (
-            raster_identify_result.isValid()
-        ), "Identify operation returned an invalid result"
-        assert (
-            len(raster_identify_result.results()) == 1
-        ), "Identify returned more than one band"
-        assert (
-            raster_identify_result.results()[1] > 0
-        ), "Identified elevation is not positive"
+        assert raster_identify_result.isValid(), (
+            "Identify operation returned an invalid result"
+        )
+        assert len(raster_identify_result.results()) == 1, (
+            "Identify returned more than one band"
+        )
+        assert raster_identify_result.results()[1] > 0, (
+            "Identified elevation is not positive"
+        )
 
 
 def test_reduce_region():

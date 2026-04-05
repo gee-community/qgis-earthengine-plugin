@@ -135,7 +135,8 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
     def add_color_to_palette(self):
         options = QColorDialog.ColorDialogOptions(
-            QColorDialog.ColorDialogOption.ShowAlphaChannel | QColorDialog.ColorDialogOption.DontUseNativeDialog
+            QColorDialog.ColorDialogOption.ShowAlphaChannel
+            | QColorDialog.ColorDialogOption.DontUseNativeDialog
         )
         color_dialog = QColorDialog()
         color_dialog.setOptions(options)

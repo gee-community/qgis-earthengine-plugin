@@ -65,6 +65,7 @@ class GoogleEarthEnginePlugin(object):
         self.ee_config = ee_config
         self.menu = None
         self.toolButton = None
+        self.toolButtonAction = None
 
         # initialize locale
         locale = str(QSettings().value("locale/userLocale"))[0:2]
@@ -176,7 +177,7 @@ class GoogleEarthEnginePlugin(object):
                 parent=self.iface.mainWindow(),
             )
         )
-        self.iface.pluginToolBar().addWidget(self.toolButton)
+        self.toolButtonAction = self.iface.pluginToolBar().addWidget(self.toolButton)
 
         # Populate menus
         for m in (self.menu, self.toolButton.menu()):
@@ -209,6 +210,9 @@ class GoogleEarthEnginePlugin(object):
     def unload(self):
         if self.menu:
             self.iface.pluginMenu().removeAction(self.menu.menuAction())
+
+        if getattr(self, "toolButtonAction", None):
+            self.iface.pluginToolBar().removeAction(self.toolButtonAction)
 
         try:
             if self.toolButton:

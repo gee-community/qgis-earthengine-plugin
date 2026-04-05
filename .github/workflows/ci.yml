@@ -10,14 +10,16 @@ on:
       - '**'
 
 jobs:
-  test:
+  tests:
     runs-on: ubuntu-latest
+    container:
+      image: qgis/qgis:${{ matrix.qgis-image }}
     strategy:
       matrix:
         include:
-          - qgis-pkg: "qgis python3-qgis python3-pyqt5"
+          - qgis-image: "3.44"
             label: "QGIS 3.x (Qt5)"
-          - qgis-pkg: "qgis python3-qgis python3-pyqt6"
+          - qgis-image: "4.0-trixie"
             label: "QGIS 4.x (Qt6)"
       fail-fast: false
 
@@ -26,36 +28,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up QGIS environment
-        run: |
-          sudo apt update
-          sudo apt install -y ${{ matrix.qgis-pkg }} python3-pytest
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
-      - name: Set Environment Variables
+      - name: Create virtualenv and install dependencies
         run: |
-          echo "QGIS_HOME=/usr" >> $GITHUB_ENV
-          echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
-          echo "DISPLAY=:99" >> $GITHUB_ENV
-
-      - name: Start Virtual Display
-        run: Xvfb :99 -screen 0 1024x768x24 &
+          uv venv --system-site-packages
+          uv pip install -r requirements-dev.txt
 
       - name: Configure Earth Engine Credentials
         run: |
           mkdir -p ~/.config/earthengine
           echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements-dev.txt
-
       - name: Run pre-commit checks
         run: |
-          pre-commit run --all-files
+          .venv/bin/pre-commit run --all-files
 
       - name: Run tests with coverage
-        run: |
-          python -m pytest --cov=. --cov-report=html --cov-report=term-missing test/
+        run: >
+          xvfb-run -s '+extension GLX -screen 0 1024x768x24'
+          .venv/bin/pytest --cov=. --cov-report=html --cov-report=term-missing test/
 
       - name: Upload coverage report
         if: ${{ !env.ACT }}
@@ -63,4 +56,3 @@ jobs:
         with:
           name: coverage-report-${{ strategy.job-index }}
           path: htmlcov/
-          

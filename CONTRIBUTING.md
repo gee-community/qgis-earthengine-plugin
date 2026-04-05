@@ -23,15 +23,18 @@ To contribute locally, follow these steps:
 
 3. Create a symlink to your plugin directory so it can be loaded directly into QGIS:
    ```bash
-   # macOS/Linux
+   # macOS/Linux — QGIS 3.x
    ln -sf "$(pwd)/ee_plugin" "$HOME/Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/ee_plugin"
+   # macOS/Linux — QGIS 4.x
+   ln -sf "$(pwd)/ee_plugin" "$HOME/Library/Application Support/QGIS/QGIS4/profiles/default/python/plugins/ee_plugin"
    ```
 
    ```powershell
-   # Windows PowerShell (as Administrator)
+   # Windows PowerShell (as Administrator) — QGIS 3.x
    $src = "$(pwd)\ee_plugin"
    $dst = "$env:APPDATA\QGIS\QGIS3\profiles\default\python\plugins\ee_plugin"
    New-Item -ItemType SymbolicLink -Path $dst -Target $src
+   # For QGIS 4.x, replace QGIS3 with QGIS4 in the path above
    ```
 
 4. Restart QGIS and enable the plugin via the Plugin Manager. Use the [Plugin Reloader](https://plugins.qgis.org/plugins/plugin_reloader/) for a faster development loop.

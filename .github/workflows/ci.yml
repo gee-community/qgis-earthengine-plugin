@@ -11,15 +11,25 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - qgis-pkg: "qgis python3-qgis python3-pyqt5"
+            label: "QGIS 3.x (Qt5)"
+          - qgis-pkg: "qgis python3-qgis python3-pyqt6"
+            label: "QGIS 4.x (Qt6)"
+      fail-fast: false
+
+    name: "${{ matrix.label }}"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up QGIS environment 
+      - name: Set up QGIS environment
         run: |
           sudo apt update
-          sudo apt install -y qgis python3-qgis python3-pyqt5 python3-pytest
-      
+          sudo apt install -y ${{ matrix.qgis-pkg }} python3-pytest
+
       - name: Set Environment Variables
         run: |
           echo "QGIS_HOME=/usr" >> $GITHUB_ENV
@@ -29,9 +39,9 @@ jobs:
       - name: Start Virtual Display
         run: Xvfb :99 -screen 0 1024x768x24 &
 
-      - name: Configure Earth Engine Credentials 
+      - name: Configure Earth Engine Credentials
         run: |
-          mkdir -p ~/.config/earthengine  
+          mkdir -p ~/.config/earthengine
           echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials
 
       - name: Install dependencies
@@ -50,6 +60,6 @@ jobs:
         if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: coverage-report-${{ strategy.job-index }}
           path: htmlcov/
           

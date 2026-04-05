@@ -41,13 +41,13 @@ class QGISMessageLogHandler(logging.Handler):
         """
         notify_user = False
         if record.levelno >= logging.ERROR:
-            qgis_level = Qgis.Critical
+            qgis_level = Qgis.MessageLevel.Critical
             notify_user = True
         elif record.levelno >= logging.WARNING:
-            qgis_level = Qgis.Warning
+            qgis_level = Qgis.MessageLevel.Warning
         else:
             # INFO, DEBUG, etc. can map to Qgis.Info
-            qgis_level = Qgis.Info
+            qgis_level = Qgis.MessageLevel.Info
 
         # Format the log message
         msg = self.format(record)
@@ -74,12 +74,12 @@ class QGISMessageBarHandler(logging.Handler):
     def emit(self, record):
         # Map Python log levels to QGIS message bar levels
         if record.levelno >= logging.ERROR:
-            qgis_level = Qgis.Critical
+            qgis_level = Qgis.MessageLevel.Critical
         elif record.levelno >= logging.WARNING:
-            qgis_level = Qgis.Warning
+            qgis_level = Qgis.MessageLevel.Warning
         else:
             # TODO: Support Qgis.Success for positive messages?
-            qgis_level = Qgis.Info
+            qgis_level = Qgis.MessageLevel.Info
 
         # Format the log message
         msg = self.format(record)
@@ -99,7 +99,7 @@ class QGISMessageBarHandler(logging.Handler):
                 QgsMessageLog.logMessage(
                     message=f"Error pushing message to QGIS Message Bar: {str(e)}",
                     tag=self.plugin_name,
-                    level=Qgis.Critical,
+                    level=Qgis.MessageLevel.Critical,
                     notifyUser=True,
                 )
 

@@ -4,6 +4,8 @@
 
 The **QGIS Earth Engine Plugin** integrates [Google Earth Engine](http://earthengine.google.com) with [QGIS](https://qgis.org/) using the [EE Python API](https://github.com/google/earthengine-api/tree/master).
 
+> **Compatibility:** QGIS 3.34+ (Qt5/PyQt5) and QGIS 4.x (Qt6/PyQt6).
+
 📖 **[User Guide](https://gee-community.github.io/qgis-earthengine-plugin/)**
 
 ❓ **[Troubleshooting](https://gee-community.github.io/qgis-earthengine-plugin/troubleshooting)**

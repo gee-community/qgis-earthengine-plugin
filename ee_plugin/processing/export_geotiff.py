@@ -108,8 +108,8 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
         bands_row = QHBoxLayout()
         self.available_list = QListWidget(objectName="available_bands")
         self.selected_list = QListWidget(objectName="selected_bands")
-        self.available_list.setSelectionMode(QListWidget.MultiSelection)
-        self.selected_list.setSelectionMode(QListWidget.MultiSelection)
+        self.available_list.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        self.selected_list.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
 
         btns_col = QVBoxLayout()
         self.add_btn = QPushButton(">>")

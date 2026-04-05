@@ -1,8 +1,6 @@
 # coding=utf-8
 """Common functionality used by regression tests."""
 
-from __future__ import absolute_import
-
 import logging
 import sys
 
@@ -26,7 +24,8 @@ def get_qgis_app():
     try:
         from qgis.core import QgsApplication
         from qgis.gui import QgsMapCanvas
-        from qgis.PyQt import QtCore, QtGui
+        from qgis.PyQt import QtCore
+        from qgis.PyQt.QtWidgets import QWidget
 
         from .qgis_interface import QgisInterface
     except ImportError:
@@ -46,7 +45,7 @@ def get_qgis_app():
     global PARENT  # pylint: disable=W0603
     if PARENT is None:
         # noinspection PyPep8Naming
-        PARENT = QtGui.QWidget()
+        PARENT = QWidget()
 
     global CANVAS  # pylint: disable=W0603
     if CANVAS is None:

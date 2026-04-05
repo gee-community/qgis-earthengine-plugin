@@ -222,7 +222,7 @@ def collection_to_atlas(
 
     pages = layout.pageCollection()
     page = pages.page(0)
-    map.attemptResize(QgsLayoutSize(width, width, QgsUnitTypes.LayoutMillimeters))
+    map.attemptResize(QgsLayoutSize(width, width, QgsUnitTypes.LayoutUnit.LayoutMillimeters))
     map.setAtlasMargin(margin)
     if transparent_bg:
         page.setOpacity(0)
@@ -230,7 +230,7 @@ def collection_to_atlas(
 
     polyLayer = QgsVectorLayer("Polygon", poly_name, "memory")
     pr = polyLayer.dataProvider()
-    pr.addAttributes([QgsField(layer_attr, QVariant.String)])
+    pr.addAttributes([QgsField(layer_attr, QVariant.Type.String)])
     polyLayer.updateFields()
     bounds = [[xmin, ymax], [xmax, ymax], [xmax, ymin], [xmin, ymin]]
     points = [QgsPointXY(*pt) for pt in bounds]
@@ -276,5 +276,5 @@ def collection_to_atlas(
     map.setAtlasDriven(True)
     map.setFollowVisibilityPreset(True)
     map.dataDefinedProperties().setProperty(
-        QgsLayoutItemMap.MapStylePreset, QgsProperty.fromExpression(layer_attr)
+        QgsLayoutItemMap.DataDefinedProperty.MapStylePreset, QgsProperty.fromExpression(layer_attr)
     )

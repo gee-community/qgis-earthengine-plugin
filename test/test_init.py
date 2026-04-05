@@ -1,9 +1,6 @@
 # coding=utf-8
 """Tests QGIS plugin init."""
 
-from future import standard_library
-
-standard_library.install_aliases()
 __author__ = "Tim Sutton <tim@linfiniti.com>"
 __revision__ = "$Format:%H$"
 __date__ = "17/10/2010"

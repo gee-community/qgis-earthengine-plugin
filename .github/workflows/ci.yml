@@ -37,7 +37,9 @@ jobs:
       - name: Create virtualenv and install dependencies
         run: |
           uv venv --system-site-packages
-          uv pip install -r requirements-dev.txt
+          # Exclude PyQt packages to avoid conflicts with the Qt version shipped in the container
+          printf 'PyQt5\nPyQt5-sip\nPyQt5-Qt5\nPyQt6\nPyQt6-sip\nPyQt6-Qt6\n' > /tmp/exclude-qt.txt
+          uv pip install -r requirements-dev.txt --excludes /tmp/exclude-qt.txt
 
       - name: Configure Earth Engine Credentials
         run: |

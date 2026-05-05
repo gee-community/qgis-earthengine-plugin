@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.8](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.7...v0.1.8) (2026-05-05)
+
+
+### Bug Fixes
+
+* make pkg_resources optional for QGIS 3.44 compatibility ([#426](https://github.com/gee-community/qgis-earthengine-plugin/issues/426)) ([b4dea0b](https://github.com/gee-community/qgis-earthengine-plugin/commit/b4dea0b3dc2c960e5ccc22088adea2556dd8dfc4))
+
 ## [0.1.7](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.6...v0.1.7) (2026-01-10)
 
 

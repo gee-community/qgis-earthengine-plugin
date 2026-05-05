@@ -2,8 +2,6 @@
 import os
 import site
 
-import pkg_resources
-
 __version__ = "0.0.7"
 
 
@@ -15,8 +13,18 @@ def add_ee_dependencies():
     if os.path.isdir(extra_libs_path):
         # add to python path
         site.addsitedir(extra_libs_path)
-        # pkg_resources doesn't listen to changes on sys.path.
-        pkg_resources.working_set.add_entry(extra_libs_path)
+        # Older plugin code used pkg_resources to refresh setuptools'
+        # working set after mutating sys.path. QGIS 3.44 ships without
+        # pkg_resources by default, and the plugin does not otherwise
+        # require setuptools to function.
+        try:
+            import pkg_resources
+        except ModuleNotFoundError:
+            pkg_resources = None
+
+        if pkg_resources is not None:
+            # pkg_resources doesn't listen to changes on sys.path.
+            pkg_resources.working_set.add_entry(extra_libs_path)
 
 
 # noinspection PyPep8Naming

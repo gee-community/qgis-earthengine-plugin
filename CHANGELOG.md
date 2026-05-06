@@ -8,6 +8,14 @@ All notable changes to this project will be documented in this file.
 
 * plugin audit ([#432](https://github.com/gee-community/qgis-earthengine-plugin/issues/432)) ([9d0d526](https://github.com/gee-community/qgis-earthengine-plugin/commit/9d0d5265f6c16a23adb1105185415aff4b0e9cde))
 
+## [0.1.10](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.9...v0.1.10) (2026-05-06)
+
+
+### Bug Fixes
+
+* plugin audit ([#432](https://github.com/gee-community/qgis-earthengine-plugin/issues/432)) ([9d0d526](https://github.com/gee-community/qgis-earthengine-plugin/commit/9d0d5265f6c16a23adb1105185415aff4b0e9cde))
+* plugin audit ([#435](https://github.com/gee-community/qgis-earthengine-plugin/issues/435)) ([a636623](https://github.com/gee-community/qgis-earthengine-plugin/commit/a636623a1ca3163d54a85f3d3e10fc2967bcfa38))
+
 ## [0.1.9](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.8...v0.1.9) (2026-05-06)
 
 

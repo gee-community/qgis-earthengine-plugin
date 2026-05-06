@@ -72,8 +72,11 @@ The plugin can be debugged within [Visual Studio Code](https://code.visualstudio
 
 4. Test your changes locally including reinstalling new dependencies for the QGIS environment with:
    ```bash
-   pip install -r requirements.txt -t ee_plugin/extlibs  
+   ./scripts/build_extlibs.sh
    ```
+
+   This rebuilds `ee_plugin/extlibs` the same way CI and publishing do, including
+   cleanup/pruning of vendored dependencies that are not shipped in releases.
 
 5. Commit your changes with a clear and descriptive message:
    ```bash

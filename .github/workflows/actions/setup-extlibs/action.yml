@@ -7,7 +7,4 @@ runs:
     - name: Install plugin dependencies into extlibs
       shell: bash
       run: |
-        mkdir -p ee_plugin/extlibs
-        pip install -r requirements.txt -t ee_plugin/extlibs
-        find ee_plugin/extlibs -type f \( -name '*.so' -o -name '*.pyd' -o -name '*.dylib' \) -delete
-        find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +
+        ./scripts/build_extlibs.sh

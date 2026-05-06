@@ -3,6 +3,11 @@ ratelim
 # Later versions require Python 3.10 which is not supported by
 # QGIS mac builds as of 2025-12-04
 earthengine-api==1.6.15
+# Pin the Google auth/client stack to versions that still import cleanly
+# without vendored cryptography in the QGIS plugin environment.
+google-auth==2.40.3
+google-auth-httplib2==0.3.1
+google-api-python-client==2.195.0
 six>=1.13
 httplib2
 requests>2.4

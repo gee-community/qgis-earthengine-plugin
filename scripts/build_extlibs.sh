@@ -27,6 +27,8 @@ rm -rf "$EXTLIBS_DIR/bin"
 rm -rf "$EXTLIBS_DIR/ee/cli"
 rm -rf "$EXTLIBS_DIR/google/cloud/storage"
 rm -rf "$EXTLIBS_DIR/google_crc32c"
+rm -rf "$EXTLIBS_DIR/google/resumable_media"
+rm -rf "$EXTLIBS_DIR/google/_async_resumable_media"
 rm -rf "$EXTLIBS_DIR"/google_cloud_storage-*.dist-info
 rm -rf "$EXTLIBS_DIR"/google_crc32c-*.dist-info
 rm -rf "$EXTLIBS_DIR"/google_resumable_media-*.dist-info

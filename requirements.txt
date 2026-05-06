@@ -1,6 +1,11 @@
 # Track the modern Earth Engine client line now that the plugin baseline
 # targets supported QGIS releases shipping Python 3.12+.
 earthengine-api==1.7.25
+# Pin the Google auth/client stack to the last pure-Python path that
+# loaded cleanly in QGIS without vendored cryptography.
+google-auth==2.40.3
+google-auth-httplib2==0.3.1
+google-api-python-client==2.195.0
 six>=1.13
 httplib2
 requests>2.4

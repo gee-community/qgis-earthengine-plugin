@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+
+
+### Bug Fixes
+
+* plugin audit ([#432](https://github.com/gee-community/qgis-earthengine-plugin/issues/432)) ([9d0d526](https://github.com/gee-community/qgis-earthengine-plugin/commit/9d0d5265f6c16a23adb1105185415aff4b0e9cde))
+
 ## [0.1.9](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.8...v0.1.9) (2026-05-06)
 
 

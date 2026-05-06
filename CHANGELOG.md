@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.9](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.8...v0.1.9) (2026-05-06)
+
+
+### Bug Fixes
+
+* make extlibs packaging reproducible for QGIS publishing ([#430](https://github.com/gee-community/qgis-earthengine-plugin/issues/430)) ([b294258](https://github.com/gee-community/qgis-earthengine-plugin/commit/b29425882844df99a81d28873595b1486ef610e9))
+
 ## [0.1.8](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.7...v0.1.8) (2026-05-05)
 
 

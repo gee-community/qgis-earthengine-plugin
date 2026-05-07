@@ -1,8 +1,8 @@
 import ee
 from pytest import fixture
 from qgis.gui import QgisInterface
+from qgis.PyQt.QtCore import QSettings, QCoreApplication
 from qgis.utils import plugins
-from PyQt5.QtCore import QSettings, QCoreApplication
 
 from ee_plugin import ee_plugin, config
 

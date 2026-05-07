@@ -2,11 +2,12 @@
 -r requirements.txt  # Include all main requirements
 
 # Development dependencies
-pytest==7.4.3 # pytest-qgis does not support pytest>=8
+pytest==7.4.3 # Keep in sync with pytest-qgis support in this repo.
 pytest-cov
-pytest-qgis==2.1.0
+pytest-qgis==4.0.1
+pytest-timeout
 pre-commit
 future
 rasterio
-qgis-plugin-ci
-pyOpenSSL<24.0.0
+qgis-plugin-ci==2.9.2
+pyOpenSSL==26.0.0

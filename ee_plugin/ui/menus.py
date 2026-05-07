@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Callable
-from PyQt5.QtWidgets import QMenu, QAction
+from qgis.PyQt.QtWidgets import QMenu, QAction
 
 
 MenuItem = Callable[[QMenu], None]

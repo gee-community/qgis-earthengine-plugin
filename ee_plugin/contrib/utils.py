@@ -176,8 +176,6 @@ def collection_to_atlas(
     """
     import qgis.core
     from qgis.utils import iface
-    from PyQt5.QtCore import QVariant
-    from PyQt5.QtGui import QColor
     from qgis.core import (
         QgsProject,
         QgsVectorLayer,
@@ -191,6 +189,8 @@ def collection_to_atlas(
         QgsUnitTypes,
         QgsProperty,
     )
+    from qgis.PyQt.QtCore import QVariant
+    from qgis.PyQt.QtGui import QColor
     from ee_plugin.utils import add_or_update_ee_layer, get_layer_by_name
 
     project = QgsProject.instance()

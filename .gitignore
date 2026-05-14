@@ -1,19 +1,8 @@
-# IDEA or PyCharm
-.idea/
-
-__pycache__
-
-*.qgs~
-
-help/build
-extlibs*
-
-ee_plugin.zip
-
-temp
-venv
-.DS_Store
-htmlcov
-.coverage
+.secrets
+.DS_STORE
 .cache
-site
+__pycache__
+venv
+extlibs
+ee_plugin.zip
+htmlcov

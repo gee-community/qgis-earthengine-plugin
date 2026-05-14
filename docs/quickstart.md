@@ -6,6 +6,7 @@ title: QuickStart Guide
 
 ## 1️⃣ Install the Plugin
 
+- Use QGIS 3.44 or newer.
 - Open **QGIS Plugin Manager** (`Plugins → Manage and Install Plugins`).
 - Search for **"Google Earth Engine"** and install it.
 

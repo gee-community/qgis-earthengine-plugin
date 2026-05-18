@@ -28,8 +28,8 @@ def test_get_properties_from_image():
     asset_id = "USGS/SRTMGL1_003"
     props = get_ee_properties(asset_id)
     assert isinstance(props, list)
-    len(props) > 0
-    assert "date_range"
+    assert len(props) > 0
+    assert "date_range" in props
 
 
 def test_invalid_asset_returns_none():
@@ -50,7 +50,6 @@ def test_get_available_bands_landsat():
     asset_id = "LANDSAT/LC09/C02/T1_L2"
     bands = get_available_bands(asset_id)
     assert isinstance(bands, list)
-    print(bands)
     assert len(bands) > 0
     assert "SR_B1" in bands or "SR_B2" in bands
 

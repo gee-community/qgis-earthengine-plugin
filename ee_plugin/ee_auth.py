@@ -24,10 +24,10 @@ def ee_authenticate(ee_config: EarthEngineConfig) -> bool:
         None,
         "Authenticate Google Earth Engine",
         msg,
-        QMessageBox.Cancel | QMessageBox.Ok,
+        QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok,
     )
 
-    if reply == QMessageBox.Cancel:
+    if reply == QMessageBox.StandardButton.Cancel:
         print("Cancel")
         return False
     else:
@@ -82,7 +82,7 @@ def prompt_for_project(cur_project: Optional[str]) -> Optional[str]:
 
     msg = msg_with_project if cur_project else msg_no_project
     (project, _ok) = QInputDialog.getText(
-        None, "Select Earth Engine project", msg, QLineEdit.Normal, cur_project
+        None, "Select Earth Engine project", msg, QLineEdit.EchoMode.Normal, cur_project
     )
     return project
 

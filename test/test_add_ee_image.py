@@ -1,3 +1,4 @@
+import pytest
 from qgis.core import (
     QgsProcessingContext,
     QgsProcessingFeedback,
@@ -7,7 +8,7 @@ from ee_plugin.processing.add_ee_image import AddEEImageAlgorithm
 
 def run_algorithm_with_params(params):
     alg = AddEEImageAlgorithm()
-    alg.initAlgorithm()
+    alg.initAlgorithm(config=None)
     context = QgsProcessingContext()
     feedback = QgsProcessingFeedback()
     return alg.processAlgorithm(params, context, feedback)
@@ -51,10 +52,8 @@ def test_invalid_viz_params(clean_qgis_iface):
         "IMAGE_ID": "USGS/SRTMGL1_003",
         "VIZ_PARAMS": "not a valid JSON string",
     }
-    try:
+    with pytest.raises(Exception):
         run_algorithm_with_params(params)
-    except Exception:
-        pass
     assert len(clean_qgis_iface.mapCanvas().layers()) == 0
 
 

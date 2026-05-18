@@ -3,7 +3,11 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, Dict
 import os
-import sip
+
+try:
+    from qgis.PyQt import sip
+except ImportError:
+    import sip
 
 from osgeo import gdal
 from qgis.core import (
@@ -54,7 +58,7 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
         # Don't destroy the dialog on close; we hide while tasks run
         try:
-            self.setAttribute(Qt.WA_DeleteOnClose, False)
+            self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
         except Exception:
             pass
         self._reopen_widget = None
@@ -285,7 +289,7 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
         class _ProcTask(QgsTask):
             def __init__(self, description, alg, params, context, feedback, signals):
-                super().__init__(description, QgsTask.CanCancel)
+                super().__init__(description, QgsTask.Flag.CanCancel)
                 self._alg = alg
                 self._params = params
                 self._context = context
@@ -349,7 +353,9 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
                 bb = self.buttonBox()
                 run_btn = (
-                    bb.button(QDialogButtonBox.Ok) if hasattr(bb, "button") else None
+                    bb.button(QDialogButtonBox.StandardButton.Ok)
+                    if hasattr(bb, "button")
+                    else None
                 )
                 if run_btn:
                     run_btn.setEnabled(False)
@@ -439,7 +445,9 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
                 bb = self.buttonBox()
                 run_btn = (
-                    bb.button(QDialogButtonBox.Ok) if hasattr(bb, "button") else None
+                    bb.button(QDialogButtonBox.StandardButton.Ok)
+                    if hasattr(bb, "button")
+                    else None
                 )
                 if run_btn:
                     run_btn.setEnabled(True)
@@ -530,7 +538,7 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
 
             btn.clicked.connect(_show_again)
             msg.layout().addWidget(btn)
-            bar.pushWidget(msg, Qgis.Info)
+            bar.pushWidget(msg, Qgis.MessageLevel.Info)
             self._reopen_widget = msg
         except Exception:
             pass

@@ -3,20 +3,17 @@
 Main plugin file.
 """
 
-from __future__ import absolute_import
-
 import configparser
 import json
 import os.path
 import webbrowser
-from builtins import object
 from typing import cast
 
 import requests  # type: ignore
 from qgis import gui, processing
 from qgis.core import QgsProject, QgsApplication
 from qgis.PyQt import QtWidgets
-from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, qVersion, Qt
+from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator, Qt
 from qgis.PyQt.QtGui import QIcon
 import ee
 
@@ -68,6 +65,7 @@ class GoogleEarthEnginePlugin(object):
         self.ee_config = ee_config
         self.menu = None
         self.toolButton = None
+        self.toolButtonAction = None
 
         # initialize locale
         locale = str(QSettings().value("locale/userLocale"))[0:2]
@@ -77,9 +75,7 @@ class GoogleEarthEnginePlugin(object):
         if os.path.exists(locale_path):
             self.translator = QTranslator()
             self.translator.load(locale_path)
-
-            if qVersion() > "4.3.3":
-                QCoreApplication.installTranslator(self.translator)
+            QCoreApplication.installTranslator(self.translator)
 
         # Create and register the EE data providers
         provider.register_data_provider()
@@ -151,7 +147,7 @@ class GoogleEarthEnginePlugin(object):
             parent=self.iface.mainWindow(),
             triggered=lambda: AddImageCollectionAlgorithmDialog(
                 AddImageCollectionAlgorithm(), self.iface.mainWindow()
-            ).exec_(),
+            ).exec(),
         )
 
         export_geotiff_button = QtWidgets.QAction(
@@ -177,11 +173,11 @@ class GoogleEarthEnginePlugin(object):
         self.toolButton.setDefaultAction(
             QtWidgets.QAction(
                 icon=icon("earth-engine.svg"),
-                text=f'<strong>{self.tr("Google Earth Engine")}</strong>',
+                text=f"<strong>{self.tr('Google Earth Engine')}</strong>",
                 parent=self.iface.mainWindow(),
             )
         )
-        self.iface.pluginToolBar().addWidget(self.toolButton)
+        self.toolButtonAction = self.iface.pluginToolBar().addWidget(self.toolButton)
 
         # Populate menus
         for m in (self.menu, self.toolButton.menu()):
@@ -214,6 +210,9 @@ class GoogleEarthEnginePlugin(object):
     def unload(self):
         if self.menu:
             self.iface.pluginMenu().removeAction(self.menu.menuAction())
+
+        if getattr(self, "toolButtonAction", None):
+            self.iface.pluginToolBar().removeAction(self.toolButtonAction)
 
         try:
             if self.toolButton:

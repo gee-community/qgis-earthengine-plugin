@@ -51,7 +51,9 @@ def test_add_geometry_layer(geometry, vis_params, layer_name):
     layer = layers[0]
     assert layer, "Layer not found"
     assert layer.name() == layer_name, "Layer name mismatch"
-    assert layer.type() == QgsMapLayer.VectorLayer, "Layer is not a vector layer"
+    assert layer.type() == QgsMapLayer.LayerType.VectorLayer, (
+        "Layer is not a vector layer"
+    )
 
 
 def test_data_catalog_vector_layer():
@@ -64,6 +66,6 @@ def test_data_catalog_vector_layer():
     layers = qgis_instance.mapLayersByName(layerName="ecoregions")
     assert len(layers) == 1, "Wrong number of layers added"
     assert layers[0].name() == "ecoregions", "Layer name mismatch"
-    assert (
-        layers[0].type() == QgsMapLayer.RasterLayer
-    ), "Layer is treated as raster layer"
+    assert layers[0].type() == QgsMapLayer.LayerType.RasterLayer, (
+        "Layer is treated as raster layer"
+    )

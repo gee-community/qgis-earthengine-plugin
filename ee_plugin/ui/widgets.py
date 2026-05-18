@@ -58,7 +58,7 @@ class LabeledSlider(QWidget):
         main_layout.addWidget(self.label)
 
         # Slider setup
-        self.slider = QSlider(QtCore.Qt.Horizontal)
+        self.slider = QSlider(QtCore.Qt.Orientation.Horizontal)
         self.slider.setRange(min_value, max_value)
         self.slider.setValue(default_value)
 
@@ -235,7 +235,8 @@ def build_vbox_dialog(
     # Add OK/Cancel buttons
     main_layout.addWidget(
         QDialogButtonBox(
-            standardButtons=QDialogButtonBox.Cancel | QDialogButtonBox.Ok,
+            standardButtons=QDialogButtonBox.StandardButton.Cancel
+            | QDialogButtonBox.StandardButton.Ok,
             accepted=dialog.accept,
             rejected=dialog.reject,
         )
@@ -267,7 +268,8 @@ def build_vbox_widget(
     # Add OK/Cancel buttons
     main_layout.addWidget(
         QDialogButtonBox(
-            standardButtons=QDialogButtonBox.Cancel | QDialogButtonBox.Ok,
+            standardButtons=QDialogButtonBox.StandardButton.Cancel
+            | QDialogButtonBox.StandardButton.Ok,
         )
     )
 

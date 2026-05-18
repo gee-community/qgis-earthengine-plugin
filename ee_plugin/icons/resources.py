@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Resource object code
+# Resource object code (originally compiled for PyQt5/Qt v5.15.2)
 #
-# Created by: The Resource Compiler for PyQt5 (Qt v5.15.2)
+# Compatible with both PyQt5 and PyQt6 via qgis.PyQt shim.
 #
 # WARNING! All changes made in this file will be lost!
 

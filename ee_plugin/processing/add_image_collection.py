@@ -17,7 +17,7 @@ from qgis.core import (
     QgsProcessingParameterBoolean,
     QgsProcessingUtils,
 )
-from qgis.PyQt.QtCore import QTimer, QDate
+from qgis.PyQt.QtCore import Qt, QTimer, QDate
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
@@ -109,8 +109,8 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.percentile_value.setRange(0, 100)
         self.percentile_value.setSingleStep(1)
         self.percentile_value.setTickInterval(10)
-        self.percentile_value.setOrientation(1)
-        self.percentile_value.setTickPosition(QSlider.TicksBelow)
+        self.percentile_value.setOrientation(Qt.Orientation.Horizontal)
+        self.percentile_value.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.percentile_min_label = QLabel("0")
         self.percentile_max_label = QLabel("100")
 
@@ -135,7 +135,8 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
 
     def add_color_to_palette(self):
         options = QColorDialog.ColorDialogOptions(
-            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog
+            QColorDialog.ColorDialogOption.ShowAlphaChannel
+            | QColorDialog.ColorDialogOption.DontUseNativeDialog
         )
         color_dialog = QColorDialog()
         color_dialog.setOptions(options)

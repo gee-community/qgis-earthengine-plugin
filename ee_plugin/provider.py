@@ -23,19 +23,19 @@ from qgis.PyQt.QtCore import QObject
 from . import Map
 
 BAND_TYPES = {
-    "int8": Qgis.Int16,
-    "int16": Qgis.Int16,
-    "int32": Qgis.Int32,
-    "int64": Qgis.Int32,
-    "uint8": Qgis.UInt16,
-    "uint16": Qgis.UInt16,
-    "uint32": Qgis.UInt32,
-    "byte": Qgis.Byte,
-    "short": Qgis.Int16,
-    "int": Qgis.Int16,
-    "long": Qgis.Int32,
-    "float": Qgis.Float32,
-    "double": Qgis.Float64,
+    "int8": Qgis.DataType.Int16,
+    "int16": Qgis.DataType.Int16,
+    "int32": Qgis.DataType.Int32,
+    "int64": Qgis.DataType.Int32,
+    "uint8": Qgis.DataType.UInt16,
+    "uint16": Qgis.DataType.UInt16,
+    "uint32": Qgis.DataType.UInt32,
+    "byte": Qgis.DataType.Byte,
+    "short": Qgis.DataType.Int16,
+    "int": Qgis.DataType.Int16,
+    "long": Qgis.DataType.Int32,
+    "float": Qgis.DataType.Float32,
+    "double": Qgis.DataType.Float64,
 }
 
 logger = logging.getLogger(__name__)
@@ -76,12 +76,8 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     @classmethod
     def createProvider(cls, uri, providerOptions, flags=None, image=None):
-        # compatibility with Qgis < 3.16, ReadFlags only available since 3.16
-        if Qgis.QGIS_VERSION_INT >= 31600:
-            flags = QgsDataProvider.ReadFlags()
-            provider = EarthEngineRasterDataProvider(uri, providerOptions, flags, image)
-        else:
-            provider = EarthEngineRasterDataProvider(uri, providerOptions, image=image)
+        flags = QgsDataProvider.ReadFlags()
+        provider = EarthEngineRasterDataProvider(uri, providerOptions, flags, image)
 
         if image:
             provider.set_ee_object(image)
@@ -260,7 +256,9 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
         band_values = [value[band_name] for band_name in band_names]
 
         value = dict(zip(band_indices, band_values))
-        result = QgsRasterIdentifyResult(QgsRaster.IdentifyFormatValue, value)
+        result = QgsRasterIdentifyResult(
+            QgsRaster.IdentifyFormat.IdentifyFormatValue, value
+        )
 
         return result
 
@@ -342,15 +340,14 @@ class EarthEngineRasterDataProvider(QgsRasterDataProvider):
 
     def capabilities(self):
         caps = (
-            QgsRasterInterface.Size
-            | QgsRasterInterface.Identify
-            | QgsRasterInterface.IdentifyValue
+            QgsRasterInterface.Capability.Size
+            | QgsRasterInterface.Capability.Identify
+            | QgsRasterInterface.Capability.IdentifyValue
         )
 
-        if Qgis.versionInt() >= 33800:
+        if hasattr(Qgis, "RasterInterfaceCapabilities"):
             return Qgis.RasterInterfaceCapabilities(caps)
-        else:
-            return QgsRasterDataProvider.ProviderCapabilities(caps)
+        return QgsRasterDataProvider.ProviderCapabilities(caps)
 
     def dataType(self, band_no):
         return self.wms.dataType(band_no)

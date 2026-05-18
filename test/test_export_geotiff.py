@@ -131,12 +131,12 @@ def test_extent_transformed_to_target_crs():
     alg.processAlgorithm(params, context=context, feedback=feedback)
 
     with rio.open(out_path) as ds:
-        assert (
-            ds.width < 5000 and ds.height < 5000
-        ), "Raster size indicates extent not transformed correctly"
-        assert (
-            "WGS 84" in ds.crs.to_wkt() or "4326" in ds.crs.to_string()
-        ), f"Unexpected CRS: {ds.crs}"
+        assert ds.width < 5000 and ds.height < 5000, (
+            "Raster size indicates extent not transformed correctly"
+        )
+        assert "WGS 84" in ds.crs.to_wkt() or "4326" in ds.crs.to_string(), (
+            f"Unexpected CRS: {ds.crs}"
+        )
         assert ds.count == 1
 
     os.remove(out_path)

@@ -17,4 +17,5 @@ def test_add_landsat_cloud_cover(clean_qgis_iface):
     layer = layers[0]
     assert layer.name() == "LANDSAT_2021"
     assert layer.type() == QgsMapLayer.LayerType.RasterLayer
-    assert layer.providerType() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"

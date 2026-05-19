@@ -22,7 +22,8 @@ def test_add_gee_layer_algorithm(clean_qgis_iface):
     run_algorithm_with_params(params)
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "USGS/SRTMGL1_003"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_load_gee_layer_srtm(clean_qgis_iface):
@@ -33,7 +34,8 @@ def test_load_gee_layer_srtm(clean_qgis_iface):
     run_algorithm_with_params(params)
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "USGS/SRTMGL1_003"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_converting_viz_params_json(clean_qgis_iface):
@@ -44,7 +46,8 @@ def test_converting_viz_params_json(clean_qgis_iface):
     run_algorithm_with_params(params)
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "USGS/SRTMGL1_003"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_invalid_viz_params(clean_qgis_iface):
@@ -65,4 +68,5 @@ def test_empty_viz_params(clean_qgis_iface):
     run_algorithm_with_params(params)
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "USGS/SRTMGL1_003"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"

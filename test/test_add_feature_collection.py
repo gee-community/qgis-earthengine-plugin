@@ -32,7 +32,8 @@ def test_add_feature_collection_algorithm_retain_vector(clean_qgis_iface):
         assert False, "No layers found in the map canvas."
     assert layer is not None
     assert layer.name() == "FC: USGS/WBD/2017/HUC06"
-    assert layer.providerType() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_add_feature_collection_algorithm(clean_qgis_iface):
@@ -70,4 +71,5 @@ def test_add_feature_collection_algorithm(clean_qgis_iface):
         assert False, "No layers found in the map canvas."
     assert layer is not None
     assert layer.name() == "FC: USGS/WBD/2017/HUC06"
-    assert layer.providerType() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"

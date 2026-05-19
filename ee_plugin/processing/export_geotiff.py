@@ -38,7 +38,7 @@ from qgis.core import (
 
 from ..logging import local_context
 from .. import Map
-from ..utils import ee_image_to_geotiff
+from ..utils import ee_image_to_geotiff, get_ee_object_from_layer, is_ee_raster_layer
 
 
 logging = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
         self._raster_layers: List[str] = [
             layer.name()
             for layer in Map.get_iface().mapCanvas().layers()
-            if layer.providerType() == "EE"
+            if is_ee_raster_layer(layer)
         ]
         self._bands_cache: dict[str, List[str]] = {}
         super().__init__(algorithm, parent=parent, title="Export Image to GeoTIFF")
@@ -169,7 +169,7 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
                 (
                     layer
                     for layer in Map.get_iface().mapCanvas().layers()
-                    if layer.name() == name and layer.providerType() == "EE"
+                    if layer.name() == name and is_ee_raster_layer(layer)
                 ),
                 None,
             )
@@ -177,7 +177,7 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
                 bands = []
             else:
                 try:
-                    ee_image = layer.dataProvider().ee_object
+                    ee_image = get_ee_object_from_layer(layer)
                     bands = ee_image.bandNames().getInfo() or []
                 except Exception:
                     bands = []
@@ -265,7 +265,7 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         raster_layers = [
             layer.name()
             for layer in Map.get_iface().mapCanvas().layers()
-            if layer.providerType() == "EE"
+            if is_ee_raster_layer(layer)
         ]
 
         if not raster_layers:
@@ -347,7 +347,7 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
             (
                 layer
                 for layer in Map.get_iface().mapCanvas().layers()
-                if layer.name() == ee_img and layer.providerType() == "EE"
+                if layer.name() == ee_img and is_ee_raster_layer(layer)
             ),
             None,
         )
@@ -356,7 +356,11 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
             msg = f"Layer {ee_img} not found"
             raise ValueError(msg)
 
-        ee_image = layer.dataProvider().ee_object
+        ee_image = get_ee_object_from_layer(layer)
+        if ee_image is None:
+            raise ValueError(
+                f"Could not restore Earth Engine object for layer {ee_img}"
+            )
 
         # Optional band selection
         bands_param = parameters.get("BANDS")

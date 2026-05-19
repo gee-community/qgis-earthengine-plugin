@@ -1,13 +1,14 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import ee
 from qgis.core import QgsProject, QgsPointXY, QgsDataProvider, QgsRaster
 
 from ee_plugin import Map
 from ee_plugin.provider import EarthEngineRasterDataProvider
+from ee_plugin.utils import get_ee_image_url, get_ee_object_from_layer
 
 
-def test_raster_identify():
+def test_raster_layer_persists_ee_object():
     image = ee.Image("USGS/SRTMGL1_003")
     vis_params = {
         "min": 0,
@@ -24,9 +25,26 @@ def test_raster_identify():
         assert layer.crs().authid() == "EPSG:3857", (
             "Layer CRS does not match project CRS"
         )
+        assert layer.customProperty("ee-layer")
+        assert layer.customProperty("ee-layer-type") == "raster"
+        assert get_ee_object_from_layer(layer) is not None
 
-        provider = layer.dataProvider()
-        qgis_point = QgsPointXY(-13551778.88787266425788403, 5917193.28679858986288309)
+
+def test_provider_identify():
+    image = ee.Image("USGS/SRTMGL1_003")
+    provider = EarthEngineRasterDataProvider(
+        uri=f"type=xyz&url={get_ee_image_url(image.visualize())}",
+        providerOptions=QgsDataProvider.ProviderOptions(),
+        flags=None,
+        image=image,
+    )
+    provider.ee_info = {"bands": [{"crs": "EPSG:4326", "id": "elevation"}]}
+    provider.ee_object.reduceRegion = Mock(
+        return_value=Mock(getInfo=Mock(return_value={"elevation": 123}))
+    )
+
+    qgis_point = QgsPointXY(-13551778.88787266425788403, 5917193.28679858986288309)
+    with patch("ee_plugin.Map.getScale", return_value=30):
         raster_identify_result = provider.identify(
             qgis_point,
             format=QgsRaster.IdentifyFormat.IdentifyFormatValue,
@@ -35,16 +53,16 @@ def test_raster_identify():
             dpi=96,
         )
 
-        assert raster_identify_result, "Identify operation returned no results"
-        assert raster_identify_result.isValid(), (
-            "Identify operation returned an invalid result"
-        )
-        assert len(raster_identify_result.results()) == 1, (
-            "Identify returned more than one band"
-        )
-        assert raster_identify_result.results()[1] > 0, (
-            "Identified elevation is not positive"
-        )
+    assert raster_identify_result, "Identify operation returned no results"
+    assert raster_identify_result.isValid(), (
+        "Identify operation returned an invalid result"
+    )
+    assert len(raster_identify_result.results()) == 1, (
+        "Identify returned more than one band"
+    )
+    assert raster_identify_result.results()[1] > 0, (
+        "Identified elevation is not positive"
+    )
 
 
 def test_reduce_region():

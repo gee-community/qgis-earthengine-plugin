@@ -33,6 +33,12 @@ from qgis.PyQt.QtCore import QCoreApplication
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Change as needed (DEBUG/INFO/WARNING/ERROR)
 
+EE_LAYER_PROPERTY = "ee-layer"
+EE_LAYER_TYPE_PROPERTY = "ee-layer-type"
+EE_OBJECT_PROPERTY = "ee-object"
+EE_OBJECT_VIS_PROPERTY = "ee-object-vis"
+EE_ASSET_ID_PROPERTY = "ee-asset-id"
+
 # --- Encoding-size helpers (module-level; used by tile_extent) ---
 
 
@@ -138,6 +144,53 @@ def get_ee_image_url(image: ee.Image) -> str:
     return url
 
 
+def _serialize_ee_object(ee_object: ee.Element) -> str:
+    return ee.serializer.toJSON(ee_object)
+
+
+def set_ee_layer_properties(
+    layer: QgsMapLayer,
+    ee_object: ee.Element,
+    vis_params: Optional[VisualizeParams] = None,
+    layer_type: str = "raster",
+) -> None:
+    layer.setCustomProperty(EE_LAYER_PROPERTY, True)
+    layer.setCustomProperty(EE_LAYER_TYPE_PROPERTY, layer_type)
+    layer.setCustomProperty(EE_OBJECT_PROPERTY, _serialize_ee_object(ee_object))
+    layer.setCustomProperty(EE_OBJECT_VIS_PROPERTY, json.dumps(vis_params or {}))
+    try:
+        asset_id = ee_object.id().getInfo() if hasattr(ee_object, "id") else None
+    except Exception:
+        asset_id = None
+    if asset_id:
+        layer.setCustomProperty(EE_ASSET_ID_PROPERTY, asset_id)
+
+
+def is_ee_layer(layer: QgsMapLayer) -> bool:
+    return bool(layer and layer.customProperty(EE_LAYER_PROPERTY))
+
+
+def is_ee_raster_layer(layer: QgsMapLayer) -> bool:
+    return bool(
+        is_ee_layer(layer) and layer.customProperty(EE_LAYER_TYPE_PROPERTY) == "raster"
+    )
+
+
+def get_ee_object_from_layer(layer: QgsMapLayer) -> Optional[ee.Element]:
+    if not is_ee_layer(layer):
+        return None
+    serialized = layer.customProperty(EE_OBJECT_PROPERTY)
+    if serialized:
+        try:
+            return ee.deserializer.fromJSON(serialized)
+        except Exception as e:
+            logger.warning(
+                f"Could not deserialize ee object from layer {layer.name()}: {e}"
+            )
+    provider_object = getattr(layer.dataProvider(), "ee_object", None)
+    return provider_object
+
+
 def add_or_update_ee_layer(
     eeObject: ee.Element,
     vis_params: VisualizeParams,
@@ -193,7 +246,7 @@ def add_or_update_ee_raster_layer(
 ) -> QgsRasterLayer:
     logger.debug(f"Adding/updating EE raster layer: {name}")
     layer = get_layer_by_name(name)
-    if layer and layer.customProperty("ee-layer"):
+    if layer and is_ee_layer(layer):
         return update_ee_image_layer(image, layer, vis_params, shown, opacity)
     return add_ee_image_layer(image, name, vis_params, shown, opacity)
 
@@ -208,7 +261,7 @@ def add_ee_image_layer(
     logger.debug(f"Adding EE image layer: {name}")
     check_version()
     url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
-    layer = QgsRasterLayer(url, name, "EE")
+    layer = QgsRasterLayer(url, name, "wms")
     # Set extent from ee_object geometry
     try:
         bounds = image.geometry().bounds().getInfo()["coordinates"][0]
@@ -219,7 +272,7 @@ def add_ee_image_layer(
     except Exception as e:
         logger.warning(f"Could not set layer extent from ee_object: {e}")
     assert layer.isValid(), f"Failed to load layer: {name}"
-    layer.dataProvider().set_ee_object(image)
+    set_ee_layer_properties(layer, image, vis_params, layer_type="raster")
     QgsProject.instance().addMapLayer(layer)
 
     if opacity is not None and layer.renderer():
@@ -244,7 +297,8 @@ def update_ee_image_layer(
     parent_group = layer_node.parent()
     idx = parent_group.children().index(layer_node)
 
-    new_layer = QgsRasterLayer(url, layer.name(), "EE")
+    new_layer = QgsRasterLayer(url, layer.name(), "wms")
+    set_ee_layer_properties(new_layer, image, vis_params, layer_type="raster")
 
     if opacity is not None and new_layer.renderer():
         new_layer.renderer().setOpacity(opacity)
@@ -332,6 +386,7 @@ def add_ee_vector_layer(
     uri = temp_file.name
     layer = QgsVectorLayer(uri, name, "ogr")
     assert layer.isValid(), f"Failed to load vector layer: {name}"
+    set_ee_layer_properties(layer, eeObject, style_params or {}, layer_type="vector")
 
     QgsProject.instance().addMapLayer(layer)
 

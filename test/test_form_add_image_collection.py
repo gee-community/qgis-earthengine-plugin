@@ -41,7 +41,8 @@ def test_add_image_collection_algorithm_with_filters(clean_qgis_iface):
     # Validate that the layer was added to the map
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Mosaic)"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_add_image_collection_algorithm_multiple_filters(clean_qgis_iface):
@@ -66,7 +67,8 @@ def test_add_image_collection_algorithm_multiple_filters(clean_qgis_iface):
     # Validate that the layer was added to the map
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Mosaic)"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_invalid_filters(clean_qgis_iface):
@@ -117,7 +119,8 @@ def test_add_image_collection_algorithm_empty_filters(clean_qgis_iface):
     # Validate that the layer was added to the map
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Mosaic)"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_add_image_collection_algorithm_percentile_compositing(clean_qgis_iface):
@@ -142,7 +145,8 @@ def test_add_image_collection_algorithm_percentile_compositing(clean_qgis_iface)
     # Validate that the layer was added to the map with the correct compositing method
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Percentile 90%)"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_add_image_collection_algorithm_invalid_json_viz_params(clean_qgis_iface):
@@ -191,7 +195,8 @@ def test_empty_viz_params(clean_qgis_iface):
     # Validate that the layer was added to the map
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name() == "IC: LANDSAT/LC09/C02/T1_L2 (Mosaic)"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 # Parametrized test for different extent CRS cases
@@ -229,4 +234,5 @@ def test_add_image_collection_with_varied_extent_crs(
     run_algorithm_with_params(params)
     layer = clean_qgis_iface.mapCanvas().layers()[0]
     assert layer.name().startswith("IC:")
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"

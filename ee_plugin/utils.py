@@ -132,9 +132,20 @@ def is_named_dataset(eeObject: ee.Element) -> bool:
 
 
 def get_layer_by_name(name: str) -> Optional[QgsMapLayer]:
+    iface = getattr(qgis.utils, "iface", None)
+    if iface:
+        canvas_layers = [
+            layer for layer in iface.mapCanvas().layers() if layer.name() == name
+        ]
+        logger.debug(f"Found {len(canvas_layers)} canvas layers with name '{name}'.")
+        if canvas_layers:
+            return canvas_layers[0]
+
     layers = QgsProject.instance().mapLayersByName(name)
-    logger.debug(f"Found {len(layers)} layers with name '{name}'.")
-    return layers[0] if layers else None
+    logger.debug(
+        f"Found {len(layers)} project layers with name '{name}' but none on the canvas."
+    )
+    return None
 
 
 def get_ee_image_url(image: ee.Image) -> str:
@@ -142,6 +153,19 @@ def get_ee_image_url(image: ee.Image) -> str:
     url = map_id["tile_fetcher"].url_format
     logger.debug(f"Generated EE image URL: {url}")
     return url
+
+
+def set_layer_extent_from_ee_object(
+    layer: QgsMapLayer, ee_object: ee.Element, warning_context: str
+) -> None:
+    try:
+        bounds = ee_object.geometry().bounds().getInfo()["coordinates"][0]
+        xs = [pt[0] for pt in bounds]
+        ys = [pt[1] for pt in bounds]
+        rect = QgsRectangle(min(xs), min(ys), max(xs), max(ys))
+        layer.setExtent(rect)
+    except Exception as e:
+        logger.warning(f"Could not set {warning_context} from ee_object: {e}")
 
 
 def _serialize_ee_object(ee_object: ee.Element) -> str:
@@ -262,15 +286,7 @@ def add_ee_image_layer(
     check_version()
     url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
     layer = QgsRasterLayer(url, name, "wms")
-    # Set extent from ee_object geometry
-    try:
-        bounds = image.geometry().bounds().getInfo()["coordinates"][0]
-        xs = [pt[0] for pt in bounds]
-        ys = [pt[1] for pt in bounds]
-        rect = QgsRectangle(min(xs), min(ys), max(xs), max(ys))
-        layer.setExtent(rect)
-    except Exception as e:
-        logger.warning(f"Could not set layer extent from ee_object: {e}")
+    set_layer_extent_from_ee_object(layer, image, "layer extent")
     assert layer.isValid(), f"Failed to load layer: {name}"
     set_ee_layer_properties(layer, image, vis_params, layer_type="raster")
     QgsProject.instance().addMapLayer(layer)
@@ -291,26 +307,21 @@ def update_ee_image_layer(
     logger.debug(f"Updating EE image layer: {layer.name()}")
     check_version()
     url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
-    qgis_instance = QgsProject.instance()
-    root = qgis_instance.layerTreeRoot()
-    layer_node = root.findLayer(layer.id())
-    parent_group = layer_node.parent()
-    idx = parent_group.children().index(layer_node)
+    layer.setDataSource(url, layer.name(), "wms")
+    assert layer.isValid(), f"Failed to update layer: {layer.name()}"
+    set_ee_layer_properties(layer, image, vis_params, layer_type="raster")
+    set_layer_extent_from_ee_object(layer, image, "updated layer extent")
 
-    new_layer = QgsRasterLayer(url, layer.name(), "wms")
-    set_ee_layer_properties(new_layer, image, vis_params, layer_type="raster")
-
-    if opacity is not None and new_layer.renderer():
-        new_layer.renderer().setOpacity(opacity)
-
-    qgis_instance.removeMapLayers([layer.id()])
-    qgis_instance.addMapLayer(new_layer, False)
-    root.insertLayer(idx, new_layer)
+    if opacity is not None and layer.renderer():
+        layer.renderer().setOpacity(opacity)
 
     if shown is not None:
-        root.findLayer(new_layer.id()).setItemVisibilityChecked(shown)
+        layer_node = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+        if layer_node:
+            layer_node.setItemVisibilityChecked(shown)
 
-    return new_layer
+    layer.triggerRepaint()
+    return layer
 
 
 def add_or_update_named_vector_layer(

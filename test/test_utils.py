@@ -1,8 +1,13 @@
 import pytest
-from qgis.core import QgsRectangle
+from qgis.core import QgsProject, QgsRectangle, QgsVectorLayer
 
 import ee
-from ee_plugin.utils import get_ee_properties, get_available_bands, tile_extent
+from ee_plugin.utils import (
+    get_ee_properties,
+    get_available_bands,
+    get_layer_by_name,
+    tile_extent,
+)
 
 # Initialize Earth Engine
 ee.Initialize()
@@ -65,3 +70,21 @@ def test_tile_extent_coordinates_match_projection():
         tile_extent(
             img, extent_3857.toRectF().getCoords(), scale=30, projection="EPSG:4326"
         )
+
+
+def test_get_layer_by_name_returns_project_layer_not_on_canvas():
+    """get_layer_by_name should return a layer from the project even if it is not on the canvas."""
+    layer = QgsVectorLayer(
+        "Point?crs=EPSG:4326&field=name:string", "test_offcanvas", "memory"
+    )
+    assert layer.isValid()
+    QgsProject.instance().addMapLayer(layer, False)
+
+    try:
+        result = get_layer_by_name("test_offcanvas")
+        assert result is not None, (
+            "get_layer_by_name returned None for a project layer not on the canvas"
+        )
+        assert result.id() == layer.id()
+    finally:
+        QgsProject.instance().removeMapLayers([layer.id()])

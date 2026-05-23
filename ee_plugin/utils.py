@@ -143,9 +143,9 @@ def get_layer_by_name(name: str) -> Optional[QgsMapLayer]:
 
     layers = QgsProject.instance().mapLayersByName(name)
     logger.debug(
-        f"Found {len(layers)} project layers with name '{name}' but none on the canvas."
+        f"Found {len(layers)} project layer(s) with name '{name}'."
     )
-    return None
+    return layers[0] if layers else None
 
 
 def get_ee_image_url(image: ee.Image) -> str:

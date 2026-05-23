@@ -142,9 +142,7 @@ def get_layer_by_name(name: str) -> Optional[QgsMapLayer]:
             return canvas_layers[0]
 
     layers = QgsProject.instance().mapLayersByName(name)
-    logger.debug(
-        f"Found {len(layers)} project layer(s) with name '{name}'."
-    )
+    logger.debug(f"Found {len(layers)} project layer(s) with name '{name}'.")
     return layers[0] if layers else None
 
 

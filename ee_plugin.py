@@ -126,13 +126,15 @@ class GoogleEarthEnginePlugin(object):
         
         if version_checked:
             return
-
         try:
-            latest_version = requests.get('https://qgis-ee-plugin.appspot.com/get_latest_version').text
-
-            if VERSION < latest_version:
-                self.iface.messageBar().pushMessage('Earth Engine plugin:',
-                    'There is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!'.format(latest_version, VERSION), duration=15)
+            import re
+            response = requests.get('https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/refs/heads/main/ee_plugin/__version__.py')
+            match = re.search(r"__version__\s*=\s*['\"]([^'\"]+)['\"]", response.text)
+            if match:
+                latest_version = match.group(1)
+                if VERSION < latest_version:
+                    self.iface.messageBar().pushMessage('Earth Engine plugin:',
+                        'There is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!'.format(latest_version, VERSION), duration=15)
         except: 
             print('Error occurred when checking for recent plugin version, skipping ...')
 

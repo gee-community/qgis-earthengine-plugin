@@ -3,7 +3,7 @@ import os
 import site
 import pkg_resources
 
-__version__ = '0.0.7'
+from .__version__ import __version__
 
 def add_ee_dependencies():
     extra_libs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'extlibs'))

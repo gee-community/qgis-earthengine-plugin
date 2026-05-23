@@ -253,21 +253,25 @@ class GoogleEarthEnginePlugin(object):
             return
 
         try:
+            import re
+
             # Attempt to get the latest version from the server
-            latest_version = requests.get(
-                "https://qgis-ee-plugin.appspot.com/get_latest_version",
+            response = requests.get(
+                "https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/refs/heads/main/ee_plugin/__version__.py",
                 # requires requests > 2.4, can through requests.exceptions.Timeout (which is a RequestException, so already handled)
                 timeout=10,
-            ).text
-
-            if VERSION < latest_version:
-                self.iface.messageBar().pushMessage(
-                    "Earth Engine plugin:",
-                    "There is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!".format(
-                        latest_version, VERSION
-                    ),
-                    duration=15,
-                )
+            )
+            match = re.search(r"__version__\s*=\s*['\"]([^'\"]+)['\"]", response.text)
+            if match:
+                latest_version = match.group(1)
+                if VERSION < latest_version:
+                    self.iface.messageBar().pushMessage(
+                        "Earth Engine plugin:",
+                        "There is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!".format(
+                            latest_version, VERSION
+                        ),
+                        duration=15,
+                    )
         except requests.RequestException as e:
             print(f"HTTP error occurred when checking for recent plugin version: {e}")
         except ValueError as e:

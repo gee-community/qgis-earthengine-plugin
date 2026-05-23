@@ -2,7 +2,7 @@
 import os
 import site
 
-__version__ = "0.1.8"
+from .__version__ import __version__
 
 
 def add_ee_dependencies():

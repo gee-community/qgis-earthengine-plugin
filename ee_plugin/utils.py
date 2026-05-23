@@ -286,7 +286,6 @@ def add_ee_image_layer(
     check_version()
     url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
     layer = QgsRasterLayer(url, name, "wms")
-    set_layer_extent_from_ee_object(layer, image, "layer extent")
     assert layer.isValid(), f"Failed to load layer: {name}"
     set_ee_layer_properties(layer, image, vis_params, layer_type="raster")
     QgsProject.instance().addMapLayer(layer)
@@ -310,7 +309,6 @@ def update_ee_image_layer(
     layer.setDataSource(url, layer.name(), "wms")
     assert layer.isValid(), f"Failed to update layer: {layer.name()}"
     set_ee_layer_properties(layer, image, vis_params, layer_type="raster")
-    set_layer_extent_from_ee_object(layer, image, "updated layer extent")
 
     if opacity is not None and layer.renderer():
         layer.renderer().setOpacity(opacity)

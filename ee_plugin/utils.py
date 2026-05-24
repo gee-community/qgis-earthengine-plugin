@@ -4,6 +4,7 @@ Utils functions for EE
 """
 
 from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtCore import Qt, QCoreApplication
 
 import os
 import math
@@ -11,6 +12,13 @@ import json
 import tempfile
 import logging
 from typing import Optional, TypedDict, Tuple, Any, List
+
+try:
+    import gzip
+
+    _GZIP_AVAILABLE = True
+except ImportError:
+    _GZIP_AVAILABLE = False
 
 import ee
 import qgis
@@ -26,8 +34,11 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsProcessingContext,
     QgsCoordinateTransform,
+    QgsWkbTypes,
+    QgsSimpleMarkerSymbolLayer,
+    QgsSimpleLineSymbolLayer,
+    QgsSimpleFillSymbolLayer,
 )
-from qgis.PyQt.QtCore import QCoreApplication
 
 
 logger = logging.getLogger(__name__)
@@ -249,9 +260,13 @@ def add_or_update_ee_layer(
                 eeObject, name, vis_params, shown, opacity
             )
         else:
-            layer = add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+            layer = add_or_update_ee_vector_layer(
+                eeObject, name, vis_params, shown, opacity
+            )
     elif isinstance(eeObject, ee.Geometry):
-        layer = add_or_update_ee_vector_layer(eeObject, name, shown, opacity)
+        layer = add_or_update_ee_vector_layer(
+            eeObject, name, vis_params, shown, opacity
+        )
     elif isinstance(eeObject, ee.ImageCollection):
         reduce_image = eeObject.reduce(ee.Reducer.median())
         layer = add_or_update_ee_raster_layer(reduce_image, name, vis_params, shown)
@@ -349,43 +364,273 @@ def add_or_update_named_vector_layer(
     table_id = eeObject.args.get("tableId", "")
     if not table_id:
         raise ValueError(f"FeatureCollection {name} does not have a valid tableId.")
-    image = ee.Image().paint(eeObject, 0, 2)
-    return add_or_update_ee_raster_layer(image, name, vis_params, shown, opacity)
+    vector_style_keys = {
+        "color",
+        "fillColor",
+        "width",
+        "pointSize",
+        "pointShape",
+        "lineType",
+    }
+    if vis_params and any(k in vis_params for k in vector_style_keys):
+        # Filter to only valid style() params to avoid passing unknown keys
+        valid_style_keys = {
+            "color",
+            "fillColor",
+            "width",
+            "pointSize",
+            "pointShape",
+            "lineType",
+        }
+        style_kwargs = {k: v for k, v in vis_params.items() if k in valid_style_keys}
+        image = eeObject.style(**style_kwargs)
+        # Style is already baked into the image; don't pass vis_params again
+        return add_or_update_ee_raster_layer(image, name, {}, shown, opacity)
+    else:
+        image = ee.Image().paint(eeObject, 0, 2)
+        return add_or_update_ee_raster_layer(image, name, vis_params, shown, opacity)
 
 
 def add_or_update_ee_vector_layer(
     eeObject: ee.Element,
     name: str,
+    vis_params: Optional[dict] = None,
     shown: bool = True,
     opacity: float = 1.0,
-    style_params: Optional[dict] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding/updating EE vector layer: {name}")
     layer = get_layer_by_name(name)
     if layer:
         if not layer.customProperty("ee-layer"):
             raise Exception(f"Layer is not an EE layer: {name}")
-        return update_ee_vector_layer(eeObject, layer, shown, opacity)
-    return add_ee_vector_layer(eeObject, name, shown, opacity, style_params)
+        return update_ee_vector_layer(eeObject, layer, vis_params, shown, opacity)
+    return add_ee_vector_layer(eeObject, name, vis_params, shown, opacity)
 
 
-def add_ee_vector_layer(
-    eeObject: ee.Element,
-    name: str,
-    shown: bool = True,
-    opacity: float = 1.0,
-    style_params: Optional[dict] = None,
-) -> QgsVectorLayer:
-    logger.debug(f"Adding EE vector layer: {name}")
+def _geometry_type(name: str):
+    geometry_type = getattr(QgsWkbTypes, "GeometryType", QgsWkbTypes)
+    return getattr(geometry_type, name)
+
+
+def _constant_style_value(style_params: dict, key: str):
+    value = style_params.get(key)
+    if isinstance(value, dict):
+        logger.warning(
+            f"Data-driven style property '{key}' is not supported for QGIS vector layers; ignoring."
+        )
+        return None
+    return value
+
+
+def _numeric_style_value(style_params: dict, key: str) -> Optional[float]:
+    value = _constant_style_value(style_params, key)
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        logger.warning(
+            f"Invalid numeric value '{value}' for style property '{key}', ignoring."
+        )
+        return None
+
+
+def _convert_line_type(line_type: str) -> Qt.PenStyle:
+    if not isinstance(line_type, str):
+        logger.warning(f"Invalid line type '{line_type}', falling back to solid.")
+        return Qt.PenStyle.SolidLine
+    mapping = {
+        "solid": Qt.PenStyle.SolidLine,
+        "dashed": Qt.PenStyle.DashLine,
+        "dotted": Qt.PenStyle.DotLine,
+    }
+    return mapping.get(line_type.lower(), Qt.PenStyle.SolidLine)
+
+
+def _get_marker_shape(shape_name: str):
+    if not isinstance(shape_name, str):
+        logger.warning(f"Invalid point shape '{shape_name}', falling back to circle.")
+        shape_name = "circle"
+    name = shape_name.lower()
+    try:
+        shape_cls = QgsSimpleMarkerSymbolLayer.Shape
+        mapping = {
+            "circle": shape_cls.Circle,
+            "square": shape_cls.Square,
+            "diamond": shape_cls.Diamond,
+            "triangle": shape_cls.Triangle,
+            "triangle_up": shape_cls.Triangle,
+            "cross": shape_cls.Cross,
+            "plus": shape_cls.Cross2,
+            "pentagon": shape_cls.Pentagon,
+            "hexagon": shape_cls.Hexagon,
+            "star5": shape_cls.Star,
+            "star6": shape_cls.Star,
+            "pentagram": shape_cls.Star,
+            "hexagram": shape_cls.Star,
+        }
+        if name not in mapping:
+            logger.warning(
+                f"Unknown point shape '{shape_name}', falling back to circle. "
+                f"Known shapes: {list(mapping.keys())}"
+            )
+        return mapping.get(name, shape_cls.Circle)
+    except AttributeError:
+        mapping = {
+            "circle": QgsSimpleMarkerSymbolLayer.Circle,
+            "square": QgsSimpleMarkerSymbolLayer.Square,
+            "diamond": QgsSimpleMarkerSymbolLayer.Diamond,
+            "triangle": QgsSimpleMarkerSymbolLayer.Triangle,
+            "triangle_up": QgsSimpleMarkerSymbolLayer.Triangle,
+            "cross": QgsSimpleMarkerSymbolLayer.Cross,
+            "plus": QgsSimpleMarkerSymbolLayer.Cross2,
+            "pentagon": QgsSimpleMarkerSymbolLayer.Pentagon,
+            "hexagon": QgsSimpleMarkerSymbolLayer.Hexagon,
+            "star5": QgsSimpleMarkerSymbolLayer.Star,
+            "star6": QgsSimpleMarkerSymbolLayer.Star,
+            "pentagram": QgsSimpleMarkerSymbolLayer.Star,
+            "hexagram": QgsSimpleMarkerSymbolLayer.Star,
+        }
+        if name not in mapping:
+            logger.warning(
+                f"Unknown point shape '{shape_name}', falling back to circle. "
+                f"Known shapes: {list(mapping.keys())}"
+            )
+        return mapping.get(name, QgsSimpleMarkerSymbolLayer.Circle)
+
+
+def _qcolor(value) -> Optional[QColor]:
+    if not isinstance(value, str):
+        logger.warning(f"Invalid color value '{value}', ignoring.")
+        return None
+    color_value = value.strip()
+    if not color_value.startswith("#") and len(color_value) in (3, 6, 8):
+        try:
+            int(color_value, 16)
+            color_value = f"#{color_value}"
+        except ValueError:
+            pass
+    color = QColor(color_value)
+    if color.isValid():
+        return color
+    logger.warning(f"Invalid color value '{value}', ignoring.")
+    return None
+
+
+def _apply_vector_style(layer: QgsVectorLayer, style_params: dict) -> None:
+    renderer = layer.renderer()
+    if not renderer or not renderer.symbol():
+        return
+
+    symbol = renderer.symbol()
+    symbol_layer = symbol.symbolLayer(0)
+    if not symbol_layer:
+        return
+
+    geometry_type = layer.geometryType()
+
+    base_color = _constant_style_value(style_params, "color")
+    base_fill_color = _constant_style_value(style_params, "fillColor") or base_color
+
+    opacity = _numeric_style_value(style_params, "opacity")
+    if geometry_type == _geometry_type("PointGeometry"):
+        point_opacity = _numeric_style_value(style_params, "pointFillOpacity")
+        if point_opacity is not None:
+            opacity = point_opacity
+    elif geometry_type == _geometry_type("LineGeometry"):
+        line_opacity = _numeric_style_value(style_params, "lineOpacity")
+        if line_opacity is not None:
+            opacity = line_opacity
+    elif geometry_type == _geometry_type("PolygonGeometry"):
+        stroke_opacity = _numeric_style_value(style_params, "polygonStrokeOpacity")
+        fill_opacity = _numeric_style_value(style_params, "polygonFillOpacity")
+        if stroke_opacity is not None:
+            opacity = stroke_opacity
+        elif fill_opacity is not None:
+            opacity = fill_opacity
+
+    if opacity is not None:
+        symbol.setOpacity(opacity)
+
+    if geometry_type == _geometry_type("PointGeometry"):
+        fill_color = (
+            _constant_style_value(style_params, "pointFillColor") or base_fill_color
+        )
+        stroke_color = base_color
+        size = _numeric_style_value(style_params, "pointSize")
+        shape = _constant_style_value(style_params, "pointShape")
+        stroke_width = _numeric_style_value(style_params, "width")
+
+        if isinstance(symbol_layer, QgsSimpleMarkerSymbolLayer):
+            if fill_color:
+                color = _qcolor(fill_color)
+                if color:
+                    symbol_layer.setColor(color)
+            if stroke_color:
+                color = _qcolor(stroke_color)
+                if color:
+                    symbol_layer.setStrokeColor(color)
+            if stroke_width is not None:
+                symbol_layer.setStrokeWidth(stroke_width)
+            if size is not None:
+                symbol_layer.setSize(size)
+            if shape:
+                symbol_layer.setShape(_get_marker_shape(shape))
+
+    elif geometry_type == _geometry_type("LineGeometry"):
+        line_color = _constant_style_value(style_params, "lineColor") or base_color
+        line_width = _numeric_style_value(style_params, "lineWidth")
+        if line_width is None:
+            line_width = _numeric_style_value(style_params, "width")
+        line_type = _constant_style_value(style_params, "lineType")
+
+        if isinstance(symbol_layer, QgsSimpleLineSymbolLayer):
+            if line_color:
+                color = _qcolor(line_color)
+                if color:
+                    symbol_layer.setColor(color)
+            if line_width is not None:
+                symbol_layer.setWidth(line_width)
+            if line_type:
+                symbol_layer.setPenStyle(_convert_line_type(line_type))
+
+    elif geometry_type == _geometry_type("PolygonGeometry"):
+        stroke_color = (
+            _constant_style_value(style_params, "polygonStrokeColor") or base_color
+        )
+        fill_color = (
+            _constant_style_value(style_params, "polygonFillColor") or base_fill_color
+        )
+        stroke_width = _numeric_style_value(style_params, "polygonStrokeWidth")
+        if stroke_width is None:
+            stroke_width = _numeric_style_value(style_params, "width")
+        stroke_type = _constant_style_value(style_params, "polygonStrokeType")
+
+        if isinstance(symbol_layer, QgsSimpleFillSymbolLayer):
+            if stroke_color:
+                color = _qcolor(stroke_color)
+                if color:
+                    symbol_layer.setStrokeColor(color)
+            if fill_color:
+                color = _qcolor(fill_color)
+                if color:
+                    symbol_layer.setFillColor(color)
+            if stroke_width is not None:
+                symbol_layer.setStrokeWidth(stroke_width)
+            if stroke_type:
+                symbol_layer.setStrokeStyle(_convert_line_type(stroke_type))
+
+
+def _ee_object_to_geojson(eeObject: ee.Element) -> dict:
     info = eeObject.getInfo()
 
     if info["type"] == "FeatureCollection":
-        geojson = {
+        return {
             "type": "FeatureCollection",
             "features": info["features"],
         }
     elif info["type"] == "Feature":
-        geojson = {
+        return {
             "type": "FeatureCollection",
             "features": [info],
         }
@@ -397,23 +642,60 @@ def add_ee_vector_layer(
         "MultiLineString",
         "LinearRing",
     ):
-        geojson = {
+        return {
             "type": "FeatureCollection",
             "features": [{"type": "Feature", "geometry": info, "properties": {}}],
         }
     else:
         raise ValueError("Unsupported EE object type: " + info["type"])
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".geojson")
-    with open(temp_file.name, "w") as f:
-        json.dump(geojson, f)
 
-    uri = temp_file.name
+def _write_geojson_temp_file(geojson: dict) -> str:
+    # Use gzip by default; fall back to plain .geojson if unavailable
+    compress = _GZIP_AVAILABLE
+    suffix = ".geojson.gz" if compress else ".geojson"
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    temp_file.close()  # close the fd so we can reopen it
+    if compress:
+        with gzip.open(temp_file.name, "wt", encoding="utf-8") as f:
+            json.dump(geojson, f)
+    else:
+        with open(temp_file.name, "w") as f:
+            json.dump(geojson, f)
+    return temp_file.name
+
+
+def _cleanup_vector_source(layer: QgsMapLayer) -> None:
+    """Remove the temporary GeoJSON file backing a vector layer, if any."""
+    source = layer.customProperty("ee-vector-source")
+    if not source:
+        return
+    try:
+        os.remove(source)
+        logger.debug(f"Cleaned up old vector source: {source}")
+    except PermissionError:
+        logger.warning(f"Could not remove old vector source (file locked): {source}")
+    except OSError as e:
+        logger.warning(f"Could not remove old vector source: {source} — {e}")
+
+
+def add_ee_vector_layer(
+    eeObject: ee.Element,
+    name: str,
+    vis_params: Optional[dict] = None,
+    shown: bool = True,
+    opacity: float = 1.0,
+) -> QgsVectorLayer:
+    logger.debug(f"Adding EE vector layer: {name}")
+    geojson = _ee_object_to_geojson(eeObject)
+    uri = _write_geojson_temp_file(geojson)
     layer = QgsVectorLayer(uri, name, "ogr")
     assert layer.isValid(), f"Failed to load vector layer: {name}"
     set_ee_layer_properties(layer, eeObject, style_params or {}, layer_type="vector")
 
     QgsProject.instance().addMapLayer(layer)
+    layer.setCustomProperty("ee-layer", True)
+    layer.setCustomProperty("ee-vector-source", uri)
 
     if shown is not None:
         tree_layer = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
@@ -424,17 +706,12 @@ def add_ee_vector_layer(
                 "Layer not found in layer tree when trying to set visibility."
             )
 
-    if style_params:
-        symbol = layer.renderer().symbol()
-        symbol_layer = symbol.symbolLayer(0)
-        if style_params.get("opacity"):
-            symbol.setOpacity(style_params["opacity"])
-        if style_params.get("color"):
-            symbol_layer.setStrokeColor(QColor(style_params["color"]))
-        if style_params.get("width"):
-            symbol_layer.setStrokeWidth(style_params["width"])
-        if style_params.get("fillColor"):
-            symbol_layer.setFillColor(QColor(style_params["fillColor"]))
+    renderer = layer.renderer()
+    if renderer and renderer.symbol() and opacity is not None:
+        renderer.symbol().setOpacity(opacity)
+
+    if vis_params:
+        _apply_vector_style(layer, vis_params)
 
     return layer
 
@@ -442,19 +719,38 @@ def add_ee_vector_layer(
 def update_ee_vector_layer(
     eeObject: ee.Element,
     layer: QgsMapLayer,
-    shown: bool,
-    opacity: float,
+    vis_params: Optional[dict] = None,
+    shown: bool = True,
+    opacity: float = 1.0,
 ) -> QgsVectorLayer:
     logger.debug(f"Updating EE vector layer: {layer.name()}")
-    geojson = eeObject.getInfo()
-    uri = f"GeoJSON?crs=EPSG:4326&url={json.dumps(geojson)}"
+    geojson = _ee_object_to_geojson(eeObject)
+    uri = _write_geojson_temp_file(geojson)
 
     new_layer = QgsVectorLayer(uri, layer.name(), "ogr")
+    assert new_layer.isValid(), f"Failed to load vector layer: {layer.name()}"
+    old_source = layer.customProperty("ee-vector-source")
     QgsProject.instance().removeMapLayers([layer.id()])
+    if old_source:
+        try:
+            os.remove(old_source)
+            logger.debug(f"Cleaned up old vector source: {old_source}")
+        except PermissionError:
+            logger.warning(
+                f"Could not remove old vector source (file locked): {old_source}"
+            )
+        except OSError as e:
+            logger.warning(f"Could not remove old vector source: {old_source} — {e}")
     QgsProject.instance().addMapLayer(new_layer)
+    new_layer.setCustomProperty("ee-layer", True)
+    new_layer.setCustomProperty("ee-vector-source", uri)
 
-    if opacity is not None and new_layer.renderer():
-        new_layer.renderer().setOpacity(opacity)
+    renderer = new_layer.renderer()
+    if renderer and renderer.symbol() and opacity is not None:
+        renderer.symbol().setOpacity(opacity)
+
+    if vis_params:
+        _apply_vector_style(new_layer, vis_params)
 
     if shown is not None:
         QgsProject.instance().layerTreeRoot().findLayer(

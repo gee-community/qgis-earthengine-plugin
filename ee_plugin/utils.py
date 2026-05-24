@@ -618,7 +618,6 @@ def _apply_vector_style(layer: QgsVectorLayer, style_params: dict) -> None:
 
     iface.layerTreeView().refreshLayerSymbology(layer.id())
 
-
 def _ee_object_to_geojson(eeObject: ee.Element) -> dict:
     info = eeObject.getInfo()
 
@@ -687,7 +686,7 @@ def add_ee_vector_layer(
     uri = _write_geojson_temp_file(geojson)
     layer = QgsVectorLayer(uri, name, "ogr")
     assert layer.isValid(), f"Failed to load vector layer: {name}"
-    set_ee_layer_properties(layer, eeObject, style_params or {}, layer_type="vector")
+    set_ee_layer_properties(layer, eeObject, vis_params or {}, layer_type="vector")
 
     QgsProject.instance().addMapLayer(layer)
     layer.setCustomProperty("ee-layer", True)
@@ -722,14 +721,13 @@ def update_ee_vector_layer(
     logger.debug(f"Updating EE vector layer: {layer.name()}")
     geojson = _ee_object_to_geojson(eeObject)
     uri = _write_geojson_temp_file(geojson)
-
     old_source = layer.customProperty("ee-vector-source")
     layer.setDataSource(uri, layer.name(), "ogr")
     assert layer.isValid(), f"Failed to reload vector layer: {layer.name()}"
 
     _cleanup_vector_source_path(old_source)
+    set_ee_layer_properties(layer, eeObject, vis_params or {}, layer_type="vector")
     layer.setCustomProperty("ee-vector-source", uri)
-
     renderer = layer.renderer()
     if renderer and renderer.symbol() and opacity is not None:
         renderer.symbol().setOpacity(opacity)

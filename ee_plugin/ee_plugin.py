@@ -40,6 +40,11 @@ except configparser.NoOptionError:
 version_checked = False
 
 
+def _parse_version(version: str) -> tuple[int, ...]:
+    normalized = version.strip().lstrip("v")
+    return tuple(int(part) for part in normalized.split("."))
+
+
 def icon(icon_name: str) -> QIcon:
     """Helper function to return an icon from the plugin directory."""
     return QIcon(os.path.join(PLUGIN_DIR, "icons", icon_name))
@@ -253,25 +258,26 @@ class GoogleEarthEnginePlugin(object):
             return
 
         try:
-            import re
-
-            # Attempt to get the latest version from the server
+            # Compare against the latest published release tag, not main, so
+            # users are only prompted about versions that have actually shipped.
             response = requests.get(
-                "https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/refs/heads/main/ee_plugin/__version__.py",
+                "https://api.github.com/repos/gee-community/qgis-earthengine-plugin/releases/latest",
                 # requires requests > 2.4, can through requests.exceptions.Timeout (which is a RequestException, so already handled)
                 timeout=10,
             )
-            match = re.search(r"__version__\s*=\s*['\"]([^'\"]+)['\"]", response.text)
-            if match:
-                latest_version = match.group(1)
-                if VERSION < latest_version:
-                    self.iface.messageBar().pushMessage(
-                        "Earth Engine plugin:",
-                        "There is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!".format(
-                            latest_version, VERSION
-                        ),
-                        duration=15,
-                    )
+            response.raise_for_status()
+
+            latest_version = response.json().get("tag_name", "").lstrip("v")
+            if latest_version and _parse_version(VERSION) < _parse_version(
+                latest_version
+            ):
+                self.iface.messageBar().pushMessage(
+                    "Earth Engine plugin:",
+                    "There is a more recent version of the ee_plugin available {0} and you have {1}, please upgrade!".format(
+                        latest_version, VERSION
+                    ),
+                    duration=15,
+                )
         except requests.RequestException as e:
             print(f"HTTP error occurred when checking for recent plugin version: {e}")
         except ValueError as e:

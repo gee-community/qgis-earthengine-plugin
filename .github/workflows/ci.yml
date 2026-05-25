@@ -32,7 +32,12 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Install uv
+        if: ${{ !env.ACT }}
         uses: astral-sh/setup-uv@v6
+
+      - name: Install uv for act
+        if: ${{ env.ACT }}
+        run: python3 -m pip install --break-system-packages uv
 
       - name: Create virtualenv and install dependencies
         run: |

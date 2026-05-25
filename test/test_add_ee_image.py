@@ -4,6 +4,7 @@ from qgis.core import (
     QgsProcessingFeedback,
 )
 from ee_plugin.processing.add_ee_image import AddEEImageAlgorithm
+from ee_plugin.utils import get_layer_by_name
 
 
 def run_algorithm_with_params(params):
@@ -20,9 +21,10 @@ def test_add_gee_layer_algorithm(clean_qgis_iface):
         "VIZ_PARAMS": '{"min": 0, "max": 3000, "palette": ["#000000", "#ffffff"]}',
     }
     run_algorithm_with_params(params)
-    layer = clean_qgis_iface.mapCanvas().layers()[0]
+    layer = get_layer_by_name("USGS/SRTMGL1_003")
     assert layer.name() == "USGS/SRTMGL1_003"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_load_gee_layer_srtm(clean_qgis_iface):
@@ -31,9 +33,10 @@ def test_load_gee_layer_srtm(clean_qgis_iface):
         "VIZ_PARAMS": '{"min": 0, "max": 4000, "palette": ["006633", "E5FFCC", "662A00"]}',
     }
     run_algorithm_with_params(params)
-    layer = clean_qgis_iface.mapCanvas().layers()[0]
+    layer = get_layer_by_name("USGS/SRTMGL1_003")
     assert layer.name() == "USGS/SRTMGL1_003"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_converting_viz_params_json(clean_qgis_iface):
@@ -42,9 +45,10 @@ def test_converting_viz_params_json(clean_qgis_iface):
         "VIZ_PARAMS": "{'min': 0, 'max': 4000, 'palette': ['006633', 'E5FFCC', '662A00']}",
     }
     run_algorithm_with_params(params)
-    layer = clean_qgis_iface.mapCanvas().layers()[0]
+    layer = get_layer_by_name("USGS/SRTMGL1_003")
     assert layer.name() == "USGS/SRTMGL1_003"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"
 
 
 def test_invalid_viz_params(clean_qgis_iface):
@@ -63,6 +67,7 @@ def test_empty_viz_params(clean_qgis_iface):
         "VIZ_PARAMS": "",
     }
     run_algorithm_with_params(params)
-    layer = clean_qgis_iface.mapCanvas().layers()[0]
+    layer = get_layer_by_name("USGS/SRTMGL1_003")
     assert layer.name() == "USGS/SRTMGL1_003"
-    assert layer.dataProvider().name() == "EE"
+    assert layer.customProperty("ee-layer")
+    assert layer.customProperty("ee-layer-type") == "raster"

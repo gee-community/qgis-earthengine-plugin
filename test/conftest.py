@@ -1,5 +1,6 @@
 import ee
 from pytest import fixture
+from qgis.core import QgsProject
 from qgis.gui import QgisInterface
 from qgis.PyQt.QtCore import QSettings, QCoreApplication
 from qgis.utils import plugins
@@ -38,5 +39,8 @@ def load_ee_plugin(qgis_app, setup_ee, ee_config):
 
 @fixture(autouse=True, scope="function")
 def clean_qgis_iface(qgis_iface: QgisInterface):
+    QgsProject.instance().removeAllMapLayers()
     qgis_iface.mapCanvas().setLayers([])
     yield qgis_iface
+    QgsProject.instance().removeAllMapLayers()
+    qgis_iface.mapCanvas().setLayers([])

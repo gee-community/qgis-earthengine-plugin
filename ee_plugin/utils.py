@@ -146,6 +146,24 @@ def get_layer_by_name(name: str) -> Optional[QgsMapLayer]:
     return layers[0] if layers else None
 
 
+def get_ee_raster_layers() -> list[QgsMapLayer]:
+    iface = getattr(qgis.utils, "iface", None)
+    canvas_layer_ids = set()
+    raster_layers = []
+
+    if iface:
+        for layer in iface.mapCanvas().layers():
+            if is_ee_raster_layer(layer):
+                raster_layers.append(layer)
+                canvas_layer_ids.add(layer.id())
+
+    for layer in QgsProject.instance().mapLayers().values():
+        if is_ee_raster_layer(layer) and layer.id() not in canvas_layer_ids:
+            raster_layers.append(layer)
+
+    return raster_layers
+
+
 def get_ee_image_url(image: ee.Image) -> str:
     map_id = ee.data.getMapId({"image": image})
     url = map_id["tile_fetcher"].url_format

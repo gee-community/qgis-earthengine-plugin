@@ -38,7 +38,13 @@ from qgis.core import (
 
 from ..logging import local_context
 from .. import Map
-from ..utils import ee_image_to_geotiff, get_ee_object_from_layer, is_ee_raster_layer
+from ..utils import (
+    ee_image_to_geotiff,
+    get_ee_object_from_layer,
+    get_ee_raster_layers,
+    get_layer_by_name,
+    is_ee_raster_layer,
+)
 
 
 logging = logging.getLogger(__name__)
@@ -51,9 +57,7 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
         self, algorithm: QgsProcessingAlgorithm, parent: Optional[QWidget] = None
     ):
         self._raster_layers: List[str] = [
-            layer.name()
-            for layer in Map.get_iface().mapCanvas().layers()
-            if is_ee_raster_layer(layer)
+            layer.name() for layer in get_ee_raster_layers()
         ]
         self._bands_cache: dict[str, List[str]] = {}
         super().__init__(algorithm, parent=parent, title="Export Image to GeoTIFF")
@@ -168,7 +172,7 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
             layer = next(
                 (
                     layer
-                    for layer in Map.get_iface().mapCanvas().layers()
+                    for layer in get_ee_raster_layers()
                     if layer.name() == name and is_ee_raster_layer(layer)
                 ),
                 None,
@@ -262,11 +266,7 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def initAlgorithm(self, config: dict) -> None:
-        raster_layers = [
-            layer.name()
-            for layer in Map.get_iface().mapCanvas().layers()
-            if is_ee_raster_layer(layer)
-        ]
+        raster_layers = [layer.name() for layer in get_ee_raster_layers()]
 
         if not raster_layers:
             logging.warning(
@@ -343,16 +343,9 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             raise RuntimeError("Canceled")
 
-        layer = next(
-            (
-                layer
-                for layer in Map.get_iface().mapCanvas().layers()
-                if layer.name() == ee_img and is_ee_raster_layer(layer)
-            ),
-            None,
-        )
+        layer = get_layer_by_name(ee_img)
 
-        if not layer:
+        if not layer or not is_ee_raster_layer(layer):
             msg = f"Layer {ee_img} not found"
             raise ValueError(msg)
 

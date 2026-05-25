@@ -1,3 +1,6 @@
+from ee_plugin.utils import get_layer_by_name
+
+
 def test_add_feature_collection_algorithm_retain_vector(clean_qgis_iface):
     from ee_plugin.processing.add_feature_collection import (
         AddFeatureCollectionAlgorithm,
@@ -26,10 +29,7 @@ def test_add_feature_collection_algorithm_retain_vector(clean_qgis_iface):
 
     assert isinstance(result, dict)
     assert "OUTPUT_RASTER" in result
-    try:
-        layer = clean_qgis_iface.mapCanvas().layers()[0]
-    except IndexError:
-        assert False, "No layers found in the map canvas."
+    layer = get_layer_by_name("FC: USGS/WBD/2017/HUC06")
     assert layer is not None
     assert layer.name() == "FC: USGS/WBD/2017/HUC06"
     assert layer.customProperty("ee-layer")
@@ -65,10 +65,7 @@ def test_add_feature_collection_algorithm(clean_qgis_iface):
 
     assert isinstance(result, dict)
     assert "OUTPUT_RASTER" in result
-    try:
-        layer = clean_qgis_iface.mapCanvas().layers()[0]
-    except IndexError:
-        assert False, "No layers found in the map canvas."
+    layer = get_layer_by_name("FC: USGS/WBD/2017/HUC06")
     assert layer is not None
     assert layer.name() == "FC: USGS/WBD/2017/HUC06"
     assert layer.customProperty("ee-layer")

@@ -10,8 +10,22 @@ on:
       - '**'
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: "Lint"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Run pre-commit checks
+        run: uvx pre-commit run --all-files
+
   tests:
     runs-on: ubuntu-latest
+    needs: lint
     container:
       image: qgis/qgis:${{ matrix.qgis-image }}
     strategy:
@@ -50,10 +64,6 @@ jobs:
         run: |
           mkdir -p ~/.config/earthengine
           echo '${{ secrets.EE_CREDENTIALS_JSON }}' > ~/.config/earthengine/credentials
-
-      - name: Run pre-commit checks
-        run: |
-          .venv/bin/pre-commit run --all-files
 
       - name: Run tests with coverage
         run: >

@@ -364,25 +364,12 @@ def add_or_update_named_vector_layer(
     table_id = eeObject.args.get("tableId", "")
     if not table_id:
         raise ValueError(f"FeatureCollection {name} does not have a valid tableId.")
-    vector_style_keys = {
-        "color",
-        "fillColor",
-        "width",
-        "pointSize",
-        "pointShape",
-        "lineType",
-    }
-    if vis_params and any(k in vis_params for k in vector_style_keys):
-        # Filter to only valid style() params to avoid passing unknown keys
-        valid_style_keys = {
-            "color",
-            "fillColor",
-            "width",
-            "pointSize",
-            "pointShape",
-            "lineType",
-        }
-        style_kwargs = {k: v for k, v in vis_params.items() if k in valid_style_keys}
+    # Keys accepted by FeatureCollection.style() on the EE server side.
+    # Client-side-only keys (lineColor, polygonFillColor, etc.) are silently
+    # dropped here; they only take effect on the local vector path.
+    ee_style_keys = {"color", "fillColor", "width", "pointSize", "pointShape", "lineType"}
+    if vis_params and any(k in vis_params for k in ee_style_keys):
+        style_kwargs = {k: v for k, v in vis_params.items() if k in ee_style_keys}
         image = eeObject.style(**style_kwargs)
         # Style is already baked into the image; don't pass vis_params again
         return add_or_update_ee_raster_layer(image, name, {}, shown, opacity)
@@ -668,18 +655,16 @@ def _write_geojson_temp_file(geojson: dict) -> str:
     return temp_file.name
 
 
-def _cleanup_vector_source(layer: QgsMapLayer) -> None:
-    """Remove the temporary GeoJSON file backing a vector layer, if any."""
-    source = layer.customProperty("ee-vector-source")
-    if not source:
+def _cleanup_vector_source_path(path: Optional[str]) -> None:
+    if not path:
         return
     try:
-        os.remove(source)
-        logger.debug(f"Cleaned up old vector source: {source}")
+        os.remove(path)
+        logger.debug(f"Cleaned up old vector source: {path}")
     except PermissionError:
-        logger.warning(f"Could not remove old vector source (file locked): {source}")
+        logger.warning(f"Could not remove old vector source (file locked): {path}")
     except OSError as e:
-        logger.warning(f"Could not remove old vector source: {source} — {e}")
+        logger.warning(f"Could not remove old vector source: {path} — {e}")
 
 
 def add_ee_vector_layer(
@@ -730,37 +715,26 @@ def update_ee_vector_layer(
     geojson = _ee_object_to_geojson(eeObject)
     uri = _write_geojson_temp_file(geojson)
 
-    new_layer = QgsVectorLayer(uri, layer.name(), "ogr")
-    assert new_layer.isValid(), f"Failed to load vector layer: {layer.name()}"
     old_source = layer.customProperty("ee-vector-source")
-    QgsProject.instance().removeMapLayers([layer.id()])
-    if old_source:
-        try:
-            os.remove(old_source)
-            logger.debug(f"Cleaned up old vector source: {old_source}")
-        except PermissionError:
-            logger.warning(
-                f"Could not remove old vector source (file locked): {old_source}"
-            )
-        except OSError as e:
-            logger.warning(f"Could not remove old vector source: {old_source} — {e}")
-    QgsProject.instance().addMapLayer(new_layer)
-    new_layer.setCustomProperty("ee-layer", True)
-    new_layer.setCustomProperty("ee-vector-source", uri)
+    layer.setDataSource(uri, layer.name(), "ogr")
+    assert layer.isValid(), f"Failed to reload vector layer: {layer.name()}"
 
-    renderer = new_layer.renderer()
+    _cleanup_vector_source_path(old_source)
+    layer.setCustomProperty("ee-vector-source", uri)
+
+    renderer = layer.renderer()
     if renderer and renderer.symbol() and opacity is not None:
         renderer.symbol().setOpacity(opacity)
 
     if vis_params:
-        _apply_vector_style(new_layer, vis_params)
+        _apply_vector_style(layer, vis_params)
 
     if shown is not None:
-        QgsProject.instance().layerTreeRoot().findLayer(
-            new_layer.id()
-        ).setItemVisibilityChecked(shown)
+        tree_node = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+        if tree_node:
+            tree_node.setItemVisibilityChecked(shown)
 
-    return new_layer
+    return layer
 
 
 def add_ee_catalog_image(

@@ -367,7 +367,14 @@ def add_or_update_named_vector_layer(
     # Keys accepted by FeatureCollection.style() on the EE server side.
     # Client-side-only keys (lineColor, polygonFillColor, etc.) are silently
     # dropped here; they only take effect on the local vector path.
-    ee_style_keys = {"color", "fillColor", "width", "pointSize", "pointShape", "lineType"}
+    ee_style_keys = {
+        "color",
+        "fillColor",
+        "width",
+        "pointSize",
+        "pointShape",
+        "lineType",
+    }
     if vis_params and any(k in vis_params for k in ee_style_keys):
         style_kwargs = {k: v for k, v in vis_params.items() if k in ee_style_keys}
         image = eeObject.style(**style_kwargs)
@@ -608,6 +615,7 @@ def _apply_vector_style(layer: QgsVectorLayer, style_params: dict) -> None:
                 symbol_layer.setStrokeStyle(_convert_line_type(stroke_type))
 
     from qgis.utils import iface
+
     iface.layerTreeView().refreshLayerSymbology(layer.id())
 
 

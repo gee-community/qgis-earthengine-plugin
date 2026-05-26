@@ -620,6 +620,9 @@ def _apply_vector_style(layer: QgsVectorLayer, style_params: dict) -> None:
             if stroke_type:
                 symbol_layer.setStrokeStyle(_convert_line_type(stroke_type))
 
+    from qgis.utils import iface
+    iface.layerTreeView().refreshLayerSymbology(layer.id())
+
 
 def _ee_object_to_geojson(eeObject: ee.Element) -> dict:
     info = eeObject.getInfo()

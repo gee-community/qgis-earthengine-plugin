@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
+import configparser
 import os
 import site
 
-__version__ = "0.1.8"
+
+def _plugin_version() -> str:
+    cfg = configparser.ConfigParser()
+    cfg.read(os.path.join(os.path.dirname(__file__), "metadata.txt"))
+    try:
+        return cfg.get("general", "version")
+    except configparser.NoOptionError:
+        return "0.0.0-dev"
 
 
 def add_ee_dependencies():
@@ -29,7 +37,7 @@ def classFactory(iface):  # pylint: disable=invalid-name
     # set User Agent for all calls
     import ee
 
-    user_agent = f"QGIS_EE/{__version__}"
+    user_agent = f"QGIS_EE/{_plugin_version()}"
     if ee.data.getUserAgent() != user_agent:
         ee.data.setUserAgent(user_agent)
 

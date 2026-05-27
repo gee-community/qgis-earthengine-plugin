@@ -618,6 +618,7 @@ def _apply_vector_style(layer: QgsVectorLayer, style_params: dict) -> None:
 
     iface.layerTreeView().refreshLayerSymbology(layer.id())
 
+
 def _ee_object_to_geojson(eeObject: ee.Element) -> dict:
     info = eeObject.getInfo()
 

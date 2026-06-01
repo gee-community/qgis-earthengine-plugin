@@ -355,10 +355,17 @@ class VisualizationParamsWidget(QWidget):
 
 
 class FilterWidget(gui.QgsCollapsibleGroupBox):
-    def __init__(self, title="Filter by Properties", property_list=None, parent=None):
+    def __init__(
+        self,
+        title="Filter by Properties",
+        property_list=None,
+        add_initial_row=True,
+        parent=None,
+    ):
         super().__init__(title, parent)
         self.setCollapsed(True)
         self.property_list = property_list or []
+        self.add_initial_row = add_initial_row
         self.filter_rows_layout = QVBoxLayout()
         self._build_filter_widget()
 
@@ -392,7 +399,8 @@ class FilterWidget(gui.QgsCollapsibleGroupBox):
 
         add_filter_btn = QPushButton("Add Filter")
         add_filter_btn.clicked.connect(add_filter_row)
-        add_filter_row()
+        if self.add_initial_row:
+            add_filter_row()
 
         filter_widget = QWidget()
         filter_widget.setLayout(self.filter_rows_layout)

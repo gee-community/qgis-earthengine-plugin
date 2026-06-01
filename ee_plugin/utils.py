@@ -382,7 +382,7 @@ def add_or_update_named_vector_layer(
         return add_or_update_ee_raster_layer(image, name, {}, shown, opacity)
     else:
         image = ee.Image().paint(eeObject, 0, 2)
-        return add_or_update_ee_raster_layer(image, name, vis_params, shown, opacity)
+        return add_or_update_ee_raster_layer(image, name, {}, shown, opacity)
 
 
 def add_or_update_ee_vector_layer(

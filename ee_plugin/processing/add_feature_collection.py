@@ -57,7 +57,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
  
     <h3>Parameters:</h3>
     <ul>
-        <li><b>Feature Collection ID:</b> The Earth Engine Feature Collection <a href='https://developers.google.com/earth-engine/guides/manage_assets'>Asset ID</a> to add to the map. For example: <code>USGS/WBD/2017/HUC06</code>.</li>
+        <li><b>Feature Collection ID:</b> The Earth Engine Feature Collection <a href='https://developers.google.com/earth-engine/guides/manage_assets'>Asset ID</a> to add to the map.</li>
         <li><b>Filter Properties:</b> Filters to apply to the Feature Collection. Feature properties vary per dataset. See the <a href='https://developers.google.com/earth-engine/datasets'>Catalog</a> for details.</li>
         <li><b>Start and End Date:</b> Optional start and end dates for filtering. Applies only to collections with <code>system:time_start</code>.</li>
         <li><b>Geographic Extent:</b> Optional bounding box filter using the format xmin,ymin,xmax,ymax.</li>
@@ -363,10 +363,7 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         layout.addWidget(self.fc_id)
 
         # --- Filters ---
-        self.filter_widget = FilterWidget(
-            property_list=self.feature_properties,
-            add_initial_row=False,
-        )
+        self.filter_widget = FilterWidget(property_list=self.feature_properties)
         layout.addWidget(self.filter_widget)
 
         # --- Date Range ---

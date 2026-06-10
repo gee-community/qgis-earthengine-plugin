@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.8...v0.2.0) (2026-06-10)
+
+
+### Features
+
+* Add __version__.py and update check_version to use GitHub raw URL ([db75978](https://github.com/gee-community/qgis-earthengine-plugin/commit/db75978970b922691f7406bd7dc349b11a85f9fe))
+* Add __version__.py and update check_version to use GitHub raw URL ([566ae93](https://github.com/gee-community/qgis-earthengine-plugin/commit/566ae9377671eecf787042e33b7a0ae85582666c))
+* vector visParams support and style ([#447](https://github.com/gee-community/qgis-earthengine-plugin/issues/447)) ([628c5ce](https://github.com/gee-community/qgis-earthengine-plugin/commit/628c5ced9c161baec0804c562c6be7a9cd43a560))
+
+
+### Bug Fixes
+
+* adjust deps for dev in requirements ([#445](https://github.com/gee-community/qgis-earthengine-plugin/issues/445)) ([b21e1d0](https://github.com/gee-community/qgis-earthengine-plugin/commit/b21e1d01968519f198610dc6afa0b02a39058dd3))
+* avoid full refreshes for EE raster layers ([#442](https://github.com/gee-community/qgis-earthengine-plugin/issues/442)) ([8d2a76c](https://github.com/gee-community/qgis-earthengine-plugin/commit/8d2a76ca1993749de1b0ebd8dfe190195bb737d6))
+* version comparison ([859b91c](https://github.com/gee-community/qgis-earthengine-plugin/commit/859b91c9e50b65577103c73e1c481f57939174e5))
+
 ## [0.1.8](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.7...v0.1.8) (2026-05-05)
 
 

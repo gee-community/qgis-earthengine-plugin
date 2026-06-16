@@ -18,6 +18,7 @@ from qgis.PyQt.QtGui import QIcon
 import ee
 
 from . import provider, config, ee_auth, utils, logging
+from .identify import EarthEngineIdentifyTool
 from .ui import menus
 from .processing.processing_provider import EEProcessingProvider
 from .processing.add_image_collection import (
@@ -71,6 +72,8 @@ class GoogleEarthEnginePlugin(object):
         self.menu = None
         self.toolButton = None
         self.toolButtonAction = None
+        self.identify_action = None
+        self.identify_tool = None
 
         # initialize locale
         locale = str(QSettings().value("locale/userLocale"))[0:2]
@@ -161,6 +164,16 @@ class GoogleEarthEnginePlugin(object):
             triggered=lambda: processing.execAlgorithmDialog("ee:export_geotiff"),
         )
 
+        self.identify_action = QtWidgets.QAction(
+            icon=QgsApplication.getThemeIcon("/mActionIdentify.svg"),
+            text=self.tr("Identify Earth Engine Pixel or Region"),
+            parent=self.iface.mainWindow(),
+        )
+        self.identify_action.setCheckable(True)
+        self.identify_action.triggered.connect(self._toggle_identify_tool)
+        self.identify_tool = EarthEngineIdentifyTool(self.iface)
+        self.identify_tool.setAction(self.identify_action)
+
         # Initialize plugin menu
         plugin_menu = cast(QtWidgets.QMenu, self.iface.pluginMenu())
         self.menu = plugin_menu.addMenu(
@@ -202,6 +215,7 @@ class GoogleEarthEnginePlugin(object):
                             menus.Action(action=add_image_collection_button),
                         ],
                     ),
+                    menus.Action(action=self.identify_action),
                     menus.SubMenu(
                         label=self.tr("Export"),
                         subitems=[menus.Action(action=export_geotiff_button)],
@@ -213,6 +227,12 @@ class GoogleEarthEnginePlugin(object):
         self.iface.projectRead.connect(self._updateLayers)
 
     def unload(self):
+        if (
+            self.identify_tool
+            and self.iface.mapCanvas().mapTool() is self.identify_tool
+        ):
+            self.iface.mapCanvas().unsetMapTool(self.identify_tool)
+
         if self.menu:
             self.iface.pluginMenu().removeAction(self.menu.menuAction())
 
@@ -229,6 +249,13 @@ class GoogleEarthEnginePlugin(object):
             QgsApplication.processingRegistry().removeProvider(self.provider)
 
         logging.teardown_logger()
+
+    def _toggle_identify_tool(self, checked):
+        canvas = self.iface.mapCanvas()
+        if checked:
+            canvas.setMapTool(self.identify_tool)
+        elif canvas.mapTool() is self.identify_tool:
+            canvas.unsetMapTool(self.identify_tool)
 
     @property
     def _project_button_text(self):

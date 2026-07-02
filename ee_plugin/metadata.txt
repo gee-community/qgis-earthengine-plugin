@@ -14,7 +14,7 @@ description=Integrates QGIS with Google Earth Engine
 author=Gennadii Donchyts, Xavier C. Llano, Fedor Baart, Zac Deziel, Anthony Lukach
 email=gennadiy.donchyts@gmail.com
 # x-release-please-start-version
-version=0.2.0
+version=0.2.1
 # x-release-please-end
 about=Integrates Google Earth Engine (GEE) by wrapping GEE Python API.
 

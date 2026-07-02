@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.2.0...v0.2.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* use QGIS token for plugin publishing ([54789c8](https://github.com/gee-community/qgis-earthengine-plugin/commit/54789c85274a1bf1ff11f90aa7f9dd1ef0a782ef))
+
 ## [0.2.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.1.8...v0.2.0) (2026-07-02)
 
 

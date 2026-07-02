@@ -5,7 +5,13 @@
       "release-type": "simple",
       "changelog-path": "CHANGELOG.md",
       "include-v-in-tag": true,
-      "bump-minor-pre-major": true
+      "bump-minor-pre-major": true,
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "ee_plugin/metadata.txt"
+        }
+      ]
     }
   }
 }

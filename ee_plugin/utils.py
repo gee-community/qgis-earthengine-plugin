@@ -448,51 +448,28 @@ def _get_marker_shape(shape_name: str):
         logger.warning(f"Invalid point shape '{shape_name}', falling back to circle.")
         shape_name = "circle"
     name = shape_name.lower()
-    try:
-        shape_cls = QgsSimpleMarkerSymbolLayer.Shape
-        mapping = {
-            "circle": shape_cls.Circle,
-            "square": shape_cls.Square,
-            "diamond": shape_cls.Diamond,
-            "triangle": shape_cls.Triangle,
-            "triangle_up": shape_cls.Triangle,
-            "cross": shape_cls.Cross,
-            "plus": shape_cls.Cross2,
-            "pentagon": shape_cls.Pentagon,
-            "hexagon": shape_cls.Hexagon,
-            "star5": shape_cls.Star,
-            "star6": shape_cls.Star,
-            "pentagram": shape_cls.Star,
-            "hexagram": shape_cls.Star,
-        }
-        if name not in mapping:
-            logger.warning(
-                f"Unknown point shape '{shape_name}', falling back to circle. "
-                f"Known shapes: {list(mapping.keys())}"
-            )
-        return mapping.get(name, shape_cls.Circle)
-    except AttributeError:
-        mapping = {
-            "circle": QgsSimpleMarkerSymbolLayer.Circle,
-            "square": QgsSimpleMarkerSymbolLayer.Square,
-            "diamond": QgsSimpleMarkerSymbolLayer.Diamond,
-            "triangle": QgsSimpleMarkerSymbolLayer.Triangle,
-            "triangle_up": QgsSimpleMarkerSymbolLayer.Triangle,
-            "cross": QgsSimpleMarkerSymbolLayer.Cross,
-            "plus": QgsSimpleMarkerSymbolLayer.Cross2,
-            "pentagon": QgsSimpleMarkerSymbolLayer.Pentagon,
-            "hexagon": QgsSimpleMarkerSymbolLayer.Hexagon,
-            "star5": QgsSimpleMarkerSymbolLayer.Star,
-            "star6": QgsSimpleMarkerSymbolLayer.Star,
-            "pentagram": QgsSimpleMarkerSymbolLayer.Star,
-            "hexagram": QgsSimpleMarkerSymbolLayer.Star,
-        }
-        if name not in mapping:
-            logger.warning(
-                f"Unknown point shape '{shape_name}', falling back to circle. "
-                f"Known shapes: {list(mapping.keys())}"
-            )
-        return mapping.get(name, QgsSimpleMarkerSymbolLayer.Circle)
+    shape_cls = getattr(QgsSimpleMarkerSymbolLayer, "Shape", QgsSimpleMarkerSymbolLayer)
+    mapping = {
+        "circle": getattr(shape_cls, "Circle"),
+        "square": getattr(shape_cls, "Square"),
+        "diamond": getattr(shape_cls, "Diamond"),
+        "triangle": getattr(shape_cls, "Triangle"),
+        "triangle_up": getattr(shape_cls, "Triangle"),
+        "cross": getattr(shape_cls, "Cross"),
+        "plus": getattr(shape_cls, "Cross2"),
+        "pentagon": getattr(shape_cls, "Pentagon"),
+        "hexagon": getattr(shape_cls, "Hexagon"),
+        "star5": getattr(shape_cls, "Star"),
+        "star6": getattr(shape_cls, "Star"),
+        "pentagram": getattr(shape_cls, "Star"),
+        "hexagram": getattr(shape_cls, "Star"),
+    }
+    if name not in mapping:
+        logger.warning(
+            f"Unknown point shape '{shape_name}', falling back to circle. "
+            f"Known shapes: {list(mapping.keys())}"
+        )
+    return mapping.get(name, getattr(shape_cls, "Circle"))
 
 
 def _qcolor(value) -> Optional[QColor]:

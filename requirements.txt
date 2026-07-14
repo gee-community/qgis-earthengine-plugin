@@ -4,6 +4,6 @@ ratelim
 # environments should stay on the newest 1.6.x release.
 earthengine-api==1.6.15; python_version < "3.10"
 earthengine-api==1.7.24; python_version >= "3.10"
-six>=1.13
+google-auth<2.41
 httplib2
 requests>2.4

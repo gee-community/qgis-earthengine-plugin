@@ -4,5 +4,5 @@
 __pycache__
 venv
 extlibs
-ee_plugin.zip
+ee_plugin*.zip
 htmlcov

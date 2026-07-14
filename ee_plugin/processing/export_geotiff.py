@@ -94,16 +94,16 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
         self.extent_group.setOutputCrs(self.proj_widget.crs())
         try:
             self.proj_widget.crsChanged.connect(self.extent_group.setOutputCrs)
-        except Exception:
+        except Exception as exc:
             # Older QGIS may not emit crsChanged on this widget; ignore if unavailable
-            pass
+            logging.debug("Unable to connect CRS change signal.", exc_info=exc)
         self.extent_group.setMapCanvas(Map.get_iface().mapCanvas())
         # As a final safeguard, clear any pre-filled line edits inside the extent widget
         try:
             for le in self.extent_group.findChildren(QLineEdit):
                 le.clear()
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.debug("Unable to clear extent line edits.", exc_info=exc)
         layout.addWidget(self.extent_group)
 
         # --- Bands selector ---
@@ -249,15 +249,15 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
                 local_context.pushInfo(
                     f"Requested cancel of EE operation: {alg._ee_operation_name}"
                 )
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.debug("Unable to cancel EE operation.", exc_info=exc)
         # Try to cancel an old ee.batch.Task if present
         try:
             if alg is not None and getattr(alg, "_ee_task", None):
                 alg._ee_task.cancel()
                 local_context.pushInfo("Requested cancel of EE batch task")
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.debug("Unable to cancel EE batch task.", exc_info=exc)
 
 
 class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
@@ -394,8 +394,10 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
             elif hasattr(handle, "id") or hasattr(handle, "task_type"):
                 # ee.batch.Task-like
                 self._ee_task = handle
-        except Exception:
-            pass
+        except Exception as exc:
+            logging.debug(
+                "Unable to store EE export cancellation handle.", exc_info=exc
+            )
 
         feedback.pushInfo("Export complete.")
         return {self.OUTPUT: out_path}

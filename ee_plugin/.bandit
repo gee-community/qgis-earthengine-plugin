@@ -1,2 +1,2 @@
 [bandit]
-exclude_dirs = extlibs
+exclude = extlibs

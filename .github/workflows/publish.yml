@@ -27,6 +27,10 @@ jobs:
       - name: Setup extlibs
         uses: ./.github/workflows/actions/setup-extlibs
 
+      - name: Verify Bandit config excludes vendored dependencies
+        run: |
+          grep -Eq '^exclude[[:space:]]*=[[:space:]]*extlibs$' ee_plugin/.bandit
+
       - name: Install QGIS Plugin CI
         run: |
           pip install qgis-plugin-ci

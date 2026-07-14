@@ -317,7 +317,8 @@ def add_ee_image_layer(
     check_version()
     url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
     layer = QgsRasterLayer(url, name, "wms")
-    assert layer.isValid(), f"Failed to load layer: {name}"
+    if not layer.isValid():
+        raise RuntimeError(f"Failed to load layer: {name}")
     set_ee_layer_properties(layer, image, vis_params, layer_type="raster")
     QgsProject.instance().addMapLayer(layer)
 
@@ -338,7 +339,8 @@ def update_ee_image_layer(
     check_version()
     url = "type=xyz&url=" + get_ee_image_url(image.visualize(**vis_params))
     layer.setDataSource(url, layer.name(), "wms")
-    assert layer.isValid(), f"Failed to update layer: {layer.name()}"
+    if not layer.isValid():
+        raise RuntimeError(f"Failed to update layer: {layer.name()}")
     set_ee_layer_properties(layer, image, vis_params, layer_type="raster")
 
     if opacity is not None and layer.renderer():
@@ -686,7 +688,8 @@ def add_ee_vector_layer(
     geojson = _ee_object_to_geojson(eeObject)
     uri = _write_geojson_temp_file(geojson)
     layer = QgsVectorLayer(uri, name, "ogr")
-    assert layer.isValid(), f"Failed to load vector layer: {name}"
+    if not layer.isValid():
+        raise RuntimeError(f"Failed to load vector layer: {name}")
     set_ee_layer_properties(layer, eeObject, vis_params or {}, layer_type="vector")
 
     QgsProject.instance().addMapLayer(layer)
@@ -724,7 +727,8 @@ def update_ee_vector_layer(
     uri = _write_geojson_temp_file(geojson)
     old_source = layer.customProperty("ee-vector-source")
     layer.setDataSource(uri, layer.name(), "ogr")
-    assert layer.isValid(), f"Failed to reload vector layer: {layer.name()}"
+    if not layer.isValid():
+        raise RuntimeError(f"Failed to reload vector layer: {layer.name()}")
 
     _cleanup_vector_source_path(old_source)
     set_ee_layer_properties(layer, eeObject, vis_params or {}, layer_type="vector")
@@ -791,8 +795,8 @@ def ee_image_to_geotiff(
         try:
             feedback.pushInfo("Preparing export…")
             feedback.setProgress(0)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to update export feedback.", exc_info=exc)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         n_tiles = len(tiles)
@@ -806,8 +810,8 @@ def ee_image_to_geotiff(
                 try:
                     feedback.setProgress(pct)
                     feedback.pushInfo(f"Downloading tile {idx + 1}/{n_tiles}…")
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Unable to update export feedback.", exc_info=exc)
             out_path = os.path.join(temp_dir, f"{base_name}_tile{idx}.tif")
             logger.info(f"Downloading tile {idx + 1}/{n_tiles} to {out_path}")
             download_tile(
@@ -823,8 +827,8 @@ def ee_image_to_geotiff(
             try:
                 feedback.setProgress(90)
                 feedback.pushInfo("Merging tiles…")
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Unable to update merge feedback.", exc_info=exc)
 
         merge_geotiffs_gdal(tile_paths, merge_output)
 
@@ -832,8 +836,8 @@ def ee_image_to_geotiff(
             try:
                 feedback.setProgress(100)
                 feedback.pushInfo("Merging tiles complete.")
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Unable to update merge feedback.", exc_info=exc)
 
 
 def merge_geotiffs_gdal(in_files: List[str], out_file: str) -> None:
@@ -977,8 +981,10 @@ def download_tile(
                         try:
                             if os.path.exists(out_path):
                                 os.remove(out_path)
-                        except Exception:
-                            pass
+                        except Exception as exc:
+                            logger.debug(
+                                "Unable to remove partial download.", exc_info=exc
+                            )
                     return
                 if not chunk:
                     continue
@@ -1097,6 +1103,6 @@ def normalize_crs(crs, project) -> QgsCoordinateReferenceSystem:
         crs_obj = QgsCoordinateReferenceSystem.fromUserInput(str(crs))
         if crs_obj.isValid():
             return crs_obj
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("Unable to parse extent CRS.", exc_info=exc)
     raise ValueError(f"Invalid extent CRS: {crs}")

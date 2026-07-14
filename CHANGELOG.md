@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.2.1...v0.2.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* QGIS package compatibility issues ([#457](https://github.com/gee-community/qgis-earthengine-plugin/issues/457)) ([eb3394b](https://github.com/gee-community/qgis-earthengine-plugin/commit/eb3394b4a5d5bc7d579f5ddc0835e42d2f638e17))
+
 ## [0.2.1](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.2.0...v0.2.1) (2026-07-02)
 
 

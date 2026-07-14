@@ -232,7 +232,7 @@ def collection_to_atlas(
 
     polyLayer = QgsVectorLayer("Polygon", poly_name, "memory")
     pr = polyLayer.dataProvider()
-    pr.addAttributes([QgsField(layer_attr, QVariant.Type.String)])
+    pr.addAttributes([QgsField(layer_attr, QVariant.String)])
     polyLayer.updateFields()
     bounds = [[xmin, ymax], [xmax, ymax], [xmax, ymin], [xmin, ymin]]
     points = [QgsPointXY(*pt) for pt in bounds]

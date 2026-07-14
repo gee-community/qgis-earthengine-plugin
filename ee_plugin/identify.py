@@ -338,7 +338,10 @@ class EarthEngineIdentifyTool(QgsMapTool):
         self.point_marker = QgsVertexMarker(self.canvas)
         self.point_marker.setColor(QColor(255, 193, 7))
         self.point_marker.setFillColor(QColor(255, 255, 255))
-        self.point_marker.setIconType(QgsVertexMarker.ICON_CROSS)
+        icon_type = getattr(
+            getattr(QgsVertexMarker, "IconType", QgsVertexMarker), "ICON_CROSS"
+        )
+        self.point_marker.setIconType(icon_type)
         self.point_marker.setIconSize(14)
         self.point_marker.setPenWidth(3)
         self.point_marker.hide()

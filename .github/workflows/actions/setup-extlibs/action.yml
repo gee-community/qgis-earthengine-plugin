@@ -8,6 +8,6 @@ runs:
       shell: bash
       run: |
         mkdir -p ee_plugin/extlibs
-        pip install -r requirements.txt -t ee_plugin/extlibs
+        pip install --no-compile -r requirements.txt -t ee_plugin/extlibs
         find ee_plugin/extlibs -type f \( -name '*.so' -o -name '*.pyd' -o -name '*.dylib' \) -delete
         find ee_plugin/extlibs -type d -name __pycache__ -exec rm -rf {} +

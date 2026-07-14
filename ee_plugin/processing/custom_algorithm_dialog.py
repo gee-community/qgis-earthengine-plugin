@@ -1,4 +1,5 @@
 import typing
+import logging
 from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, Dict
@@ -25,6 +26,9 @@ from qgis import gui, processing
 
 
 from ..logging import local_context
+
+
+logger = logging.getLogger(__name__)
 
 
 class _RunSignals(QObject):
@@ -59,8 +63,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         # Don't destroy the dialog on close; we hide while tasks run
         try:
             self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to disable delete-on-close for dialog.", exc_info=exc)
         self._reopen_widget = None
 
         self.cancelButton().clicked.connect(self.reject)
@@ -131,8 +135,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             # Switch to the Log tab as soon as the run begins so users see progress
             try:
                 self.showLog()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Unable to show processing log tab.", exc_info=exc)
 
             try:
                 if hasattr(self, "beforeRun"):
@@ -148,8 +152,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                 try:
                     if feedback:
                         feedback.setProgress(0)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Unable to reset feedback progress.", exc_info=exc)
                 if hasattr(self, "onError"):
                     self.onError(e)
                 self.pushInfo(f"Algorithm failed: {e}")
@@ -165,8 +169,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         # Force a UI repaint so the progress bar visibly resets before the task starts
         try:
             QgsApplication.processEvents()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to process pending Qt events.", exc_info=exc)
 
         # Keep a handle so we can propagate UI cancel to processing feedback
         self._active_feedback = feedback
@@ -214,8 +218,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             try:
                 if sip.isdeleted(self):
                     return
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Unable to check dialog deletion state.", exc_info=exc)
             try:
                 self.setResults(results)
                 try:
@@ -226,8 +230,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                     after(results)
                 try:
                     self.showLog()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Unable to show processing log tab.", exc_info=exc)
             finally:
                 self._teardown_task_ui()
 
@@ -236,16 +240,18 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             try:
                 if sip.isdeleted(self):
                     return
-            except Exception:
-                pass
+            except Exception as sip_exc:
+                logger.debug("Unable to check dialog deletion state.", exc_info=sip_exc)
             try:
                 # Centralized progress reset on failure
                 try:
                     fb = getattr(self, "_active_feedback", None)
                     if fb:
                         fb.setProgress(0)
-                except Exception:
-                    pass
+                except Exception as progress_exc:
+                    logger.debug(
+                        "Unable to reset feedback progress.", exc_info=progress_exc
+                    )
                 try:
                     on_err = getattr(self, "onError", None)
                 except RuntimeError:
@@ -255,8 +261,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                 self.pushInfo(f"Algorithm failed: {exc}")
                 try:
                     self.showLog()
-                except Exception:
-                    pass
+                except Exception as log_exc:
+                    logger.debug("Unable to show processing log tab.", exc_info=log_exc)
             finally:
                 self._teardown_task_ui()
 
@@ -265,21 +271,21 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             try:
                 if sip.isdeleted(self):
                     return
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Unable to check dialog deletion state.", exc_info=exc)
             try:
                 # Centralized progress reset on cancel
                 try:
                     fb = getattr(self, "_active_feedback", None)
                     if fb:
                         fb.setProgress(0)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Unable to reset feedback progress.", exc_info=exc)
                 self.pushInfo("Algorithm canceled by user.")
                 try:
                     self.showLog()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Unable to show processing log tab.", exc_info=exc)
             finally:
                 self._teardown_task_ui()
 
@@ -342,8 +348,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         if self.cancelButton():
             try:
                 self.cancelButton().clicked.disconnect()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Unable to disconnect cancel button.", exc_info=exc)
             self.cancelButton().clicked.connect(self._cancel_task)
             self.cancelButton().setEnabled(True)
         # Optionally disable the Run/OK button if present, but do NOT disable Close
@@ -359,8 +365,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                 )
                 if run_btn:
                     run_btn.setEnabled(False)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to disable run button.", exc_info=exc)
 
         QgsApplication.taskManager().addTask(self._current_task)
 
@@ -389,15 +395,15 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         try:
             if fb:
                 fb.cancel()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to cancel active feedback.", exc_info=exc)
         # Give algorithm-specific dialogs a chance to cancel remote jobs (e.g., EE export)
         try:
             if hasattr(self, "onCancelRequested"):
                 self.onCancelRequested()
-        except Exception:
+        except Exception as exc:
             # best-effort; do not crash the UI
-            pass
+            logger.debug("Algorithm-specific cancel handler failed.", exc_info=exc)
         if not task:
             return
         try:
@@ -412,8 +418,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
         try:
             if sip.isdeleted(self):
                 return
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to check dialog deletion state.", exc_info=exc)
         try:
             # Accessing QWidget API can raise RuntimeError if underlying C++ is gone
             _ = self.cancelButton
@@ -424,8 +430,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             fb = getattr(self, "_active_feedback", None)
             if fb:
                 fb.setProgress(0)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to reset feedback progress.", exc_info=exc)
         self._active_feedback = None
         self._current_task = None
         # Restore default cancel behavior
@@ -433,8 +439,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             if self.cancelButton():
                 try:
                     self.cancelButton().clicked.disconnect()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Unable to disconnect cancel button.", exc_info=exc)
                 self.cancelButton().clicked.connect(self.reject)
         except RuntimeError:
             return
@@ -451,18 +457,18 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                 )
                 if run_btn:
                     run_btn.setEnabled(True)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to re-enable run button.", exc_info=exc)
         try:
             if self._reopen_widget:
                 self._reopen_widget.close()
                 self._reopen_widget = None
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to close reopen message widget.", exc_info=exc)
         try:
             self._keepalive = None
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to clear dialog keepalive.", exc_info=exc)
 
     def closeEvent(self, event):
         """If a task is running, hide instead of closing to keep signals/objects alive."""
@@ -479,8 +485,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             event.ignore()
             try:
                 self._post_reopen_message()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Unable to post reopen message.", exc_info=exc)
             self.hide()
             return
         super().closeEvent(event)
@@ -498,8 +504,8 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
             )
             try:
                 self._post_reopen_message()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Unable to post reopen message.", exc_info=exc)
             self.hide()
             return
         super().reject()
@@ -526,22 +532,22 @@ class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
                         self.show()
                         self.raise_()
                         self.activateWindow()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Unable to reopen processing dialog.", exc_info=exc)
                 # close the message once shown
                 try:
                     if self._reopen_widget:
                         self._reopen_widget.close()
                         self._reopen_widget = None
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Unable to close reopen message widget.", exc_info=exc)
 
             btn.clicked.connect(_show_again)
             msg.layout().addWidget(btn)
             bar.pushWidget(msg, Qgis.MessageLevel.Info)
             self._reopen_widget = msg
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to create reopen message widget.", exc_info=exc)
 
     def createProcessingParameters(self, flags) -> typing.Dict[str, typing.Any]:
         # TODO: We are currently unable to copy parameters from the algorithm to the dialog.

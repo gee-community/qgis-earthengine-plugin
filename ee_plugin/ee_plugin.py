@@ -267,10 +267,9 @@ class GoogleEarthEnginePlugin(object):
         webbrowser.open_new("http://qgis-ee-plugin.appspot.com/user-guide")
 
     def _run_cmd_sign_in(self):
-        import ee
-
         # reset authentication by forcing sign in
-        ee.Authenticate(auth_mode="localhost", force=True)
+        if not ee_auth.ee_authenticate(self.ee_config):
+            return
 
         # after resetting authentication, select Google Cloud project again
         self._run_cmd_set_cloud_project()

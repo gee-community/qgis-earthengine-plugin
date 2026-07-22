@@ -26,7 +26,13 @@ from qgis.PyQt.QtGui import QColor
 from .. import Map
 from ..ui.widgets import FilterWidget
 from ..processing.custom_algorithm_dialog import BaseAlgorithmDialog
-from ..utils import translate as _, get_ee_properties, filter_functions, get_ee_extent
+from ..utils import (
+    translate as _,
+    get_ee_properties,
+    filter_functions,
+    get_ee_extent,
+    add_processing_ee_layer,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -236,7 +242,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             color=viz_color_hex, fillColor=viz_fill_color, width=int(viz_width)
         )
         # opacity can't be set from EE, we must apply in QGIS
-        layer = Map.addLayer(styled_fc, {}, layer_name)
+        layer = add_processing_ee_layer(styled_fc, {}, layer_name, context, parameters)
         if opacity != "":
             layer.setOpacity(int(opacity) / 100)
         result["OUTPUT_RASTER"] = layer
@@ -431,6 +437,7 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
             "viz_color_hex": self.outline_color.color().name(),
             "viz_fill_color": self.fill_color.color().name(),
             "viz_width": str(self.line_width.value()),
+            "LOAD_OUTPUT_LAYER": True,
         }
 
     def _on_fc_id_changed(self):

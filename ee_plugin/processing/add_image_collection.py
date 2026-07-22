@@ -43,6 +43,7 @@ from ..utils import (
     get_ee_extent,
     parse_extent_string,
     normalize_crs,
+    add_processing_ee_layer,
 )
 from ..ui.utils import serialize_color_ramp
 
@@ -300,6 +301,7 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
                 "percentile_value": self.percentile_value.value(),
                 "viz_params": viz_params,
                 "clip_to_extent": self.clip_checkbox.isChecked(),
+                "LOAD_OUTPUT_LAYER": True,
             }
             return params
 
@@ -596,6 +598,6 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         if clip_to_extent and ee_extent:
             ic = ic.clip(ee_extent)
 
-        layer = Map.addLayer(ic, viz_params, name)
+        layer = add_processing_ee_layer(ic, viz_params, name, context, parameters)
 
         return {"OUTPUT": layer, "LAYER_NAME": layer.name()}

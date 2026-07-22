@@ -248,28 +248,37 @@ def add_or_update_ee_layer(
     name: str,
     shown: bool,
     opacity: float,
+    add_to_project: bool = True,
+    context: Optional[QgsProcessingContext] = None,
 ) -> QgsMapLayer:
     logger.info(f"Adding/updating EE layer: {name}")
     if isinstance(eeObject, ee.Image):
         layer = add_or_update_ee_raster_layer(
-            eeObject, name, vis_params, shown, opacity
+            eeObject, name, vis_params, shown, opacity, add_to_project, context
         )
     elif isinstance(eeObject, ee.FeatureCollection):
         if is_named_dataset(eeObject):
             layer = add_or_update_named_vector_layer(
-                eeObject, name, vis_params, shown, opacity
+                eeObject, name, vis_params, shown, opacity, add_to_project, context
             )
         else:
             layer = add_or_update_ee_vector_layer(
-                eeObject, name, vis_params, shown, opacity
+                eeObject, name, vis_params, shown, opacity, add_to_project, context
             )
     elif isinstance(eeObject, ee.Geometry):
         layer = add_or_update_ee_vector_layer(
-            eeObject, name, vis_params, shown, opacity
+            eeObject, name, vis_params, shown, opacity, add_to_project, context
         )
     elif isinstance(eeObject, ee.ImageCollection):
         reduce_image = eeObject.reduce(ee.Reducer.median())
-        layer = add_or_update_ee_raster_layer(reduce_image, name, vis_params, shown)
+        layer = add_or_update_ee_raster_layer(
+            reduce_image,
+            name,
+            vis_params,
+            shown,
+            add_to_project=add_to_project,
+            context=context,
+        )
     else:
         raise TypeError("Unsupported EE object type")
 
@@ -292,18 +301,97 @@ def add_or_update_ee_layer(
     return layer
 
 
+def _store_created_layer(
+    layer: QgsMapLayer,
+    add_to_project: bool,
+    context: Optional[QgsProcessingContext] = None,
+) -> None:
+    if add_to_project:
+        QgsProject.instance().addMapLayer(layer)
+        return
+    if context is None:
+        raise RuntimeError("A processing context is required for temporary EE layers.")
+    context.temporaryLayerStore().addMapLayer(layer)
+
+
+def _optional_bool(value: Any) -> Optional[bool]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        value = value.strip().lower()
+        if value in ("1", "true", "t", "yes", "y", "on"):
+            return True
+        if value in ("0", "false", "f", "no", "n", "off"):
+            return False
+    return None
+
+
+def _processing_context_looks_like_model_child(context: QgsProcessingContext) -> bool:
+    try:
+        expression_context = context.expressionContext()
+        for name in expression_context.variableNames():
+            if str(name).startswith("model_"):
+                return True
+    except Exception as exc:
+        logger.debug("Unable to inspect processing expression context.", exc_info=exc)
+
+    return False
+
+
+def processing_output_should_load(
+    parameters: Optional[dict],
+    context: QgsProcessingContext,
+    default: bool = True,
+) -> bool:
+    explicit = _optional_bool((parameters or {}).get("LOAD_OUTPUT_LAYER"))
+    if explicit is not None:
+        return explicit
+    if _processing_context_looks_like_model_child(context):
+        return False
+    return default
+
+
+def add_processing_ee_layer(
+    eeObject: ee.Element,
+    vis_params: VisualizeParams,
+    name: str,
+    context: QgsProcessingContext,
+    parameters: Optional[dict] = None,
+    shown: bool = True,
+    opacity: float = 1.0,
+) -> QgsMapLayer:
+    add_to_project = processing_output_should_load(parameters, context)
+    return add_or_update_ee_layer(
+        eeObject,
+        vis_params,
+        name,
+        shown,
+        opacity,
+        add_to_project=add_to_project,
+        context=None if add_to_project else context,
+    )
+
+
 def add_or_update_ee_raster_layer(
     image: ee.Image,
     name: str,
     vis_params: VisualizeParams,
     shown: bool = True,
     opacity: float = 1.0,
+    add_to_project: bool = True,
+    context: Optional[QgsProcessingContext] = None,
 ) -> QgsRasterLayer:
     logger.debug(f"Adding/updating EE raster layer: {name}")
-    layer = get_layer_by_name(name)
+    layer = get_layer_by_name(name) if add_to_project else None
     if layer and is_ee_layer(layer):
         return update_ee_image_layer(image, layer, vis_params, shown, opacity)
-    return add_ee_image_layer(image, name, vis_params, shown, opacity)
+    return add_ee_image_layer(
+        image, name, vis_params, shown, opacity, add_to_project, context
+    )
 
 
 def add_ee_image_layer(
@@ -312,6 +400,8 @@ def add_ee_image_layer(
     vis_params: VisualizeParams,
     shown: bool,
     opacity: float,
+    add_to_project: bool = True,
+    context: Optional[QgsProcessingContext] = None,
 ) -> QgsRasterLayer:
     logger.debug(f"Adding EE image layer: {name}")
     check_version()
@@ -320,10 +410,15 @@ def add_ee_image_layer(
     if not layer.isValid():
         raise RuntimeError(f"Failed to load layer: {name}")
     set_ee_layer_properties(layer, image, vis_params, layer_type="raster")
-    QgsProject.instance().addMapLayer(layer)
+    _store_created_layer(layer, add_to_project, context)
 
     if opacity is not None and layer.renderer():
         layer.renderer().setOpacity(opacity)
+
+    if add_to_project and shown is not None:
+        layer_node = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+        if layer_node:
+            layer_node.setItemVisibilityChecked(shown)
 
     return layer
 
@@ -361,6 +456,8 @@ def add_or_update_named_vector_layer(
     vis_params: VisualizeParams,
     shown: bool = True,
     opacity: float = 1.0,
+    add_to_project: bool = True,
+    context: Optional[QgsProcessingContext] = None,
 ) -> QgsRasterLayer:
     logger.debug(f"Adding/updating named EE vector layer: {name}")
     table_id = eeObject.args.get("tableId", "")
@@ -381,10 +478,14 @@ def add_or_update_named_vector_layer(
         style_kwargs = {k: v for k, v in vis_params.items() if k in ee_style_keys}
         image = eeObject.style(**style_kwargs)
         # Style is already baked into the image; don't pass vis_params again
-        return add_or_update_ee_raster_layer(image, name, {}, shown, opacity)
+        return add_or_update_ee_raster_layer(
+            image, name, {}, shown, opacity, add_to_project, context
+        )
     else:
         image = ee.Image().paint(eeObject, 0, 2)
-        return add_or_update_ee_raster_layer(image, name, {}, shown, opacity)
+        return add_or_update_ee_raster_layer(
+            image, name, {}, shown, opacity, add_to_project, context
+        )
 
 
 def add_or_update_ee_vector_layer(
@@ -393,14 +494,18 @@ def add_or_update_ee_vector_layer(
     vis_params: Optional[dict] = None,
     shown: bool = True,
     opacity: float = 1.0,
+    add_to_project: bool = True,
+    context: Optional[QgsProcessingContext] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding/updating EE vector layer: {name}")
-    layer = get_layer_by_name(name)
+    layer = get_layer_by_name(name) if add_to_project else None
     if layer:
         if not layer.customProperty("ee-layer"):
             raise Exception(f"Layer is not an EE layer: {name}")
         return update_ee_vector_layer(eeObject, layer, vis_params, shown, opacity)
-    return add_ee_vector_layer(eeObject, name, vis_params, shown, opacity)
+    return add_ee_vector_layer(
+        eeObject, name, vis_params, shown, opacity, add_to_project, context
+    )
 
 
 def _geometry_type(name: str):
@@ -660,6 +765,8 @@ def add_ee_vector_layer(
     vis_params: Optional[dict] = None,
     shown: bool = True,
     opacity: float = 1.0,
+    add_to_project: bool = True,
+    context: Optional[QgsProcessingContext] = None,
 ) -> QgsVectorLayer:
     logger.debug(f"Adding EE vector layer: {name}")
     geojson = _ee_object_to_geojson(eeObject)
@@ -669,11 +776,11 @@ def add_ee_vector_layer(
         raise RuntimeError(f"Failed to load vector layer: {name}")
     set_ee_layer_properties(layer, eeObject, vis_params or {}, layer_type="vector")
 
-    QgsProject.instance().addMapLayer(layer)
+    _store_created_layer(layer, add_to_project, context)
     layer.setCustomProperty("ee-layer", True)
     layer.setCustomProperty("ee-vector-source", uri)
 
-    if shown is not None:
+    if add_to_project and shown is not None:
         tree_layer = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
         if tree_layer:
             tree_layer.setItemVisibilityChecked(shown)

@@ -192,3 +192,52 @@ def test_add_identify_results_layer_disambiguates_sanitized_band_fields():
     assert "SR_B5_first_2" in field_names
     assert feature["SR_B5_first"] == 1
     assert feature["SR_B5_first_2"] == 2
+
+
+def test_add_identify_results_layer_creates_multi_layer_features():
+    result = {
+        "selection_type": "point",
+        "reducer": "first",
+        "scale": 30,
+        "geometry": {"longitude": -123.1, "latitude": 49.2},
+        "results": [
+            {
+                "layer": "DEM",
+                "selection_type": "point",
+                "reducer": "first",
+                "scale": 30,
+                "geometry": {"longitude": -123.1, "latitude": 49.2},
+                "values": {"elevation": 123},
+            },
+            {
+                "layer": "NDVI",
+                "selection_type": "point",
+                "reducer": "first",
+                "scale": 30,
+                "geometry": {"longitude": -123.1, "latitude": 49.2},
+                "values": {"ndvi": 0.42},
+            },
+        ],
+    }
+
+    layer = add_identify_results_layer(result, QgsProject.instance())
+
+    assert layer.name() == "Earth Engine identify"
+    assert [field.name() for field in layer.fields()] == [
+        "source_layer",
+        "selection_type",
+        "statistic",
+        "scale_m",
+        "longitude",
+        "latitude",
+        "band",
+        "value",
+    ]
+    features = list(layer.getFeatures())
+    assert len(features) == 2
+    assert features[0]["source_layer"] == "DEM"
+    assert features[0]["band"] == "elevation"
+    assert features[0]["value"] == "123"
+    assert features[1]["source_layer"] == "NDVI"
+    assert features[1]["band"] == "ndvi"
+    assert features[1]["value"] == "0.42"

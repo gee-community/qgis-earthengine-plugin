@@ -85,6 +85,8 @@ class CatalogDockWidget(QDockWidget):
         self.type_combo.addItems(
             ["All types", "Image", "ImageCollection", "FeatureCollection"]
         )
+        self.source_combo = QComboBox()
+        self.source_combo.addItem("All sources")
         self.provider_combo = QComboBox()
         self.provider_combo.addItem("All providers")
         self.category_combo = QComboBox()
@@ -94,10 +96,11 @@ class CatalogDockWidget(QDockWidget):
 
         filters.addWidget(self.search_edit, 0, 0, 1, 4)
         filters.addWidget(self.type_combo, 1, 0)
-        filters.addWidget(self.provider_combo, 1, 1)
-        filters.addWidget(self.category_combo, 1, 2)
-        filters.addWidget(self.refresh_button, 1, 3)
-        filters.addWidget(self.clear_filters_button, 1, 4)
+        filters.addWidget(self.source_combo, 1, 1)
+        filters.addWidget(self.provider_combo, 1, 2)
+        filters.addWidget(self.category_combo, 1, 3)
+        filters.addWidget(self.refresh_button, 1, 4)
+        filters.addWidget(self.clear_filters_button, 1, 5)
         filters.setColumnStretch(0, 1)
         filters.setColumnStretch(1, 1)
         filters.setColumnStretch(2, 1)
@@ -107,9 +110,9 @@ class CatalogDockWidget(QDockWidget):
         layout.addWidget(self.status_label)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
-        self.results_table = QTableWidget(0, 5)
+        self.results_table = QTableWidget(0, 6)
         self.results_table.setHorizontalHeaderLabels(
-            ["Dataset", "Type", "Provider", "Category", "Date range"]
+            ["Dataset", "Type", "Source", "Provider", "Category", "Date range"]
         )
         self.results_table.setSelectionBehavior(
             QAbstractItemView.SelectionBehavior.SelectRows
@@ -126,6 +129,7 @@ class CatalogDockWidget(QDockWidget):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
         splitter.addWidget(self.results_table)
 
         details_widget = QWidget()
@@ -148,6 +152,7 @@ class CatalogDockWidget(QDockWidget):
 
         self.search_edit.textChanged.connect(self.apply_filters)
         self.type_combo.currentTextChanged.connect(self.apply_filters)
+        self.source_combo.currentTextChanged.connect(self.apply_filters)
         self.provider_combo.currentTextChanged.connect(self.apply_filters)
         self.category_combo.currentTextChanged.connect(self.apply_filters)
         self.refresh_button.clicked.connect(lambda: self.load_catalog(refresh=True))
@@ -180,6 +185,7 @@ class CatalogDockWidget(QDockWidget):
             self.items,
             query=self.search_edit.text(),
             asset_type=self._combo_filter_value(self.type_combo, "All types"),
+            source=self._combo_filter_value(self.source_combo, "All sources"),
             provider=self._combo_filter_value(self.provider_combo, "All providers"),
             category=self._combo_filter_value(self.category_combo, "All categories"),
         )
@@ -188,6 +194,7 @@ class CatalogDockWidget(QDockWidget):
     def clear_filters(self) -> None:
         self.search_edit.clear()
         self.type_combo.setCurrentIndex(0)
+        self.source_combo.setCurrentIndex(0)
         self.provider_combo.setCurrentIndex(0)
         self.category_combo.setCurrentIndex(0)
 
@@ -269,6 +276,7 @@ class CatalogDockWidget(QDockWidget):
             values = [
                 item.title,
                 item.asset_type,
+                item.source,
                 item.provider or "Unknown",
                 item.category or "Unknown",
                 date_range,
@@ -303,7 +311,7 @@ class CatalogDockWidget(QDockWidget):
             "<b>Date range:</b> {start_date} to {end_date}<br>"
             "<b>License:</b> {license}</p>"
             "<p><b>Keywords:</b> {keywords}</p>"
-            "<p><a href='{url}'>{url}</a></p>".format(
+            "{links}".format(
                 title=html.escape(item.title),
                 asset_id=html.escape(item.asset_id),
                 asset_type=html.escape(item.asset_type),
@@ -314,7 +322,7 @@ class CatalogDockWidget(QDockWidget):
                 end_date=html.escape(item.end_date or "Unknown"),
                 license=html.escape(item.license or "Unknown"),
                 keywords=html.escape(", ".join(item.keywords) or "None"),
-                url=html.escape(item.url or ""),
+                links=self._details_links_html(item),
             )
         )
         self._update_action_buttons()
@@ -327,6 +335,11 @@ class CatalogDockWidget(QDockWidget):
         self._update_action_buttons()
 
     def _refresh_filter_options(self) -> None:
+        self._set_combo_values(
+            self.source_combo,
+            "All sources",
+            sorted({item.source for item in self.items if item.source}),
+        )
         self._set_combo_values(
             self.provider_combo,
             "All providers",
@@ -371,6 +384,7 @@ class CatalogDockWidget(QDockWidget):
     def _set_controls_enabled(self, enabled: bool) -> None:
         self.search_edit.setEnabled(enabled)
         self.type_combo.setEnabled(enabled)
+        self.source_combo.setEnabled(enabled)
         self.provider_combo.setEnabled(enabled)
         self.category_combo.setEnabled(enabled)
         self.clear_filters_button.setEnabled(enabled)
@@ -396,3 +410,18 @@ class CatalogDockWidget(QDockWidget):
         self.open_button.setEnabled(
             bool(has_selection and self.selected_item() and self.selected_item().url)
         )
+
+    def _details_links_html(self, item: CatalogItem) -> str:
+        links = []
+        if item.url:
+            escaped_url = html.escape(item.url)
+            links.append(f"<a href='{escaped_url}'>Dataset page</a>")
+        if item.sample_code_url:
+            escaped_sample_url = html.escape(item.sample_code_url)
+            links.append(f"<a href='{escaped_sample_url}'>Sample code</a>")
+        if item.catalog_url:
+            escaped_catalog_url = html.escape(item.catalog_url)
+            links.append(f"<a href='{escaped_catalog_url}'>Catalog metadata</a>")
+        if not links:
+            return ""
+        return "<p>{}</p>".format(" &nbsp; ".join(links))

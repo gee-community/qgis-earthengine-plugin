@@ -14,6 +14,13 @@ OFFICIAL_CATALOG_TSV_URL = (
     "https://raw.githubusercontent.com/opengeos/Earth-Engine-Catalog/master/"
     "gee_catalog.tsv"
 )
+COMMUNITY_CATALOG_JSON_URL = (
+    "https://raw.githubusercontent.com/samapriya/awesome-gee-community-datasets/"
+    "master/community_datasets.json"
+)
+
+OFFICIAL_SOURCE = "Official Earth Engine Catalog"
+COMMUNITY_SOURCE = "Awesome GEE Community Catalog"
 
 
 @dataclass
@@ -21,7 +28,7 @@ class CatalogItem:
     title: str
     asset_id: str
     asset_type: str
-    source: str = "Official Earth Engine Catalog"
+    source: str = OFFICIAL_SOURCE
     provider: str = ""
     category: str = ""
     keywords: Optional[List[str]] = None
@@ -30,6 +37,9 @@ class CatalogItem:
     url: str = ""
     catalog_url: str = ""
     license: str = ""
+    license_text: str = ""
+    sample_code_url: str = ""
+    thumbnail_url: str = ""
 
     def __post_init__(self):
         self.keywords = self.keywords or []
@@ -44,12 +54,19 @@ class CatalogItem:
                 self.source,
                 self.provider,
                 self.category,
+                self.license,
+                self.license_text,
+                self.sample_code_url,
                 " ".join(self.keywords),
             ]
         ).lower()
 
 
 def cache_path() -> str:
+    return os.path.join(cache_dir(), "catalog.json")
+
+
+def cache_dir() -> str:
     try:
         cache_location = QStandardPaths.StandardLocation.CacheLocation
     except AttributeError:
@@ -59,7 +76,12 @@ def cache_path() -> str:
         base_dir = os.path.expanduser("~/.cache/qgis-earthengine-plugin")
     path = os.path.join(base_dir, "catalog")
     os.makedirs(path, exist_ok=True)
-    return os.path.join(path, "official_catalog.json")
+    return path
+
+
+def source_cache_path(source_name: str) -> str:
+    filename = source_name.lower().replace(" ", "_") + ".json"
+    return os.path.join(cache_dir(), filename)
 
 
 def load_catalog(refresh: bool = False) -> List[CatalogItem]:
@@ -67,12 +89,31 @@ def load_catalog(refresh: bool = False) -> List[CatalogItem]:
     if not refresh and os.path.exists(path):
         return _items_from_cache(path)
 
+    items = []
+    items.extend(_load_catalog_source("official", fetch_official_catalog, refresh))
+    items.extend(_load_catalog_source("community", fetch_community_catalog, refresh))
+
+    if not items and os.path.exists(path):
+        return _items_from_cache(path)
+    if not items:
+        raise RuntimeError("Could not load official or community catalog data.")
+
+    with open(path, "w", encoding="utf-8") as file_obj:
+        json.dump([asdict(item) for item in items], file_obj)
+    return items
+
+
+def _load_catalog_source(source_name: str, fetcher, refresh: bool) -> List[CatalogItem]:
+    path = source_cache_path(source_name)
+    if not refresh and os.path.exists(path):
+        return _items_from_cache(path)
+
     try:
-        items = fetch_official_catalog()
+        items = fetcher()
     except Exception:
         if os.path.exists(path):
             return _items_from_cache(path)
-        raise
+        return []
 
     with open(path, "w", encoding="utf-8") as file_obj:
         json.dump([asdict(item) for item in items], file_obj)
@@ -87,6 +128,16 @@ def fetch_official_catalog() -> List[CatalogItem]:
     with urlopen(request, timeout=30) as response:  # nosec B310
         text = response.read().decode("utf-8")
     return parse_official_catalog_tsv(text)
+
+
+def fetch_community_catalog() -> List[CatalogItem]:
+    request = Request(
+        COMMUNITY_CATALOG_JSON_URL,
+        headers={"User-Agent": "QGIS-EarthEngine-Plugin"},
+    )
+    with urlopen(request, timeout=30) as response:  # nosec B310
+        text = response.read().decode("utf-8")
+    return parse_community_catalog_json(text)
 
 
 def parse_official_catalog_tsv(text: str) -> List[CatalogItem]:
@@ -105,6 +156,7 @@ def parse_official_catalog_tsv(text: str) -> List[CatalogItem]:
                 title=title,
                 asset_id=asset_id,
                 asset_type=_normalize_asset_type(row.get("type", "")),
+                source=OFFICIAL_SOURCE,
                 provider=row.get("provider", "").strip(),
                 category=row.get("category", "").strip(),
                 keywords=_split_keywords(row.get("keywords", "")),
@@ -118,21 +170,52 @@ def parse_official_catalog_tsv(text: str) -> List[CatalogItem]:
     return items
 
 
+def parse_community_catalog_json(text: str) -> List[CatalogItem]:
+    records = json.loads(text)
+    items = []
+    for row in records:
+        asset_id = _clean_value(row.get("id"))
+        title = _clean_value(row.get("title"))
+        if not asset_id or not title:
+            continue
+
+        items.append(
+            CatalogItem(
+                title=title,
+                asset_id=asset_id,
+                asset_type=_normalize_asset_type(_clean_value(row.get("type"))),
+                source=COMMUNITY_SOURCE,
+                provider=_clean_value(row.get("provider")),
+                category=_clean_value(row.get("thematic_group")),
+                keywords=_split_keywords(_clean_value(row.get("tags"))),
+                url=_clean_value(row.get("docs")),
+                license=_clean_value(row.get("license")),
+                license_text=_clean_value(row.get("license_text")),
+                sample_code_url=_clean_value(row.get("sample_code")),
+                thumbnail_url=_clean_value(row.get("thumbnail")),
+            )
+        )
+    return items
+
+
 def search_catalog(
     items: Iterable[CatalogItem],
     query: str = "",
     asset_type: Optional[str] = None,
+    source: Optional[str] = None,
     provider: Optional[str] = None,
     category: Optional[str] = None,
 ) -> List[CatalogItem]:
     query = query.strip().lower()
     asset_type = (asset_type or "").strip()
+    source = (source or "").strip()
     provider = (provider or "").strip()
     category = (category or "").strip()
     filtered = [
         item
         for item in items
         if (not asset_type or item.asset_type == asset_type)
+        and (not source or item.source == source)
         and (not provider or item.provider == provider)
         and (not category or item.category == category)
         and (not query or query in item.search_text)
@@ -159,6 +242,12 @@ def _normalize_asset_type(raw_type: str) -> str:
 
 def _split_keywords(value: str) -> List[str]:
     return [keyword.strip() for keyword in value.split(",") if keyword.strip()]
+
+
+def _clean_value(value) -> str:
+    if value is None:
+        return ""
+    return str(value).strip()
 
 
 def _rank_item(item: CatalogItem, query: str) -> tuple:

@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Dict, List, Optional
 
 import ee
 from qgis.core import (
@@ -261,10 +261,18 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
 
 
 class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
-    def __init__(self, algorithm, parent=None):
+    def __init__(
+        self,
+        algorithm,
+        parent=None,
+        defaults: Optional[Dict[str, str]] = None,
+    ):
         self.feature_properties = []
+        self.defaults = defaults or {}
         super().__init__(algorithm, parent)
         self._update_timer = QTimer(self, singleShot=True, timeout=self._on_fc_id_ready)
+        if self.defaults.get("feature_collection_id"):
+            self._update_timer.start(0)
 
     def _build_visualization_group(self):
         group = gui.QgsCollapsibleGroupBox("Visualization")
@@ -363,6 +371,8 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.fc_id = QLineEdit()
         self.fc_id.setPlaceholderText("e.g. USGS/WBD/2017/HUC06")
         # Connect signals
+        if self.defaults.get("feature_collection_id"):
+            self.fc_id.setText(self.defaults["feature_collection_id"])
         self.fc_id.textChanged.connect(self._on_fc_id_changed)
 
         layout.addWidget(QLabel("Feature Collection ID"))

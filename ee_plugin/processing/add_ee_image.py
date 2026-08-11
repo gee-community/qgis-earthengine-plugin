@@ -39,11 +39,19 @@ logger = logging.getLogger(__name__)
 
 
 class AddImageAlgorithmDialog(BaseAlgorithmDialog):
-    def __init__(self, algorithm: QgsProcessingAlgorithm, parent=None):
+    def __init__(
+        self,
+        algorithm: QgsProcessingAlgorithm,
+        parent=None,
+        defaults: Optional[Dict[str, Any]] = None,
+    ):
+        self.defaults = defaults or {}
         super().__init__(algorithm, parent=parent, title="Add EE Image")
         self._update_timer = QTimer(self)
         self._update_timer.setSingleShot(True)
         self._update_timer.timeout.connect(self._on_image_id_ready)
+        if self.defaults.get("IMAGE_ID"):
+            self._update_timer.start(0)
 
     def buildDialog(self):
         layout = QVBoxLayout(self)
@@ -51,6 +59,8 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
         self.image_id_input = QLineEdit()
         self.image_id_input.setObjectName("image_id_input")
         self.image_id_input.setToolTip("Enter the Earth Engine Image ID.")
+        if self.defaults.get("IMAGE_ID"):
+            self.image_id_input.setText(self.defaults["IMAGE_ID"])
         self.image_id_input.textChanged.connect(self._on_image_id_changed)
 
         source_form = QFormLayout()

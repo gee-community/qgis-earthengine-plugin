@@ -1,6 +1,6 @@
-import json
 import logging
-from typing import List
+import json
+from typing import Dict, List, Optional
 
 import ee
 from qgis.core import (
@@ -51,12 +51,20 @@ logger = logging.getLogger(__name__)
 
 
 class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
-    def __init__(self, algorithm: QgsProcessingAlgorithm, parent: QWidget = None):
+    def __init__(
+        self,
+        algorithm: QgsProcessingAlgorithm,
+        parent: QWidget = None,
+        defaults: Optional[Dict[str, str]] = None,
+    ):
         self.image_properties = []
+        self.defaults = defaults or {}
         super().__init__(algorithm, parent=parent, title="Add Image Collection")
         self._update_timer = QTimer(
             self, singleShot=True, timeout=self._on_image_collection_id_ready
         )
+        if self.defaults.get("image_collection_id"):
+            self._update_timer.start(0)
 
     def update_image_properties(self):
         asset_id = self.image_collection_id.text().strip()
@@ -170,11 +178,10 @@ class AddImageCollectionAlgorithmDialog(BaseAlgorithmDialog):
         )
 
         self.image_properties = []
+        if self.defaults.get("image_collection_id"):
+            self.image_collection_id.setText(self.defaults["image_collection_id"])
         self.image_collection_id.textChanged.connect(
             self._on_image_collection_id_changed
-        )
-        self._update_timer = QTimer(
-            self, singleShot=True, timeout=self._on_image_collection_id_ready
         )
 
         source_form = QFormLayout()

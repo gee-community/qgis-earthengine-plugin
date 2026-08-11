@@ -3,6 +3,7 @@
 import csv
 import json
 import os
+import time
 from dataclasses import asdict, dataclass
 from typing import Iterable, List, Optional
 from urllib.request import Request, urlopen
@@ -21,6 +22,8 @@ COMMUNITY_CATALOG_JSON_URL = (
 
 OFFICIAL_SOURCE = "Official Earth Engine Catalog"
 COMMUNITY_SOURCE = "Awesome GEE Community Catalog"
+CATALOG_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60
+CATALOG_FETCH_TIMEOUT_SECONDS = 15
 
 
 @dataclass
@@ -62,10 +65,6 @@ class CatalogItem:
         ).lower()
 
 
-def cache_path() -> str:
-    return os.path.join(cache_dir(), "catalog.json")
-
-
 def cache_dir() -> str:
     try:
         cache_location = QStandardPaths.StandardLocation.CacheLocation
@@ -84,28 +83,30 @@ def source_cache_path(source_name: str) -> str:
     return os.path.join(cache_dir(), filename)
 
 
-def load_catalog(refresh: bool = False) -> List[CatalogItem]:
-    path = cache_path()
-    if not refresh and os.path.exists(path):
-        return _items_from_cache(path)
-
-    items = []
-    items.extend(_load_catalog_source("official", fetch_official_catalog, refresh))
-    items.extend(_load_catalog_source("community", fetch_community_catalog, refresh))
-
-    if not items and os.path.exists(path):
-        return _items_from_cache(path)
-    if not items:
-        raise RuntimeError("Could not load official or community catalog data.")
-
-    with open(path, "w", encoding="utf-8") as file_obj:
-        json.dump([asdict(item) for item in items], file_obj)
+def load_catalog(
+    refresh: bool = False,
+    include_community: bool = False,
+) -> List[CatalogItem]:
+    items = load_official_catalog(refresh=refresh)
+    if include_community:
+        items.extend(load_community_catalog(refresh=refresh))
     return items
+
+
+def load_official_catalog(refresh: bool = False) -> List[CatalogItem]:
+    items = _load_catalog_source("official", fetch_official_catalog, refresh)
+    if not items:
+        raise RuntimeError("Could not load official catalog data.")
+    return items
+
+
+def load_community_catalog(refresh: bool = False) -> List[CatalogItem]:
+    return _load_catalog_source("community", fetch_community_catalog, refresh)
 
 
 def _load_catalog_source(source_name: str, fetcher, refresh: bool) -> List[CatalogItem]:
     path = source_cache_path(source_name)
-    if not refresh and os.path.exists(path):
+    if not refresh and _is_fresh_cache(path):
         return _items_from_cache(path)
 
     try:
@@ -125,7 +126,7 @@ def fetch_official_catalog() -> List[CatalogItem]:
         OFFICIAL_CATALOG_TSV_URL,
         headers={"User-Agent": "QGIS-EarthEngine-Plugin"},
     )
-    with urlopen(request, timeout=30) as response:  # nosec B310
+    with urlopen(request, timeout=CATALOG_FETCH_TIMEOUT_SECONDS) as response:  # nosec B310
         text = response.read().decode("utf-8")
     return parse_official_catalog_tsv(text)
 
@@ -135,7 +136,7 @@ def fetch_community_catalog() -> List[CatalogItem]:
         COMMUNITY_CATALOG_JSON_URL,
         headers={"User-Agent": "QGIS-EarthEngine-Plugin"},
     )
-    with urlopen(request, timeout=30) as response:  # nosec B310
+    with urlopen(request, timeout=CATALOG_FETCH_TIMEOUT_SECONDS) as response:  # nosec B310
         text = response.read().decode("utf-8")
     return parse_community_catalog_json(text)
 
@@ -227,6 +228,12 @@ def _items_from_cache(path: str) -> List[CatalogItem]:
     with open(path, encoding="utf-8") as file_obj:
         data = json.load(file_obj)
     return [CatalogItem(**item) for item in data]
+
+
+def _is_fresh_cache(path: str) -> bool:
+    if not os.path.exists(path):
+        return False
+    return time.time() - os.path.getmtime(path) < CATALOG_CACHE_TTL_SECONDS
 
 
 def _normalize_asset_type(raw_type: str) -> str:

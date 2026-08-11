@@ -4,7 +4,7 @@ import html
 import webbrowser
 from typing import List, Optional
 
-from qgis.PyQt.QtCore import Qt, QThread, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QThread, QTimer, pyqtSignal
 from qgis.PyQt.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -34,20 +34,33 @@ from ..processing.add_image_collection import (
     AddImageCollectionAlgorithm,
     AddImageCollectionAlgorithmDialog,
 )
-from .client import CatalogItem, load_catalog, search_catalog
+from .client import (
+    COMMUNITY_SOURCE,
+    OFFICIAL_SOURCE,
+    CatalogItem,
+    load_catalog,
+    load_community_catalog,
+    search_catalog,
+)
+
+MAX_VISIBLE_RESULTS = 500
 
 
 class CatalogLoadThread(QThread):
     finished = pyqtSignal(list)
     failed = pyqtSignal(str)
 
-    def __init__(self, refresh: bool = False):
+    def __init__(self, refresh: bool = False, community_only: bool = False):
         super().__init__()
         self.refresh = refresh
+        self.community_only = community_only
 
     def run(self):
         try:
-            self.finished.emit(load_catalog(refresh=self.refresh))
+            if self.community_only:
+                self.finished.emit(load_community_catalog(refresh=self.refresh))
+            else:
+                self.finished.emit(load_catalog(refresh=self.refresh))
         except Exception as exc:
             self.failed.emit(str(exc))
 
@@ -62,6 +75,11 @@ class CatalogDockWidget(QDockWidget):
         self.filtered_items: List[CatalogItem] = []
         self._loader: Optional[CatalogLoadThread] = None
         self._is_loading = False
+        self._loaded_sources = set()
+        self._pending_source = ""
+        self._filter_timer = QTimer(self)
+        self._filter_timer.setSingleShot(True)
+        self._filter_timer.timeout.connect(self.apply_filters)
 
         self.setObjectName("EarthEngineCatalogDock")
         self.setWidget(self._build_widget())
@@ -86,7 +104,7 @@ class CatalogDockWidget(QDockWidget):
             ["All types", "Image", "ImageCollection", "FeatureCollection"]
         )
         self.source_combo = QComboBox()
-        self.source_combo.addItem("All sources")
+        self.source_combo.addItems(["Official", "Community", "All sources"])
         self.provider_combo = QComboBox()
         self.provider_combo.addItem("All providers")
         self.category_combo = QComboBox()
@@ -150,12 +168,12 @@ class CatalogDockWidget(QDockWidget):
         splitter.setSizes([320, 220])
         layout.addWidget(splitter)
 
-        self.search_edit.textChanged.connect(self.apply_filters)
+        self.search_edit.textChanged.connect(self._schedule_filter)
         self.type_combo.currentTextChanged.connect(self.apply_filters)
-        self.source_combo.currentTextChanged.connect(self.apply_filters)
+        self.source_combo.currentTextChanged.connect(self._on_source_filter_changed)
         self.provider_combo.currentTextChanged.connect(self.apply_filters)
         self.category_combo.currentTextChanged.connect(self.apply_filters)
-        self.refresh_button.clicked.connect(lambda: self.load_catalog(refresh=True))
+        self.refresh_button.clicked.connect(self._refresh_current_source)
         self.clear_filters_button.clicked.connect(self.clear_filters)
         self.results_table.itemSelectionChanged.connect(self._update_details)
         self.results_table.itemDoubleClicked.connect(
@@ -171,6 +189,7 @@ class CatalogDockWidget(QDockWidget):
         if self._loader is not None:
             return
         self._is_loading = True
+        self._pending_source = OFFICIAL_SOURCE
         self._set_loading_state("Loading catalog...")
         self._set_controls_enabled(False)
         self._loader = CatalogLoadThread(refresh=refresh)
@@ -181,20 +200,24 @@ class CatalogDockWidget(QDockWidget):
         self._loader.start()
 
     def apply_filters(self) -> None:
+        source = self._selected_source_filter()
         self.filtered_items = search_catalog(
             self.items,
             query=self.search_edit.text(),
             asset_type=self._combo_filter_value(self.type_combo, "All types"),
-            source=self._combo_filter_value(self.source_combo, "All sources"),
+            source=source,
             provider=self._combo_filter_value(self.provider_combo, "All providers"),
             category=self._combo_filter_value(self.category_combo, "All categories"),
         )
         self._populate_results()
 
+    def _schedule_filter(self) -> None:
+        self._filter_timer.start(250)
+
     def clear_filters(self) -> None:
         self.search_edit.clear()
         self.type_combo.setCurrentIndex(0)
-        self.source_combo.setCurrentIndex(0)
+        self.source_combo.setCurrentText("Official")
         self.provider_combo.setCurrentIndex(0)
         self.category_combo.setCurrentIndex(0)
 
@@ -207,7 +230,11 @@ class CatalogDockWidget(QDockWidget):
         if first_item is None:
             return None
         item_index = first_item.data(Qt.ItemDataRole.UserRole)
-        if item_index is None or item_index >= len(self.filtered_items):
+        if (
+            item_index is None
+            or item_index < 0
+            or item_index >= len(self.filtered_items)
+        ):
             return None
         return self.filtered_items[item_index]
 
@@ -255,23 +282,42 @@ class CatalogDockWidget(QDockWidget):
 
     def _catalog_loaded(self, items: list) -> None:
         self._is_loading = False
-        self.items = items
+        if self._pending_source == COMMUNITY_SOURCE:
+            self.items = [
+                item for item in self.items if item.source != COMMUNITY_SOURCE
+            ] + items
+        else:
+            self.items = [
+                item for item in self.items if item.source != OFFICIAL_SOURCE
+            ] + items
+        if self._pending_source:
+            self._loaded_sources.add(self._pending_source)
+        self._pending_source = ""
         self._refresh_filter_options()
         self._set_controls_enabled(True)
         self.apply_filters()
 
     def _catalog_failed(self, error: str) -> None:
         self._is_loading = False
+        failed_source = self._pending_source
+        self._pending_source = ""
         self._set_controls_enabled(True)
+        if failed_source == COMMUNITY_SOURCE and self.items:
+            self.apply_filters()
+            self._update_status("Could not load community catalog.")
+            return
         self._set_loading_state(f"Could not load catalog:\n{error}")
 
     def _clear_loader(self) -> None:
         self._loader = None
 
     def _populate_results(self) -> None:
+        visible_items = self.filtered_items[:MAX_VISIBLE_RESULTS]
         self.results_table.setSortingEnabled(False)
-        self.results_table.setRowCount(len(self.filtered_items))
-        for row, item in enumerate(self.filtered_items):
+        self.results_table.setUpdatesEnabled(False)
+        self.results_table.clearSelection()
+        self.results_table.setRowCount(len(visible_items))
+        for row, item in enumerate(visible_items):
             date_range = self._date_range_label(item)
             values = [
                 item.title,
@@ -285,6 +331,7 @@ class CatalogDockWidget(QDockWidget):
                 table_item = QTableWidgetItem(value)
                 table_item.setData(Qt.ItemDataRole.UserRole, row)
                 self.results_table.setItem(row, column, table_item)
+        self.results_table.setUpdatesEnabled(True)
         self.results_table.setSortingEnabled(True)
         self._update_status()
         self._update_details()
@@ -336,11 +383,6 @@ class CatalogDockWidget(QDockWidget):
 
     def _refresh_filter_options(self) -> None:
         self._set_combo_values(
-            self.source_combo,
-            "All sources",
-            sorted({item.source for item in self.items if item.source}),
-        )
-        self._set_combo_values(
             self.provider_combo,
             "All providers",
             sorted({item.provider for item in self.items if item.provider}),
@@ -372,6 +414,44 @@ class CatalogDockWidget(QDockWidget):
             return None
         return value
 
+    def _selected_source_filter(self) -> Optional[str]:
+        value = self.source_combo.currentText()
+        if value == "Official":
+            return OFFICIAL_SOURCE
+        if value == "Community":
+            return COMMUNITY_SOURCE
+        return None
+
+    def _on_source_filter_changed(self) -> None:
+        source = self._selected_source_filter()
+        if (
+            source in (COMMUNITY_SOURCE, None)
+            and COMMUNITY_SOURCE not in self._loaded_sources
+        ):
+            self._load_community_catalog()
+            return
+        self.apply_filters()
+
+    def _load_community_catalog(self, refresh: bool = False) -> None:
+        if self._loader is not None:
+            return
+        self._is_loading = True
+        self._pending_source = COMMUNITY_SOURCE
+        self._set_controls_enabled(False)
+        self._update_status("Loading community catalog...")
+        self._loader = CatalogLoadThread(refresh=refresh, community_only=True)
+        self._loader.finished.connect(self._catalog_loaded)
+        self._loader.failed.connect(self._catalog_failed)
+        self._loader.finished.connect(self._clear_loader)
+        self._loader.failed.connect(self._clear_loader)
+        self._loader.start()
+
+    def _refresh_current_source(self) -> None:
+        if self.source_combo.currentText() == "Community":
+            self._load_community_catalog(refresh=True)
+        else:
+            self.load_catalog(refresh=True)
+
     def _date_range_label(self, item: CatalogItem) -> str:
         if item.start_date and item.end_date:
             return f"{item.start_date} to {item.end_date}"
@@ -398,6 +478,10 @@ class CatalogDockWidget(QDockWidget):
         filtered = len(self.filtered_items)
         if total == 0:
             self.status_label.setText("No catalog datasets loaded.")
+        elif filtered > MAX_VISIBLE_RESULTS:
+            self.status_label.setText(
+                f"Showing first {MAX_VISIBLE_RESULTS} of {filtered} match(es)."
+            )
         elif filtered == total:
             self.status_label.setText(f"Showing {total} dataset(s).")
         else:

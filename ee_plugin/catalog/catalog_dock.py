@@ -253,13 +253,21 @@ class CatalogDockWidget(QDockWidget):
             dialog = AddImageCollectionAlgorithmDialog(
                 AddImageCollectionAlgorithm(),
                 parent=self.iface.mainWindow(),
-                defaults={"image_collection_id": item.asset_id},
+                defaults={
+                    "image_collection_id": item.asset_id,
+                    "start_date": item.start_date,
+                    "end_date": item.end_date,
+                },
             )
         elif item.asset_type == "FeatureCollection":
             dialog = AddFeatureCollectionAlgorithmDialog(
                 AddFeatureCollectionAlgorithm(),
                 parent=self.iface.mainWindow(),
-                defaults={"feature_collection_id": item.asset_id},
+                defaults={
+                    "feature_collection_id": item.asset_id,
+                    "start_date": item.start_date,
+                    "end_date": item.end_date,
+                },
             )
         else:
             QMessageBox.warning(

@@ -38,6 +38,31 @@ from ..utils import (
 logger = logging.getLogger(__name__)
 
 
+def _date_from_default(value: str):
+    from qgis.PyQt.QtCore import QDate
+
+    value = (value or "").strip()
+    if not value:
+        return None
+
+    date_part = value[:10]
+    qdate = QDate.fromString(date_part, "yyyy-MM-dd")
+    if qdate.isValid():
+        return qdate
+
+    parts = date_part.split("-")
+    try:
+        if len(parts) == 1 and parts[0]:
+            qdate = QDate(int(parts[0]), 1, 1)
+            return qdate if qdate.isValid() else None
+        if len(parts) == 2 and parts[0] and parts[1]:
+            qdate = QDate(int(parts[0]), int(parts[1]), 1)
+            return qdate if qdate.isValid() else None
+    except ValueError:
+        return None
+    return None
+
+
 class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
     def name(self):
         return "add_feature_collection"
@@ -396,6 +421,14 @@ class AddFeatureCollectionAlgorithmDialog(BaseAlgorithmDialog):
         self.end_date = gui.QgsDateEdit(objectName="end_date")
         self.end_date.setToolTip(_("End date for filtering"))
         self.end_date.setDate(QDate.currentDate())
+        default_start_date = _date_from_default(self.defaults.get("start_date", ""))
+        default_end_date = _date_from_default(self.defaults.get("end_date", ""))
+        if default_start_date:
+            self.start_date.setDate(default_start_date)
+        if default_end_date:
+            self.end_date.setDate(default_end_date)
+        if default_start_date or default_end_date:
+            date_group.setCollapsed(False)
 
         date_layout.addRow(_("Start"), self.start_date)
         date_layout.addRow(_("End"), self.end_date)

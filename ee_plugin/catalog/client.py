@@ -122,13 +122,19 @@ def search_catalog(
     items: Iterable[CatalogItem],
     query: str = "",
     asset_type: Optional[str] = None,
+    provider: Optional[str] = None,
+    category: Optional[str] = None,
 ) -> List[CatalogItem]:
     query = query.strip().lower()
     asset_type = (asset_type or "").strip()
+    provider = (provider or "").strip()
+    category = (category or "").strip()
     filtered = [
         item
         for item in items
         if (not asset_type or item.asset_type == asset_type)
+        and (not provider or item.provider == provider)
+        and (not category or item.category == category)
         and (not query or query in item.search_text)
     ]
     return sorted(filtered, key=lambda item: _rank_item(item, query))

@@ -42,12 +42,32 @@ from ..utils import (
     ee_image_to_geotiff,
     get_ee_object_from_layer,
     get_ee_raster_layers,
-    get_layer_by_name,
     is_ee_raster_layer,
 )
 
 
 logging = logging.getLogger(__name__)
+
+
+def _resolve_ee_raster_layer(identifier, context: QgsProcessingContext):
+    if identifier is None:
+        return None
+    if hasattr(identifier, "customProperty") and is_ee_raster_layer(identifier):
+        return identifier
+
+    try:
+        layer = context.getMapLayer(str(identifier))
+        if layer and is_ee_raster_layer(layer):
+            return layer
+    except Exception as exc:
+        logging.debug(
+            "Unable to resolve EE layer from processing context.", exc_info=exc
+        )
+
+    for layer in get_ee_raster_layers():
+        if identifier in (layer.id(), layer.name(), layer.source()):
+            return layer
+    return None
 
 
 class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
@@ -314,8 +334,21 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         # add logs to algorithm dialog
         local_context.set_feedback(feedback)
         feedback.pushInfo("Validating parameters…")
-        selected_index = self.parameterAsEnum(parameters, "EE_IMAGE", context)
-        ee_img = self.raster_layers[selected_index]
+        ee_img = parameters.get("EE_IMAGE")
+        layer = _resolve_ee_raster_layer(ee_img, context)
+        if layer:
+            ee_img = layer.name()
+        elif isinstance(ee_img, int):
+            selected_index = self.parameterAsEnum(parameters, "EE_IMAGE", context)
+            ee_img = self.raster_layers[selected_index]
+        else:
+            ee_img = self.parameterAsString(parameters, "EE_IMAGE", context)
+            if (
+                isinstance(ee_img, str)
+                and ee_img.isdigit()
+                and int(ee_img) < len(self.raster_layers)
+            ):
+                ee_img = self.raster_layers[int(ee_img)]
         rect = self.parameterAsExtent(parameters, "EXTENT", context)
         rect_source_crs = self.parameterAsExtentCrs(parameters, "EXTENT", context)
         if (
@@ -343,7 +376,7 @@ class ExportGeoTIFFAlgorithm(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             raise RuntimeError("Canceled")
 
-        layer = get_layer_by_name(ee_img)
+        layer = layer or _resolve_ee_raster_layer(ee_img, context)
 
         if not layer or not is_ee_raster_layer(layer):
             msg = f"Layer {ee_img} not found"

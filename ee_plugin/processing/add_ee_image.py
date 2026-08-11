@@ -28,11 +28,10 @@ from qgis.core import (
     QgsProcessingUtils,
 )
 
-from ..Map import addLayer
 from .. import Map
 from ..logging import local_context
 from ..ui.widgets import VisualizationParamsWidget
-from ..utils import get_available_bands, get_ee_extent
+from ..utils import add_processing_ee_layer, get_available_bands, get_ee_extent
 from ..ui.utils import serialize_color_ramp
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 
@@ -119,6 +118,7 @@ class AddImageAlgorithmDialog(BaseAlgorithmDialog):
                 "EXTENT": self.extent_group.outputExtent(),
                 "EXTENT_CRS": self.extent_group.outputCrs(),
                 "CLIP_TO_EXTENT": self.clip_checkbox.isChecked(),
+                "LOAD_OUTPUT_LAYER": True,
             }
         except Exception as e:
             raise ValueError(f"Invalid parameters: {e}")
@@ -221,7 +221,9 @@ class AddEEImageAlgorithm(QgsProcessingAlgorithm):
             else:
                 viz_params = {}
 
-            layer = addLayer(ee_object, viz_params, image_id)
+            layer = add_processing_ee_layer(
+                ee_object, viz_params, image_id, context, parameters
+            )
 
             if not layer:
                 raise QgsProcessingException("Failed to add EE layer to map.")

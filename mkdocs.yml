@@ -41,7 +41,9 @@ nav:
   - Home: index.md
   - Quickstart: quickstart.md
   - Installation: installation.md
-  - Usage: usage.md
+  - Usage:
+    - Overview: usage.md
+    - Identify Tool: identify.md
   - Troubleshooting: troubleshooting.md
   - Tutorials:
     - Downloading Images: tutorials/downloading_images.md

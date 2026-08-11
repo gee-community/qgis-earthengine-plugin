@@ -1,9 +1,122 @@
+import http.server
+import time
+import urllib.parse
+import webbrowser
 from typing import Optional
 
 import ee
-from qgis.PyQt.QtWidgets import QInputDialog, QLineEdit, QMessageBox
+from qgis.PyQt.QtCore import QCoreApplication, Qt
+from qgis.PyQt.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QProgressDialog
 
 from .config import EarthEngineConfig
+
+AUTH_TIMEOUT_SECONDS = 300
+
+
+class AuthenticationCanceled(Exception):
+    """Raised when the interactive authentication flow is canceled or expires."""
+
+
+def _write_token(
+    ee_config: EarthEngineConfig,
+    auth_code: str,
+    code_verifier: str,
+    redirect_uri: str,
+) -> None:
+    refresh_token = ee.oauth.request_token(
+        auth_code.strip(),
+        code_verifier,
+        redirect_uri=redirect_uri,
+    )
+    credentials = {
+        "refresh_token": refresh_token,
+        "scopes": ee.oauth.SCOPES,
+    }
+    project = ee.oauth._project_number_from_client_id(credentials.get("client_id"))
+    if project:
+        credentials["project"] = project
+    ee.oauth.write_private_json(ee_config.credentials_path, credentials)
+
+
+def _authenticate_localhost(ee_config: EarthEngineConfig) -> None:
+    """Run localhost auth with a cancelable Qt wait loop.
+
+    ee.Authenticate(auth_mode="localhost") blocks forever waiting for the OAuth
+    callback. Owning the local server here keeps QGIS responsive if the user
+    closes the browser before completing sign-in.
+    """
+
+    code = None
+    auth_error = None
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # pylint: disable=invalid-name
+            nonlocal auth_error, code
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            code = query.get("code", [None])[0]
+            auth_error = query.get("error", [None])[0]
+            self.send_response(200)
+            self.send_header("Content-type", "text/plain; charset=utf-8")
+            self.end_headers()
+            if code:
+                self.wfile.write(
+                    b"\n\nGoogle Earth Engine authorization successful!\n\n"
+                    b"Credentials have been retrieved. You can close this window.\n"
+                )
+            else:
+                self.wfile.write(
+                    b"\n\nGoogle Earth Engine authorization did not complete.\n\n"
+                    b"Return to QGIS and start sign-in again.\n"
+                )
+
+        def log_message(self, *_) -> None:
+            pass
+
+    try:
+        server = http.server.HTTPServer(
+            ("localhost", ee.oauth.DEFAULT_LOCAL_PORT), Handler
+        )
+    except OSError:
+        server = http.server.HTTPServer(("localhost", 0), Handler)
+    server.timeout = 0.25
+    redirect_uri = f"http://localhost:{server.server_address[1]}"
+
+    pkce = ee.oauth._nonce_table("code_verifier")
+    auth_url = ee.oauth.get_authorization_url(
+        pkce["code_challenge"], ee.oauth.SCOPES, redirect_uri
+    )
+
+    progress = QProgressDialog(
+        "Complete Google Earth Engine sign-in in your browser.",
+        "Cancel",
+        0,
+        0,
+        None,
+    )
+    progress.setWindowTitle("Authenticate Google Earth Engine")
+    window_modality = getattr(Qt, "WindowModality", Qt).ApplicationModal
+    progress.setWindowModality(window_modality)
+    progress.setMinimumDuration(0)
+    progress.show()
+
+    webbrowser.open_new(auth_url)
+    deadline = time.monotonic() + AUTH_TIMEOUT_SECONDS
+
+    try:
+        while not code:
+            QCoreApplication.processEvents()
+            if auth_error:
+                raise AuthenticationCanceled(f"Authentication failed: {auth_error}")
+            if progress.wasCanceled():
+                raise AuthenticationCanceled("Authentication canceled.")
+            if time.monotonic() >= deadline:
+                raise AuthenticationCanceled("Authentication timed out.")
+            server.handle_request()
+
+        _write_token(ee_config, code, pkce["code_verifier"], redirect_uri)
+    finally:
+        progress.close()
+        server.server_close()
 
 
 def ee_authenticate(ee_config: EarthEngineConfig) -> bool:
@@ -30,11 +143,14 @@ def ee_authenticate(ee_config: EarthEngineConfig) -> bool:
     if reply == QMessageBox.StandardButton.Cancel:
         print("Cancel")
         return False
-    else:
-        ee.Authenticate(auth_mode="localhost", force=True)
 
-        # bug: ee.Authenticate(force=True) returns None, check the auth status manually
-        return bool(ee_config.read())
+    try:
+        _authenticate_localhost(ee_config)
+    except AuthenticationCanceled:
+        return False
+
+    # bug: ee.Authenticate(force=True) returns None, check the auth status manually
+    return bool(ee_config.read())
 
 
 def ee_initialize_with_project(ee_config: EarthEngineConfig, force=False) -> None:

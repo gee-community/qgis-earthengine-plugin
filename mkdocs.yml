@@ -42,6 +42,7 @@ nav:
   - Quickstart: quickstart.md
   - Installation: installation.md
   - Usage: usage.md
+  - Data Catalog: catalog.md
   - Troubleshooting: troubleshooting.md
   - Tutorials:
     - Downloading Images: tutorials/downloading_images.md

@@ -23,4 +23,4 @@ Google Earth Engine requires a **Google Cloud Project**. To find your Project ID
 - For more details, refer to the official [Google Cloud Project Management Guide](https://cloud.google.com/resource-manager/docs/creating-managing-projects).
 
 
-See our [Step-by-Step Installtion Guide](https://gee-community.github.io/qgis-earthengine-plugin/installation) for detailed installation instructions.
+See our [Step-by-Step Installation Guide](https://gee-community.github.io/qgis-earthengine-plugin/installation) for detailed installation instructions.

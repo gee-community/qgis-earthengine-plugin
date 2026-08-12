@@ -37,6 +37,12 @@ See [available algorithms](#available-algorithms) for more details.
 
 ![example algorithm](https://raw.githubusercontent.com/gee-community/qgis-earthengine-plugin/main/media/example_algorithm.png)
 
+## Data Catalog
+
+Use **Plugins > Google Earth Engine > Data Catalog** to search for Earth Engine datasets directly in QGIS.
+
+See the [Data Catalog guide](catalog.md) for search filters, dataset details, catalog sources, refresh behavior, and loading datasets into QGIS.
+
 ## Model Designer
 
 Earth Engine algorithms can be integrated into QGIS **Model Designer** workflows:

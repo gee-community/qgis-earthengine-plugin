@@ -32,6 +32,7 @@ from ..utils import (
     filter_functions,
     get_ee_extent,
     add_processing_ee_layer,
+    set_ee_feature_collection_layer_source,
 )
 
 
@@ -268,6 +269,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         )
         # opacity can't be set from EE, we must apply in QGIS
         layer = add_processing_ee_layer(styled_fc, {}, layer_name, context, parameters)
+        set_ee_feature_collection_layer_source(layer, fc)
         if opacity != "":
             layer.setOpacity(int(opacity) / 100)
         result["OUTPUT_RASTER"] = layer

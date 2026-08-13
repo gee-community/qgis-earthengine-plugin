@@ -1,4 +1,4 @@
-"""Map tool for identifying pixel values in Earth Engine raster layers."""
+"""Map tool for identifying Earth Engine raster pixels and vector features."""
 
 import re
 from typing import Any, Dict, List, Optional
@@ -35,6 +35,8 @@ from qgis.PyQt.QtWidgets import (
 
 from . import Map, utils
 
+FEATURE_IDENTIFY_LIMIT = 100
+
 
 def identify_image(
     image: ee.Image, geometry: ee.Geometry, scale: float, reducer: ee.Reducer
@@ -47,6 +49,16 @@ def identify_image(
         bestEffort=True,
         maxPixels=100_000_000,
     ).getInfo()
+
+
+def identify_features(
+    feature_collection: ee.FeatureCollection,
+    geometry: ee.Geometry,
+    limit: int = FEATURE_IDENTIFY_LIMIT,
+) -> List[Dict[str, Any]]:
+    """Fetch features from a collection that intersect an Earth Engine geometry."""
+    info = feature_collection.filterBounds(geometry).limit(limit).getInfo()
+    return info.get("features", [])
 
 
 def point_to_ee_geometry(point: QgsPointXY) -> ee.Geometry:
@@ -94,6 +106,8 @@ def add_identify_results_layer(
     result: Dict[str, Any], project: Optional[QgsProject] = None
 ) -> QgsVectorLayer:
     """Add identify results as a temporary single-feature layer."""
+    if result.get("result_type") == "features":
+        return _add_feature_identify_results_layer(result, project)
     if "results" in result:
         return _add_multi_identify_results_layer(result, project)
 
@@ -110,6 +124,36 @@ def add_identify_results_layer(
 
     if not provider.addFeatures([feature]):
         raise ValueError("Could not add identify feature to the temporary layer.")
+    layer.updateExtents()
+
+    (project or QgsProject.instance()).addMapLayer(layer)
+    return layer
+
+
+def _add_feature_identify_results_layer(
+    result: Dict[str, Any], project: Optional[QgsProject] = None
+) -> QgsVectorLayer:
+    """Add selected EE features as a temporary vector layer."""
+    layer = _new_feature_result_layer(result)
+    fields = _feature_result_fields(result)
+    provider = layer.dataProvider()
+    provider.addAttributes(fields)
+    layer.updateFields()
+
+    features = []
+    for feature_info in result["features"]:
+        feature = QgsFeature(layer.fields())
+        geometry_info = feature_info.get("geometry")
+        if geometry_info:
+            feature.setGeometry(_geojson_to_qgs_geometry(geometry_info))
+        attributes = _feature_result_attributes(result, feature_info)
+        feature.setAttributes(
+            [attributes.get(field.name()) for field in layer.fields()]
+        )
+        features.append(feature)
+
+    if features and not provider.addFeatures(features):
+        raise ValueError("Could not add identify features to the temporary layer.")
     layer.updateExtents()
 
     (project or QgsProject.instance()).addMapLayer(layer)
@@ -179,6 +223,34 @@ def _new_multi_result_layer(result: Dict[str, Any]) -> QgsVectorLayer:
     return layer
 
 
+def _new_feature_result_layer(result: Dict[str, Any]) -> QgsVectorLayer:
+    geometry_type = _feature_result_geometry_type(result)
+    layer = QgsVectorLayer(
+        f"{geometry_type}?crs=EPSG:4326",
+        f"{result['layer']} identify",
+        "memory",
+    )
+    if not layer.isValid():
+        raise ValueError("Could not create a temporary feature identify layer.")
+    return layer
+
+
+def _feature_result_geometry_type(result: Dict[str, Any]) -> str:
+    for feature_info in result["features"]:
+        geometry_info = feature_info.get("geometry") or {}
+        geometry_type = geometry_info.get("type")
+        if geometry_type in (
+            "Point",
+            "MultiPoint",
+            "LineString",
+            "MultiLineString",
+            "Polygon",
+            "MultiPolygon",
+        ):
+            return geometry_type
+    return "Point"
+
+
 def _result_fields(result: Dict[str, Any]) -> QgsFields:
     fields = QgsFields()
     for name, field_type in [
@@ -207,6 +279,30 @@ def _result_fields(result: Dict[str, Any]) -> QgsFields:
     return fields
 
 
+def _feature_result_fields(result: Dict[str, Any]) -> QgsFields:
+    fields = QgsFields()
+    for name, field_type in [
+        ("source_layer", QVariant.String),
+        ("selection_type", QVariant.String),
+        ("ee_feature_id", QVariant.String),
+    ]:
+        fields.append(QgsField(name, field_type))
+
+    field_names = _feature_property_field_names(result)
+    sample_values = {}
+    for feature_info in result["features"]:
+        sample_values.update(feature_info.get("properties", {}))
+
+    for property_name, field_name in field_names.items():
+        fields.append(
+            QgsField(
+                field_name,
+                _qvariant_type(sample_values.get(property_name)),
+            )
+        )
+    return fields
+
+
 def _multi_result_fields(result: Dict[str, Any]) -> QgsFields:
     fields = QgsFields()
     for name, field_type in [
@@ -227,6 +323,48 @@ def _multi_result_fields(result: Dict[str, Any]) -> QgsFields:
     fields.append(QgsField("band", QVariant.String))
     fields.append(QgsField("value", QVariant.String))
     return fields
+
+
+def _geojson_to_qgs_geometry(geometry_info: Dict[str, Any]) -> QgsGeometry:
+    return QgsGeometry.fromWkt(_geojson_geometry_to_wkt(geometry_info))
+
+
+def _geojson_geometry_to_wkt(geometry_info: Dict[str, Any]) -> str:
+    geometry_type = geometry_info.get("type")
+    coordinates = geometry_info.get("coordinates")
+    if geometry_type == "Point":
+        return f"POINT ({_wkt_coordinate(coordinates)})"
+    if geometry_type == "MultiPoint":
+        return "MULTIPOINT ({})".format(
+            ", ".join(f"({_wkt_coordinate(point)})" for point in coordinates)
+        )
+    if geometry_type == "LineString":
+        return f"LINESTRING ({_wkt_coordinate_sequence(coordinates)})"
+    if geometry_type == "MultiLineString":
+        return "MULTILINESTRING ({})".format(
+            ", ".join(f"({_wkt_coordinate_sequence(line)})" for line in coordinates)
+        )
+    if geometry_type == "Polygon":
+        return f"POLYGON ({_wkt_polygon_coordinates(coordinates)})"
+    if geometry_type == "MultiPolygon":
+        return "MULTIPOLYGON ({})".format(
+            ", ".join(
+                f"({_wkt_polygon_coordinates(polygon)})" for polygon in coordinates
+            )
+        )
+    raise ValueError(f"Unsupported feature geometry type: {geometry_type}")
+
+
+def _wkt_polygon_coordinates(rings: List[Any]) -> str:
+    return ", ".join(f"({_wkt_coordinate_sequence(ring)})" for ring in rings)
+
+
+def _wkt_coordinate_sequence(coordinates: List[Any]) -> str:
+    return ", ".join(_wkt_coordinate(coordinate) for coordinate in coordinates)
+
+
+def _wkt_coordinate(coordinate: List[Any]) -> str:
+    return f"{coordinate[0]} {coordinate[1]}"
 
 
 def _result_geometry(result: Dict[str, Any]) -> QgsGeometry:
@@ -263,6 +401,20 @@ def _result_attributes(result: Dict[str, Any]) -> Dict[str, Any]:
     return attributes
 
 
+def _feature_result_attributes(
+    result: Dict[str, Any], feature_info: Dict[str, Any]
+) -> Dict[str, Any]:
+    attributes = {
+        "source_layer": feature_info.get("_source_layer", result["layer"]),
+        "selection_type": result["selection_type"],
+        "ee_feature_id": str(feature_info.get("id", "")),
+    }
+    field_names = _feature_property_field_names(result)
+    for property_name, value in feature_info.get("properties", {}).items():
+        attributes[field_names[property_name]] = _qgis_attribute_value(value)
+    return attributes
+
+
 def _multi_result_attributes(
     result: Dict[str, Any], band: Optional[str], value: Any
 ) -> Dict[str, Any]:
@@ -276,6 +428,27 @@ def _multi_result_attributes(
     }
     attributes.update(result["geometry"])
     return attributes
+
+
+def _feature_property_field_names(result: Dict[str, Any]) -> Dict[str, str]:
+    used_names = {"source_layer", "selection_type", "ee_feature_id"}
+    field_names = {}
+    for feature_info in result["features"]:
+        for property_name in feature_info.get("properties", {}):
+            if property_name in field_names:
+                continue
+            field_name = re.sub(r"[^0-9A-Za-z_]+", "_", str(property_name)).strip("_")
+            field_name = field_name or "property"
+            if field_name[0].isdigit():
+                field_name = f"property_{field_name}"
+            unique_field_name = field_name
+            suffix = 2
+            while unique_field_name in used_names:
+                unique_field_name = f"{field_name}_{suffix}"
+                suffix += 1
+            used_names.add(unique_field_name)
+            field_names[property_name] = unique_field_name
+    return field_names
 
 
 def _band_field_names(result: Dict[str, Any]) -> Dict[str, str]:
@@ -314,6 +487,12 @@ def _qvariant_type(value: Any):
     return QVariant.String
 
 
+def _qgis_attribute_value(value: Any) -> Any:
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    return str(value)
+
+
 def _format_identify_value(value: Any) -> str:
     if value is None:
         return "No data"
@@ -337,31 +516,30 @@ class IdentifyResultsDialog(QDialog):
 
         layout = QVBoxLayout(self)
 
-        heading = (
-            "Region statistics"
-            if result["selection_type"] == "region"
-            else "Pixel values"
-        )
+        heading = self._heading_text()
         title = QLabel(f"<h2 style='margin: 0'>{heading}</h2>")
-        subtitle = QLabel(
-            "Mean value for each band in the selected area."
-            if result["selection_type"] == "region"
-            else "First unmasked value for each band at the selected point."
-        )
+        subtitle = QLabel(self._subtitle_text())
         subtitle.setStyleSheet("color: palette(mid); margin-bottom: 8px;")
         layout.addWidget(title)
         layout.addWidget(subtitle)
 
         details = QFormLayout()
         details.addRow("Layer", QLabel(self._layer_text()))
-        details.addRow("Scale", QLabel(f"{result['scale']:.3f} m"))
+        if "scale" in result:
+            details.addRow("Scale", QLabel(f"{result['scale']:.3f} m"))
         details.addRow("Selection", QLabel(self._geometry_text()))
         layout.addLayout(details)
 
         table = self._create_values_table()
         layout.addWidget(table)
 
-        if not any(layer_result["values"] for layer_result in self.results):
+        if self._is_feature_result() and not self.result["features"]:
+            empty_label = QLabel("No features intersect this selection.")
+            empty_label.setStyleSheet("color: palette(mid); font-style: italic;")
+            layout.addWidget(empty_label)
+        elif not self._is_feature_result() and not any(
+            layer_result["values"] for layer_result in self.results
+        ):
             empty_label = QLabel("No unmasked data was found in this selection.")
             empty_label.setStyleSheet("color: palette(mid); font-style: italic;")
             layout.addWidget(empty_label)
@@ -377,6 +555,30 @@ class IdentifyResultsDialog(QDialog):
     def _is_multi_result(self) -> bool:
         return "results" in self.result
 
+    def _is_feature_result(self) -> bool:
+        return self.result.get("result_type") == "features"
+
+    def _heading_text(self) -> str:
+        if self._is_feature_result():
+            return "Selected features"
+        return (
+            "Region statistics"
+            if self.result["selection_type"] == "region"
+            else "Pixel values"
+        )
+
+    def _subtitle_text(self) -> str:
+        if self._is_feature_result():
+            return (
+                "Feature properties for Earth Engine features intersecting the "
+                "selection."
+            )
+        return (
+            "Mean value for each band in the selected area."
+            if self.result["selection_type"] == "region"
+            else "First unmasked value for each band at the selected point."
+        )
+
     def _layer_text(self) -> str:
         if not self._is_multi_result():
             return self.result["layer"]
@@ -384,7 +586,24 @@ class IdentifyResultsDialog(QDialog):
         return f"{count} Earth Engine layers"
 
     def _create_values_table(self) -> QTableWidget:
-        if self._is_multi_result():
+        if self._is_feature_result():
+            rows = sum(
+                max(1, len(feature_info.get("properties", {})))
+                for feature_info in self.result["features"]
+            )
+            table = QTableWidget(rows, 3)
+            table.setHorizontalHeaderLabels(["Feature", "Property", "Value"])
+            self._populate_feature_table(table)
+            table.horizontalHeader().setSectionResizeMode(
+                0, QHeaderView.ResizeMode.ResizeToContents
+            )
+            table.horizontalHeader().setSectionResizeMode(
+                1, QHeaderView.ResizeMode.Stretch
+            )
+            table.horizontalHeader().setSectionResizeMode(
+                2, QHeaderView.ResizeMode.Stretch
+            )
+        elif self._is_multi_result():
             rows = sum(
                 max(1, len(layer_result["values"])) for layer_result in self.results
             )
@@ -440,6 +659,23 @@ class IdentifyResultsDialog(QDialog):
                 table.setItem(row, 2, QTableWidgetItem(self._format_value(value)))
                 row += 1
 
+    def _populate_feature_table(self, table: QTableWidget) -> None:
+        row = 0
+        for feature_info in self.result["features"]:
+            properties = feature_info.get("properties", {})
+            feature_id = str(feature_info.get("id", ""))
+            if not properties:
+                table.setItem(row, 0, QTableWidgetItem(feature_id))
+                table.setItem(row, 1, QTableWidgetItem(""))
+                table.setItem(row, 2, QTableWidgetItem("No properties"))
+                row += 1
+                continue
+            for property_name, value in properties.items():
+                table.setItem(row, 0, QTableWidgetItem(feature_id))
+                table.setItem(row, 1, QTableWidgetItem(str(property_name)))
+                table.setItem(row, 2, QTableWidgetItem(self._format_value(value)))
+                row += 1
+
     def _geometry_text(self) -> str:
         geometry = self.result["geometry"]
         if self.result["selection_type"] == "point":
@@ -472,7 +708,7 @@ class IdentifyResultsDialog(QDialog):
 
 
 class EarthEngineIdentifyTool(QgsMapTool):
-    """Identify pixels or dragged regions from an Earth Engine raster layer."""
+    """Identify pixels, regions, and features from Earth Engine layers."""
 
     def __init__(self, iface):
         self.iface = iface
@@ -559,7 +795,7 @@ class EarthEngineIdentifyTool(QgsMapTool):
         if not layers:
             self.iface.messageBar().pushMessage(
                 "Earth Engine Identify",
-                "Select one or more Earth Engine raster layers before identifying.",
+                "Select one or more Earth Engine layers before identifying.",
                 level=Qgis.MessageLevel.Warning,
                 duration=5,
             )
@@ -594,6 +830,7 @@ class EarthEngineIdentifyTool(QgsMapTool):
             layer
             for layer in self._selected_layer_tree_layers()
             if utils.is_ee_raster_layer(layer)
+            or utils.is_ee_feature_collection_layer(layer)
         ]
 
     def _selected_layer_tree_layers(self) -> List[Any]:
@@ -668,6 +905,24 @@ class EarthEngineIdentifyTool(QgsMapTool):
     ) -> List[Dict[str, Any]]:
         results = []
         for layer in layers:
+            feature_collection = utils.get_ee_feature_collection_from_layer(layer)
+            if feature_collection is not None:
+                features = identify_features(
+                    feature_collection,
+                    selection_context["ee_geometry"],
+                )
+                results.append(
+                    {
+                        "result_type": "features",
+                        "layer": layer.name(),
+                        "selection_type": "region" if is_region else "point",
+                        "geometry": selection_context["geometry"],
+                        "feature_geometry": selection_context["feature_geometry"],
+                        "features": features,
+                    }
+                )
+                continue
+
             image = utils.get_ee_object_from_layer(layer)
             if image is None:
                 raise ValueError(
@@ -696,6 +951,25 @@ class EarthEngineIdentifyTool(QgsMapTool):
     @staticmethod
     def _multi_result(results: List[Dict[str, Any]]) -> Dict[str, Any]:
         first = results[0]
+        if all(result.get("result_type") == "features" for result in results):
+            features = []
+            for result in results:
+                for feature_info in result["features"]:
+                    feature_info = dict(feature_info)
+                    feature_info["_source_layer"] = result["layer"]
+                    features.append(feature_info)
+            return {
+                "result_type": "features",
+                "layer": "Earth Engine identify",
+                "selection_type": first["selection_type"],
+                "geometry": first["geometry"],
+                "feature_geometry": first["feature_geometry"],
+                "features": features,
+            }
+        if any(result.get("result_type") == "features" for result in results):
+            raise ValueError(
+                "Identify feature collection layers separately from raster layers."
+            )
         return {
             "results": results,
             "selection_type": first["selection_type"],

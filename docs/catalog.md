@@ -10,7 +10,7 @@ Open it from **Plugins > Google Earth Engine > Data Catalog**. The catalog appea
 
 ## Browse datasets
 
-When the catalog opens, it loads the official Earth Engine catalog by default. Use the search box to search by dataset name, asset ID, provider, tags, license, or other metadata.
+When the catalog opens, it loads the official Earth Engine catalog by default and shows a small set of commonly used datasets. Use the search box to search all loaded metadata by dataset name, asset ID, provider, tags, license, or other fields.
 
 You can narrow results with these filters:
 
@@ -21,7 +21,7 @@ You can narrow results with these filters:
 | Provider | Limits results to a specific dataset provider. |
 | Category | Limits results to a catalog category or thematic group. |
 
-The results table shows the dataset title, type, source, provider, category, and date range. Click a column heading to sort the table.
+The results table shows the dataset title, type, source, provider, category, and date range. To keep QGIS responsive, broad searches render the first matching results instead of filling the table with every loaded dataset. Click a column heading to sort the visible table rows.
 
 ## View dataset details
 

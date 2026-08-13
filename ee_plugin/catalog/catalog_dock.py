@@ -16,6 +16,7 @@ from qgis.PyQt.QtWidgets import (
     QLabel,
     QLineEdit,
     QMessageBox,
+    QProgressBar,
     QPushButton,
     QSplitter,
     QTableWidget,
@@ -43,11 +44,40 @@ from .client import (
     search_catalog,
 )
 
-MAX_VISIBLE_RESULTS = 500
+MAX_VISIBLE_RESULTS = 100
+POPULAR_VISIBLE_RESULTS = 100
+RESULT_POPULATE_BATCH_SIZE = 50
+COMMON_OFFICIAL_ASSET_IDS = [
+    "COPERNICUS/S2_SR_HARMONIZED",
+    "COPERNICUS/S2_HARMONIZED",
+    "LANDSAT/LC08/C02/T1_L2",
+    "LANDSAT/LC09/C02/T1_L2",
+    "LANDSAT/LE07/C02/T1_L2",
+    "LANDSAT/LT05/C02/T1_L2",
+    "MODIS/061/MOD13Q1",
+    "MODIS/061/MOD09GA",
+    "MODIS/061/MCD12Q1",
+    "USGS/SRTMGL1_003",
+    "NASA/NASADEM_HGT/001",
+    "COPERNICUS/DEM/GLO30",
+    "JRC/GSW1_4/GlobalSurfaceWater",
+    "ESA/WorldCover/v200",
+    "GOOGLE/DYNAMICWORLD/V1",
+    "UCSB-CHG/CHIRPS/DAILY",
+    "ECMWF/ERA5_LAND/DAILY_AGGR",
+    "IDAHO_EPSCOR/GRIDMET",
+    "NASA/GPM_L3/IMERG_V07",
+    "NOAA/GFS0P25",
+    "TIGER/2018/States",
+    "FAO/GAUL/2015/level0",
+    "WWF/HydroSHEDS/03VFDEM",
+    "CSP/ERGo/1_0/Global/SRTM_landforms",
+    "UMD/hansen/global_forest_change_2023_v1_11",
+]
 
 
 class CatalogLoadThread(QThread):
-    finished = pyqtSignal(list)
+    loaded = pyqtSignal(list)
     failed = pyqtSignal(str)
 
     def __init__(self, refresh: bool = False, community_only: bool = False):
@@ -58,11 +88,51 @@ class CatalogLoadThread(QThread):
     def run(self):
         try:
             if self.community_only:
-                self.finished.emit(load_community_catalog(refresh=self.refresh))
+                self.loaded.emit(load_community_catalog(refresh=self.refresh))
             else:
-                self.finished.emit(load_catalog(refresh=self.refresh))
+                self.loaded.emit(load_catalog(refresh=self.refresh))
         except Exception as exc:
             self.failed.emit(str(exc))
+
+
+class CatalogFilterThread(QThread):
+    filtered = pyqtSignal(int, list)
+    failed = pyqtSignal(int, str)
+
+    def __init__(
+        self,
+        request_id: int,
+        items: List[CatalogItem],
+        query: str = "",
+        asset_type: Optional[str] = None,
+        source: Optional[str] = None,
+        provider: Optional[str] = None,
+        category: Optional[str] = None,
+    ):
+        super().__init__()
+        self.request_id = request_id
+        self.items = list(items)
+        self.query = query
+        self.asset_type = asset_type
+        self.source = source
+        self.provider = provider
+        self.category = category
+
+    def run(self):
+        try:
+            self.filtered.emit(
+                self.request_id,
+                search_catalog(
+                    self.items,
+                    query=self.query,
+                    asset_type=self.asset_type,
+                    source=self.source,
+                    provider=self.provider,
+                    category=self.category,
+                ),
+            )
+        except Exception as exc:
+            self.failed.emit(self.request_id, str(exc))
 
 
 class CatalogDockWidget(QDockWidget):
@@ -74,12 +144,21 @@ class CatalogDockWidget(QDockWidget):
         self.items: List[CatalogItem] = []
         self.filtered_items: List[CatalogItem] = []
         self._loader: Optional[CatalogLoadThread] = None
+        self._filter_loader: Optional[CatalogFilterThread] = None
         self._is_loading = False
+        self._is_filtering = False
         self._loaded_sources = set()
         self._pending_source = ""
+        self._filter_request_id = 0
+        self._pending_filter = False
+        self._populate_row = 0
+        self._matched_result_count = 0
         self._filter_timer = QTimer(self)
         self._filter_timer.setSingleShot(True)
         self._filter_timer.timeout.connect(self.apply_filters)
+        self._populate_timer = QTimer(self)
+        self._populate_timer.setSingleShot(True)
+        self._populate_timer.timeout.connect(self._populate_next_batch)
 
         self.setObjectName("EarthEngineCatalogDock")
         self.setWidget(self._build_widget())
@@ -126,6 +205,11 @@ class CatalogDockWidget(QDockWidget):
 
         self.status_label = QLabel()
         layout.addWidget(self.status_label)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 0)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.hide()
+        layout.addWidget(self.progress_bar)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
         self.results_table = QTableWidget(0, 6)
@@ -191,17 +275,28 @@ class CatalogDockWidget(QDockWidget):
         self._is_loading = True
         self._pending_source = OFFICIAL_SOURCE
         self._set_loading_state("Loading catalog...")
+        self._set_busy_indicator_visible(True)
         self._set_controls_enabled(False)
         self._loader = CatalogLoadThread(refresh=refresh)
-        self._loader.finished.connect(self._catalog_loaded)
+        self._loader.loaded.connect(self._catalog_loaded)
         self._loader.failed.connect(self._catalog_failed)
-        self._loader.finished.connect(self._clear_loader)
-        self._loader.failed.connect(self._clear_loader)
+        self._loader.loaded.connect(lambda _: self._clear_loader())
+        self._loader.failed.connect(lambda _: self._clear_loader())
         self._loader.start()
 
     def apply_filters(self) -> None:
+        if self._filter_loader is not None:
+            self._pending_filter = True
+            return
+
         source = self._selected_source_filter()
-        self.filtered_items = search_catalog(
+        self._filter_request_id += 1
+        request_id = self._filter_request_id
+        self._is_filtering = True
+        self._set_busy_indicator_visible(True)
+        self._update_status("Updating catalog results...")
+        self._filter_loader = CatalogFilterThread(
+            request_id,
             self.items,
             query=self.search_edit.text(),
             asset_type=self._combo_filter_value(self.type_combo, "All types"),
@@ -209,7 +304,11 @@ class CatalogDockWidget(QDockWidget):
             provider=self._combo_filter_value(self.provider_combo, "All providers"),
             category=self._combo_filter_value(self.category_combo, "All categories"),
         )
-        self._populate_results()
+        self._filter_loader.filtered.connect(self._filters_applied)
+        self._filter_loader.failed.connect(self._filter_failed)
+        self._filter_loader.filtered.connect(lambda *_: self._clear_filter_loader())
+        self._filter_loader.failed.connect(lambda *_: self._clear_filter_loader())
+        self._filter_loader.start()
 
     def _schedule_filter(self) -> None:
         self._filter_timer.start(250)
@@ -303,6 +402,7 @@ class CatalogDockWidget(QDockWidget):
         self._pending_source = ""
         self._refresh_filter_options()
         self._set_controls_enabled(True)
+        self._set_busy_indicator_visible(False)
         self.apply_filters()
 
     def _catalog_failed(self, error: str) -> None:
@@ -310,6 +410,7 @@ class CatalogDockWidget(QDockWidget):
         failed_source = self._pending_source
         self._pending_source = ""
         self._set_controls_enabled(True)
+        self._set_busy_indicator_visible(False)
         if failed_source == COMMUNITY_SOURCE and self.items:
             self.apply_filters()
             self._update_status("Could not load community catalog.")
@@ -319,13 +420,79 @@ class CatalogDockWidget(QDockWidget):
     def _clear_loader(self) -> None:
         self._loader = None
 
+    def _filters_applied(self, request_id: int, items: list) -> None:
+        if request_id != self._filter_request_id:
+            return
+        if self._pending_filter:
+            self._is_filtering = False
+            return
+        self._matched_result_count = len(items)
+        if self._show_common_datasets():
+            items = self._common_catalog_items(items)
+        self.filtered_items = items
+        self._is_filtering = False
+        self._populate_results()
+
+    def _filter_failed(self, request_id: int, error: str) -> None:
+        if request_id != self._filter_request_id:
+            return
+        if self._pending_filter:
+            self._is_filtering = False
+            return
+        self._matched_result_count = 0
+        self._is_filtering = False
+        self._set_busy_indicator_visible(self._is_loading)
+        self._update_status(f"Could not update catalog results: {error}")
+
+    def _clear_filter_loader(self) -> None:
+        self._filter_loader = None
+        if self._pending_filter:
+            self._pending_filter = False
+            self.apply_filters()
+
     def _populate_results(self) -> None:
+        self._populate_timer.stop()
         visible_items = self.filtered_items[:MAX_VISIBLE_RESULTS]
         self.results_table.setSortingEnabled(False)
-        self.results_table.setUpdatesEnabled(False)
         self.results_table.clearSelection()
+        self.results_table.clearContents()
         self.results_table.setRowCount(len(visible_items))
-        for row, item in enumerate(visible_items):
+        self._populate_row = 0
+        self._set_busy_indicator_visible(bool(visible_items))
+        self._populate_next_batch()
+
+    def _show_common_datasets(self) -> bool:
+        return (
+            not self.search_edit.text().strip()
+            and self.type_combo.currentText() == "All types"
+            and self.source_combo.currentText() == "Official"
+            and self.provider_combo.currentText() == "All providers"
+            and self.category_combo.currentText() == "All categories"
+        )
+
+    def _common_catalog_items(self, items: List[CatalogItem]) -> List[CatalogItem]:
+        items_by_asset_id = {item.asset_id: item for item in items}
+        common_items = [
+            items_by_asset_id[asset_id]
+            for asset_id in COMMON_OFFICIAL_ASSET_IDS
+            if asset_id in items_by_asset_id
+        ]
+        if len(common_items) >= POPULAR_VISIBLE_RESULTS:
+            return common_items[:POPULAR_VISIBLE_RESULTS]
+
+        seen_asset_ids = {item.asset_id for item in common_items}
+        fallback_items = [item for item in items if item.asset_id not in seen_asset_ids]
+        return (common_items + fallback_items)[:POPULAR_VISIBLE_RESULTS]
+
+    def _populate_next_batch(self) -> None:
+        visible_items = self.filtered_items[:MAX_VISIBLE_RESULTS]
+        end_row = min(
+            self._populate_row + RESULT_POPULATE_BATCH_SIZE,
+            len(visible_items),
+        )
+        self.results_table.setUpdatesEnabled(False)
+        for row in range(self._populate_row, end_row):
+            item = visible_items[row]
             date_range = self._date_range_label(item)
             values = [
                 item.title,
@@ -340,7 +507,16 @@ class CatalogDockWidget(QDockWidget):
                 table_item.setData(Qt.ItemDataRole.UserRole, row)
                 self.results_table.setItem(row, column, table_item)
         self.results_table.setUpdatesEnabled(True)
+        self._populate_row = end_row
+        if self._populate_row < len(visible_items):
+            self._update_status(
+                f"Rendering {self._populate_row} of {len(visible_items)} result(s)..."
+            )
+            self._populate_timer.start(0)
+            return
+
         self.results_table.setSortingEnabled(True)
+        self._set_busy_indicator_visible(self._is_loading or self._is_filtering)
         self._update_status()
         self._update_details()
 
@@ -383,7 +559,9 @@ class CatalogDockWidget(QDockWidget):
         self._update_action_buttons()
 
     def _set_loading_state(self, message: str) -> None:
+        self._populate_timer.stop()
         self.filtered_items = []
+        self._matched_result_count = 0
         self.results_table.setRowCount(0)
         self.details.setPlainText(message)
         self._update_status(message)
@@ -446,12 +624,13 @@ class CatalogDockWidget(QDockWidget):
         self._is_loading = True
         self._pending_source = COMMUNITY_SOURCE
         self._set_controls_enabled(False)
+        self._set_busy_indicator_visible(True)
         self._update_status("Loading community catalog...")
         self._loader = CatalogLoadThread(refresh=refresh, community_only=True)
-        self._loader.finished.connect(self._catalog_loaded)
+        self._loader.loaded.connect(self._catalog_loaded)
         self._loader.failed.connect(self._catalog_failed)
-        self._loader.finished.connect(self._clear_loader)
-        self._loader.failed.connect(self._clear_loader)
+        self._loader.loaded.connect(lambda _: self._clear_loader())
+        self._loader.failed.connect(lambda _: self._clear_loader())
         self._loader.start()
 
     def _refresh_current_source(self) -> None:
@@ -478,22 +657,30 @@ class CatalogDockWidget(QDockWidget):
         self.clear_filters_button.setEnabled(enabled)
         self.refresh_button.setEnabled(enabled)
 
+    def _set_busy_indicator_visible(self, visible: bool) -> None:
+        self.progress_bar.setVisible(visible)
+
     def _update_status(self, message: Optional[str] = None) -> None:
         if message:
             self.status_label.setText(message)
             return
         total = len(self.items)
-        filtered = len(self.filtered_items)
+        matched = self._matched_result_count
+        visible = min(len(self.filtered_items), MAX_VISIBLE_RESULTS)
         if total == 0:
             self.status_label.setText("No catalog datasets loaded.")
-        elif filtered > MAX_VISIBLE_RESULTS:
+        elif self._show_common_datasets():
             self.status_label.setText(
-                f"Showing first {MAX_VISIBLE_RESULTS} of {filtered} match(es)."
+                f"Showing {visible} commonly used dataset(s). Search to browse {total} loaded dataset(s)."
             )
-        elif filtered == total:
+        elif matched > MAX_VISIBLE_RESULTS:
+            self.status_label.setText(
+                f"Showing first {MAX_VISIBLE_RESULTS} of {matched} match(es)."
+            )
+        elif matched == total:
             self.status_label.setText(f"Showing {total} dataset(s).")
         else:
-            self.status_label.setText(f"Showing {filtered} of {total} dataset(s).")
+            self.status_label.setText(f"Showing {matched} of {total} dataset(s).")
 
     def _update_action_buttons(self) -> None:
         has_selection = self.selected_item() is not None

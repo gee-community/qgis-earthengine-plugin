@@ -1,5 +1,6 @@
 """Map tool for identifying Earth Engine raster pixels and vector features."""
 
+import logging
 import re
 from typing import Any, Dict, List, Optional
 
@@ -34,6 +35,8 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from . import Map, utils
+
+logger = logging.getLogger(__name__)
 
 FEATURE_IDENTIFY_LIMIT = 100
 
@@ -843,8 +846,8 @@ class EarthEngineIdentifyTool(QgsMapTool):
             selected_layers = layer_tree_view.selectedLayers()
             if selected_layers:
                 return list(selected_layers)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Unable to read selected layers.", exc_info=exc)
 
         try:
             selected_nodes = layer_tree_view.selectedLayerNodes()

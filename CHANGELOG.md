@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.2.2...v0.3.0) (2026-08-14)
+
+
+### Features
+
+* add multi layer identify tool ([#463](https://github.com/gee-community/qgis-earthengine-plugin/issues/463)) ([8d7af5a](https://github.com/gee-community/qgis-earthengine-plugin/commit/8d7af5a21e544e99e54622895bdb15d51161d243))
+* catalog integration ([#466](https://github.com/gee-community/qgis-earthengine-plugin/issues/466)) ([0505719](https://github.com/gee-community/qgis-earthengine-plugin/commit/050571970b7d1d345c64f6a472fe3e287e29a587))
+
+
+### Bug Fixes
+
+* enable cancellation of sign in ([15ef83e](https://github.com/gee-community/qgis-earthengine-plugin/commit/15ef83e933cc9e7811e5e51407750d981bea3f30))
+* respect model intermediate EE layers  ([fa34dcf](https://github.com/gee-community/qgis-earthengine-plugin/commit/fa34dcf6832c0c3000345d4c23082906cab84015))
+* support the QGIS 4.2 processing dialog base class rename ([#468](https://github.com/gee-community/qgis-earthengine-plugin/issues/468)) ([06c3cd1](https://github.com/gee-community/qgis-earthengine-plugin/commit/06c3cd1564b8021c98e503b4bb40730035afaa90))
+
 ## [0.2.2](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.2.1...v0.2.2) (2026-07-14)
 
 

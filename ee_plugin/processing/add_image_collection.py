@@ -436,7 +436,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
 
         return parsed_filters
 
-    def createCustomParametersWidget(self, parent=...):
+    def createCustomParametersWidget(self, parent=None):
         # Use stock Processing dialog on older QGIS where custom dialog init is fragile
         if Qgis.QGIS_VERSION_INT < 34000:
             return None

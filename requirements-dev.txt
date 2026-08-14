@@ -8,6 +8,8 @@ pytest-qgis
 pytest-timeout
 pre-commit
 bandit
+flake8
+flake8-qgis>=2.0.1; python_version >= "3.10"
 future
 rasterio
 qgis-plugin-ci

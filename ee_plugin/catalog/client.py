@@ -66,10 +66,8 @@ class CatalogItem:
 
 
 def cache_dir() -> str:
-    try:
-        cache_location = QStandardPaths.StandardLocation.CacheLocation
-    except AttributeError:
-        cache_location = QStandardPaths.CacheLocation
+    standard_location = getattr(QStandardPaths, "StandardLocation", QStandardPaths)
+    cache_location = standard_location.CacheLocation
     base_dir = QStandardPaths.writableLocation(cache_location)
     if not base_dir:
         base_dir = os.path.expanduser("~/.cache/qgis-earthengine-plugin")

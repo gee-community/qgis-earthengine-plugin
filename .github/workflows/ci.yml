@@ -66,6 +66,10 @@ jobs:
         run: |
           .venv/bin/bandit -r ee_plugin
 
+      - name: Run QGIS compatibility checks
+        run: |
+          .venv/bin/flake8 --select=QGS403 ee_plugin
+
       - name: Run tests with coverage
         run: >
           xvfb-run -s '+extension GLX -screen 0 1024x768x24'

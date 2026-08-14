@@ -44,6 +44,7 @@ nav:
   - Usage:
     - Overview: usage.md
     - Identify Tool: identify.md
+    - Data Catalog: catalog.md
   - Troubleshooting: troubleshooting.md
   - Tutorials:
     - Downloading Images: tutorials/downloading_images.md

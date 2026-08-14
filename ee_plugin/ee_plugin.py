@@ -18,6 +18,7 @@ from qgis.PyQt.QtGui import QIcon
 import ee
 
 from . import provider, config, ee_auth, utils, logging
+from .catalog.catalog_dock import CatalogDockWidget
 from .identify import EarthEngineIdentifyTool
 from .ui import menus
 from .processing.processing_provider import EEProcessingProvider
@@ -74,6 +75,7 @@ class GoogleEarthEnginePlugin(object):
         self.toolButtonAction = None
         self.identify_action = None
         self.identify_tool = None
+        self.catalog_dock = None
 
         # initialize locale
         locale = str(QSettings().value("locale/userLocale"))[0:2]
@@ -135,6 +137,12 @@ class GoogleEarthEnginePlugin(object):
             text=self.tr(self._project_button_text),
             parent=self.iface.mainWindow(),
             triggered=self._run_cmd_set_cloud_project,
+        )
+        catalog_action = QtWidgets.QAction(
+            icon=icon("earth-engine.svg"),
+            text=self.tr("Data Catalog"),
+            parent=self.iface.mainWindow(),
+            triggered=self._show_catalog_dock,
         )
         add_fc_button = QtWidgets.QAction(
             text=self.tr("Add Feature Collection"),
@@ -206,6 +214,7 @@ class GoogleEarthEnginePlugin(object):
                     menus.Separator(),
                     menus.Action(action=sign_in_action),
                     menus.Action(action=self.set_cloud_project_action),
+                    menus.Action(action=catalog_action),
                     menus.Separator(),
                     menus.SubMenu(
                         label=self.tr("Add Layer"),
@@ -236,6 +245,11 @@ class GoogleEarthEnginePlugin(object):
         if self.menu:
             self.iface.pluginMenu().removeAction(self.menu.menuAction())
 
+        if self.catalog_dock:
+            self.catalog_dock.close()
+            self.catalog_dock.deleteLater()
+            self.catalog_dock = None
+
         if getattr(self, "toolButtonAction", None):
             self.iface.pluginToolBar().removeAction(self.toolButtonAction)
 
@@ -256,6 +270,22 @@ class GoogleEarthEnginePlugin(object):
             canvas.setMapTool(self.identify_tool)
         elif canvas.mapTool() is self.identify_tool:
             canvas.unsetMapTool(self.identify_tool)
+
+    def _show_catalog_dock(self):
+        if self.catalog_dock is None:
+            self.catalog_dock = CatalogDockWidget(
+                self.iface,
+                parent=self.iface.mainWindow(),
+            )
+            self.iface.addDockWidget(
+                Qt.DockWidgetArea.RightDockWidgetArea,
+                self.catalog_dock,
+            )
+            self.catalog_dock.destroyed.connect(
+                lambda: setattr(self, "catalog_dock", None)
+            )
+        self.catalog_dock.show()
+        self.catalog_dock.raise_()
 
     @property
     def _project_button_text(self):

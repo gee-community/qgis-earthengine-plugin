@@ -49,6 +49,7 @@ EE_LAYER_TYPE_PROPERTY = "ee-layer-type"
 EE_OBJECT_PROPERTY = "ee-object"
 EE_OBJECT_VIS_PROPERTY = "ee-object-vis"
 EE_ASSET_ID_PROPERTY = "ee-asset-id"
+EE_FEATURE_COLLECTION_OBJECT_PROPERTY = "ee-feature-collection-object"
 
 # --- Encoding-size helpers (module-level; used by tile_extent) ---
 
@@ -227,6 +228,13 @@ def is_ee_raster_layer(layer: QgsMapLayer) -> bool:
     )
 
 
+def is_ee_feature_collection_layer(layer: QgsMapLayer) -> bool:
+    return bool(
+        is_ee_layer(layer)
+        and layer.customProperty(EE_FEATURE_COLLECTION_OBJECT_PROPERTY)
+    )
+
+
 def get_ee_object_from_layer(layer: QgsMapLayer) -> Optional[ee.Element]:
     if not is_ee_layer(layer):
         return None
@@ -240,6 +248,32 @@ def get_ee_object_from_layer(layer: QgsMapLayer) -> Optional[ee.Element]:
             )
     provider_object = getattr(layer.dataProvider(), "ee_object", None)
     return provider_object
+
+
+def set_ee_feature_collection_layer_source(
+    layer: QgsMapLayer, feature_collection: ee.FeatureCollection
+) -> None:
+    layer.setCustomProperty(
+        EE_FEATURE_COLLECTION_OBJECT_PROPERTY,
+        _serialize_ee_object(feature_collection),
+    )
+
+
+def get_ee_feature_collection_from_layer(
+    layer: QgsMapLayer,
+) -> Optional[ee.FeatureCollection]:
+    if not is_ee_feature_collection_layer(layer):
+        return None
+    serialized = layer.customProperty(EE_FEATURE_COLLECTION_OBJECT_PROPERTY)
+    if not serialized:
+        return None
+    try:
+        return ee.deserializer.fromJSON(serialized)
+    except Exception as e:
+        logger.warning(
+            f"Could not deserialize feature collection from layer {layer.name()}: {e}"
+        )
+        return None
 
 
 def add_or_update_ee_layer(
@@ -478,14 +512,18 @@ def add_or_update_named_vector_layer(
         style_kwargs = {k: v for k, v in vis_params.items() if k in ee_style_keys}
         image = eeObject.style(**style_kwargs)
         # Style is already baked into the image; don't pass vis_params again
-        return add_or_update_ee_raster_layer(
+        layer = add_or_update_ee_raster_layer(
             image, name, {}, shown, opacity, add_to_project, context
         )
+        set_ee_feature_collection_layer_source(layer, eeObject)
+        return layer
     else:
         image = ee.Image().paint(eeObject, 0, 2)
-        return add_or_update_ee_raster_layer(
+        layer = add_or_update_ee_raster_layer(
             image, name, {}, shown, opacity, add_to_project, context
         )
+        set_ee_feature_collection_layer_source(layer, eeObject)
+        return layer
 
 
 def add_or_update_ee_vector_layer(

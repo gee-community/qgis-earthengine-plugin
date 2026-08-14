@@ -3,7 +3,9 @@ from unittest.mock import Mock, patch
 from qgis.core import NULL, QgsProject, QgsPointXY, QgsRectangle
 
 from ee_plugin.identify import (
+    _geojson_geometry_to_wkt,
     add_identify_results_layer,
+    identify_features,
     identify_image,
     identify_reducer,
     identify_reducer_name,
@@ -32,6 +34,48 @@ def test_identify_image_reduces_all_bands_over_geometry():
         maxPixels=100_000_000,
     )
     assert values == {"B2": 0.12, "B3": 0.34}
+
+
+def test_identify_features_fetches_intersecting_features():
+    feature_collection = Mock()
+    filtered = feature_collection.filterBounds.return_value
+    limited = filtered.limit.return_value
+    limited.getInfo.return_value = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "id": "feature-1",
+                "geometry": {"type": "Point", "coordinates": [-123.1, 49.2]},
+                "properties": {"name": "Selected"},
+            }
+        ],
+    }
+    geometry = Mock()
+
+    features = identify_features(feature_collection, geometry, limit=10)
+
+    feature_collection.filterBounds.assert_called_once_with(geometry)
+    filtered.limit.assert_called_once_with(10)
+    assert features == limited.getInfo.return_value["features"]
+
+
+def test_geojson_geometry_to_wkt_handles_polygon():
+    wkt = _geojson_geometry_to_wkt(
+        {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-123.2, 49.1],
+                    [-123.1, 49.1],
+                    [-123.1, 49.2],
+                    [-123.2, 49.1],
+                ]
+            ],
+        }
+    )
+
+    assert wkt == "POLYGON ((-123.2 49.1, -123.1 49.1, -123.1 49.2, -123.2 49.1))"
 
 
 def test_point_to_ee_geometry():
@@ -171,6 +215,47 @@ def test_add_identify_results_layer_creates_single_point_feature():
         "elevation_first",
     ]
     assert feature["elevation_first"] == 123
+    assert feature.geometry().asPoint() == QgsPointXY(-123.1, 49.2)
+
+
+def test_add_identify_results_layer_creates_selected_feature_layer():
+    result = {
+        "result_type": "features",
+        "layer": "FC: Counties",
+        "selection_type": "point",
+        "geometry": {"longitude": -123.1, "latitude": 49.2},
+        "features": [
+            {
+                "type": "Feature",
+                "id": "county-1",
+                "geometry": {"type": "Point", "coordinates": [-123.1, 49.2]},
+                "properties": {
+                    "name": "Selected County",
+                    "population": 123,
+                    "2020/id": "abc",
+                },
+            }
+        ],
+    }
+
+    layer = add_identify_results_layer(result, QgsProject.instance())
+    feature = next(layer.getFeatures())
+
+    assert layer.name() == "FC: Counties identify"
+    assert [field.name() for field in layer.fields()] == [
+        "source_layer",
+        "selection_type",
+        "ee_feature_id",
+        "name",
+        "population",
+        "property_2020_id",
+    ]
+    assert feature["source_layer"] == "FC: Counties"
+    assert feature["selection_type"] == "point"
+    assert feature["ee_feature_id"] == "county-1"
+    assert feature["name"] == "Selected County"
+    assert feature["population"] == 123
+    assert feature["property_2020_id"] == "abc"
     assert feature.geometry().asPoint() == QgsPointXY(-123.1, 49.2)
 
 

@@ -21,7 +21,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtCore import Qt, QT_VERSION_STR, QTimer
 from qgis.PyQt.QtCore import QObject, pyqtSignal
-from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtWidgets import QMainWindow, QWidget
 from qgis import gui, processing
 
 
@@ -31,28 +31,44 @@ from ..logging import local_context
 logger = logging.getLogger(__name__)
 
 
+# QGIS 4.2 renamed QgsProcessingAlgorithmDialogBase (QDialog, DialogMode) to
+# QgsProcessingAlgorithmWidgetBase (QWidget, WidgetMode); 3.x and 4.0/4.1 keep the old one.
+_IS_WIDGET_BASE = not hasattr(gui, "QgsProcessingAlgorithmDialogBase")
+
+if _IS_WIDGET_BASE:
+    ProcessingAlgorithmDialogBase = gui.QgsProcessingAlgorithmWidgetBase
+    _SINGLE_MODE = ProcessingAlgorithmDialogBase.WidgetMode.Single
+else:
+    ProcessingAlgorithmDialogBase = gui.QgsProcessingAlgorithmDialogBase
+    _SINGLE_MODE = ProcessingAlgorithmDialogBase.DialogMode.Single
+
+
 class _RunSignals(QObject):
     finished = pyqtSignal(dict)  # results
     failed = pyqtSignal(Exception)  # error
     canceled = pyqtSignal()
 
 
-class BaseAlgorithmDialog(gui.QgsProcessingAlgorithmDialogBase):
+class BaseAlgorithmDialog(ProcessingAlgorithmDialogBase):
     def __init__(
         self,
         algorithm: QgsProcessingAlgorithm,
         parent: Optional[QWidget] = None,
         title: Optional[str] = None,
     ):
-        super().__init__(
-            parent,
-            flags=Qt.WindowFlags(),
-            mode=gui.QgsProcessingAlgorithmDialogBase.DialogMode.Single,
-        )
+        # The 4.2+ base takes a QMainWindow only; anything else is a sip TypeError.
+        if _IS_WIDGET_BASE and not isinstance(parent, QMainWindow):
+            parent = None
+        # `flags` omitted: Qt.WindowFlags on the old base (gone in PyQt6), WidgetFlags on 4.2+
+        super().__init__(parent, mode=_SINGLE_MODE)
         self.context = self.createContext()
         QTimer.singleShot(0, lambda: self.setAlgorithm(algorithm))
-        self.setModal(True)
-        self.setWindowTitle(title or algorithm.displayName())
+        if hasattr(self, "setModal"):  # absent on the 4.2+ QWidget base
+            self.setModal(True)
+        window_title = title or algorithm.displayName()
+        self.setWindowTitle(window_title)
+        if hasattr(self, "setTitle"):  # 4.2+: also titles the widget when docked
+            self.setTitle(window_title)
 
         # Hook up layout
         self.panel = gui.QgsPanelWidget()

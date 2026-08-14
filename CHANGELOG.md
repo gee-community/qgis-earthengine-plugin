@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.3.0...v0.3.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* bandit check ([#469](https://github.com/gee-community/qgis-earthengine-plugin/issues/469)) ([afc9196](https://github.com/gee-community/qgis-earthengine-plugin/commit/afc919622e5fedfa878f9c67b40e2b142069f5c7))
+
 ## [0.3.0](https://github.com/gee-community/qgis-earthengine-plugin/compare/v0.2.2...v0.3.0) (2026-08-14)
 
 

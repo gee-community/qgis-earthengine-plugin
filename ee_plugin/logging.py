@@ -18,6 +18,10 @@ class LocalContext:
     def set_feedback(self, feedback: QgsFeedback) -> None:
         self._state.feedback = feedback
 
+    def clear_feedback(self) -> None:
+        if hasattr(self._state, "feedback"):
+            del self._state.feedback
+
     def get_feedback(self) -> Optional[QgsFeedback]:
         return getattr(self._state, "feedback", None)
 
@@ -72,6 +76,9 @@ class QGISMessageBarHandler(logging.Handler):
         super().__init__()
 
     def emit(self, record):
+        if local_context.get_feedback():
+            return
+
         # Map Python log levels to QGIS message bar levels
         if record.levelno >= logging.ERROR:
             qgis_level = Qgis.MessageLevel.Critical

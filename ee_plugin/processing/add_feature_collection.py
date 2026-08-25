@@ -24,6 +24,7 @@ from qgis.PyQt.QtWidgets import (
 from qgis.PyQt.QtGui import QColor
 
 from .. import Map
+from ..logging import local_context
 from ..ui.widgets import FilterWidget
 from ..processing.custom_algorithm_dialog import BaseAlgorithmDialog
 from ..utils import (
@@ -210,6 +211,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         return parsed_filters
 
     def processAlgorithm(self, parameters, context, feedback):
+        local_context.set_feedback(feedback)
         feature_collection_id = self.parameterAsString(
             parameters, "feature_collection_id", context
         )
@@ -250,7 +252,7 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
             if "system:time_start" in sample_info.get("properties", {}):
                 fc = fc.filter(ee.Filter.date(ee.Date(start_date), ee.Date(end_date)))
             else:
-                logger.warning(
+                feedback.pushWarning(
                     "Skipping date filter: no system:time_start property found."
                 )
         # Apply extent filter if provided
@@ -275,10 +277,11 @@ class AddFeatureCollectionAlgorithm(QgsProcessingAlgorithm):
         result["OUTPUT_RASTER"] = layer
 
         if fc.size().getInfo() == 0:
-            logger.warning(
+            feedback.pushWarning(
                 f"No features found in the Feature Collection: {feature_collection_id}"
             )
 
+        local_context.clear_feedback()
         return result
 
     def createCustomParametersWidget(self, parent=None):

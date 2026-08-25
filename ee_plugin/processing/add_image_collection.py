@@ -34,6 +34,7 @@ from qgis import gui
 
 from .custom_algorithm_dialog import BaseAlgorithmDialog
 from .. import Map
+from ..logging import local_context
 from ..ui.widgets import VisualizationParamsWidget, FilterWidget
 from ..utils import (
     translate as _,
@@ -479,6 +480,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
         return AddImageCollectionAlgorithmDialog(algorithm=self, parent=parent)
 
     def processAlgorithm(self, parameters, context, feedback):
+        local_context.set_feedback(feedback)
         image_collection_id = parameters["image_collection_id"]
         filters = parameters["filters"]
         start_date = parameters["start_date"]
@@ -505,7 +507,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
 
             if start_date_str > end_date_str:
                 msg = "Start date must be earlier than or equal to end date."
-                logger.error(msg)
+                feedback.reportError(msg, True)
                 raise ValueError(msg)
 
             ic = ic.filter(
@@ -514,7 +516,9 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
 
         # If extent is provided, convert it to a QgsRectangle and then to ee.Geometry
         if not extent:
-            logger.warning("Extent is not provided. The entire globe will be used.")
+            feedback.pushWarning(
+                "Extent is not provided. The entire globe will be used."
+            )
 
         ee_extent = None
         if extent and extent_crs:
@@ -531,7 +535,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
                     ee_extent = get_ee_extent(extent, norm_extent_crs, project)
                 ic = ic.filterBounds(ee_extent)
             except Exception as e:
-                logger.warning(
+                feedback.pushWarning(
                     f"Could not filter image collection by extent directly: {e}. Attempting to resolve as layer reference."
                 )
                 # With QGIS processing models, a layer (by ID/name) could be passed for the extent.
@@ -597,7 +601,7 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
             ic = ic.reduce(ee.Reducer.percentile([percentile_value]))
             ic = ic.regexpRename("_p.*", "")
         elif compositing_name == "First":
-            logger.warning(
+            feedback.pushWarning(
                 "Using 'First' compositing method, which returns the first image in the collection."
             )
             ic = ic.first()
@@ -636,4 +640,5 @@ class AddImageCollectionAlgorithm(QgsProcessingAlgorithm):
 
         layer = add_processing_ee_layer(ic, viz_params, name, context, parameters)
 
+        local_context.clear_feedback()
         return {"OUTPUT": layer, "LAYER_NAME": layer.name()}

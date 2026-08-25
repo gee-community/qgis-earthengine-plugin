@@ -266,16 +266,20 @@ class ExportGeoTIFFAlgorithmDialog(BaseAlgorithmDialog):
                 import ee
 
                 ee.data.cancelOperation(alg._ee_operation_name)
-                local_context.pushInfo(
-                    f"Requested cancel of EE operation: {alg._ee_operation_name}"
-                )
+                feedback = local_context.get_feedback()
+                if feedback:
+                    feedback.pushInfo(
+                        f"Requested cancel of EE operation: {alg._ee_operation_name}"
+                    )
         except Exception as exc:
             logging.debug("Unable to cancel EE operation.", exc_info=exc)
         # Try to cancel an old ee.batch.Task if present
         try:
             if alg is not None and getattr(alg, "_ee_task", None):
                 alg._ee_task.cancel()
-                local_context.pushInfo("Requested cancel of EE batch task")
+                feedback = local_context.get_feedback()
+                if feedback:
+                    feedback.pushInfo("Requested cancel of EE batch task")
         except Exception as exc:
             logging.debug("Unable to cancel EE batch task.", exc_info=exc)
 
